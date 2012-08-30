@@ -15,7 +15,7 @@ int client_protocol(client *c, Atom protocol);
 void client_close(client *c);
 void client_position(client *c, int x, int y, int w, int h);
 void spot_xywh(int spot, int *x, int *y, int *w, int *h);
-void client_spot(client *c, int spot);
+void client_spot(client *c, int spot, int force);
 void client_cycle(client *c);
 Window spot_active(int spot, Window except);
 void client_stack(client *c, stack *all, stack *raise);

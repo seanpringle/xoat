@@ -323,12 +323,27 @@ void spot_xywh(int spot, int *x, int *y, int *w, int *h)
 }
 
 // move a window to a screen "spot"
-void client_spot(client *c, int spot)
+void client_spot(client *c, int spot, int force)
 {
 	if (!c) return;
 	int x, y, w, h;
 	spot = MAX(SPOT1, MIN(SPOT3, spot));
+
+	if (c->trans && !force)
+	{
+		client *t = window_client(c->transient_for);
+		spot = t->spot;
+		client_free(t);
+	}
 	spot_xywh(spot, &x, &y, &w, &h);
+
+	if (c->type == atoms[_NET_WM_WINDOW_TYPE_DIALOG])
+	{
+		x += (w - c->attr.width)/2;
+		y += (h - c->attr.height)/2;
+		w = c->attr.width + BORDER*2;
+		h = c->attr.height + BORDER*2;
+	}
 
 	c->spot = spot;
 	client_position(c, x, y, w, h);
@@ -496,7 +511,7 @@ void configure_request(XConfigureRequestEvent *e)
 		if (c->manage && c->visible && !c->trans)
 		{
 			client_review(c);
-			client_spot(c, c->spot);
+			client_spot(c, c->spot, 0);
 		}
 		else
 		{
@@ -521,30 +536,8 @@ void map_request(XMapEvent *e)
 	{
 		client_review(c);
 
-		int x, w, y, h;
 		int spot = SPOT_START == SPOT_CURRENT ? current_spot: SPOT_START;
-		spot_xywh(spot, &x, &y, &w, &h);
-
-		if (c->trans)
-		{
-			// locate a transient's parent's spot
-			client *t = window_client(c->transient_for);
-			spot = t->spot;
-			client_free(t);
-		}
-		if (!c->trans && c->type != atoms[_NET_WM_WINDOW_TYPE_DIALOG])
-		{
-			// fill a spot
-			client_spot(c, spot);
-		}
-		else
-		{
-			// center in spot at requested size
-			client_position(c,
-				x + (w - c->attr.width)/2, y + (h - c->attr.height)/2,
-				c->attr.width + BORDER*2, c->attr.height + BORDER*2);
-			c->spot = spot;
-		}
+		client_spot(c, spot, 0);
 	}
 	client_free(c);
 	XMapWindow(display, e->window);
@@ -614,15 +607,15 @@ void key_press(XKeyEvent *e)
 		{
 			case ACTION_MOVE_SPOT1:
 				client_raise(c);
-				client_spot(c, SPOT1);
+				client_spot(c, SPOT1, 1);
 				break;
 			case ACTION_MOVE_SPOT2:
 				client_raise(c);
-				client_spot(c, SPOT2);
+				client_spot(c, SPOT2, 1);
 				break;
 			case ACTION_MOVE_SPOT3:
 				client_raise(c);
-				client_spot(c, SPOT3);
+				client_spot(c, SPOT3, 1);
 				break;
 			case ACTION_CYCLE:
 				client_cycle(c);
