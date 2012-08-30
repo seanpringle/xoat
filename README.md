@@ -1,0 +1,4 @@
+cerberus
+========
+
+static tiling wm
