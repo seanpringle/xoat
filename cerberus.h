@@ -38,6 +38,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <unistd.h>
 #include <ctype.h>
 #include <err.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
@@ -118,7 +120,7 @@ enum {
 	ACTION_CYCLE,
 	ACTION_CLOSE,
 	ACTION_OTHER,
-	ACTION_STATE,
+	ACTION_FIND_OR_START,
 	ACTIONS
 };
 
@@ -126,6 +128,7 @@ typedef struct {
 	unsigned int mod;
 	KeySym key;
 	short act;
+	void *data;
 } binding;
 
 enum {

@@ -4,7 +4,7 @@ cerberus
 * Designed for wide screens.
 * Static tiling; you get just three fixed asymmetric tiles and windows never move automatically.
 * Bare minimum EWMH to support panels and [simpleswitcher](https://github.com/seanpringle/simpleswitcher)
-* A few keyboard controls for moving, focusing, cycling, closing.
+* A few keyboard controls for moving, focusing, cycling, closing, and finding windows.
 * Transient windows and dialogs are centered on parent, not tiled.
 * Splash screens and notification popups are displayed as requested, not tiled.
 * config.h for customization of borders and keys.

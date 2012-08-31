@@ -1,3 +1,5 @@
+void catch_exit(int sig);
+int execsh(char *cmd);
 int oops(Display *d, XErrorEvent *ee);
 unsigned int color_get(const char *name);
 int window_get_prop(Window w, Atom prop, Atom *type, int *items, void *buffer, int bytes);
@@ -22,6 +24,7 @@ void client_stack(client *c, stack *all, stack *raise);
 void client_raise(client *c);
 void client_lower(client *c);
 void client_active(client *c);
+void find_or_start(char *class);
 void window_listen(Window win);
 void client_review(client *c);
 void create_notify(XCreateWindowEvent *e);

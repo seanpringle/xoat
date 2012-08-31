@@ -39,4 +39,9 @@ binding keys[] = {
 
 	// gracefully close the current window
 	{ .mod = Mod4Mask, .key = XK_Escape, .act = ACTION_CLOSE },
+
+	// find or start apps by WM_CLASS (case insensitive)
+	{ .mod = AnyModifier, .key = XK_F1, .act = ACTION_FIND_OR_START, .data = "urxvt"    },
+	{ .mod = AnyModifier, .key = XK_F2, .act = ACTION_FIND_OR_START, .data = "kate"     },
+	{ .mod = AnyModifier, .key = XK_F3, .act = ACTION_FIND_OR_START, .data = "chromium" },
 };

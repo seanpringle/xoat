@@ -30,6 +30,32 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "proto.h"
 #include "config.h"
 
+void catch_exit(int sig)
+{
+	while (0 < waitpid(-1, NULL, WNOHANG));
+}
+
+int execsh(char *cmd)
+{
+	// use sh for args parsing
+	return execlp("/bin/sh", "sh", "-c", cmd, NULL);
+}
+
+// execute sub-process
+pid_t exec_cmd(char *cmd)
+{
+	if (!cmd || !cmd[0]) return -1;
+	signal(SIGCHLD, catch_exit);
+	pid_t pid = fork();
+	if (!pid)
+	{
+		setsid();
+		execsh(cmd);
+		exit(EXIT_FAILURE);
+	}
+	return pid;
+}
+
 // X error handler
 int oops(Display *d, XErrorEvent *ee)
 {
@@ -477,6 +503,36 @@ void client_active(client *c)
 	ewmh_active_window(c->window);
 }
 
+// real simple switcher/launcher
+void find_or_start(char *class)
+{
+	int i; stack all;
+	memset(&all, 0, sizeof(stack));
+	windows_visible(&all);
+	client *found = NULL;
+
+	for (i = 0; !found && i < all.depth; i++)
+	{
+		XClassHint chint;
+		client *c = all.clients[i];
+		if (c && c->manage && XGetClassHint(display, c->window, &chint))
+		{
+			if (!strcasecmp(chint.res_class, class) || !strcasecmp(chint.res_name, class))
+				found = c;
+
+			XFree(chint.res_class);
+			XFree(chint.res_name);
+		}
+	}
+	if (found)
+	{
+		client_raise(found);
+		client_active(found);
+		return;
+	}
+	exec_cmd(class);
+}
+
 // client events we care about
 void window_listen(Window win)
 {
@@ -606,15 +662,16 @@ void key_press(XKeyEvent *e)
 	latest = e->time;
 	client *c = window_client(current);
 
-	short act = ACTION_NONE;
+	short act = ACTION_NONE; void *data = NULL;
 	KeySym key = XkbKeycodeToKeysym(display, e->keycode, 0, 0);
 	unsigned int state = e->state & ~(LockMask|NumlockMask);
 
 	for (i = 0; i < sizeof(keys)/sizeof(binding); i++)
 	{
-		if (keys[i].key == key && keys[i].mod == state)
+		if (keys[i].key == key && (keys[i].mod == AnyModifier || keys[i].mod == state))
 		{
-			act = keys[i].act;
+			act  = keys[i].act;
+			data = keys[i].data;
 			break;
 		}
 	}
@@ -655,6 +712,9 @@ void key_press(XKeyEvent *e)
 			break;
 		case ACTION_FOCUS_SPOT3:
 			spot_active(SPOT3, None);
+			break;
+		case ACTION_FIND_OR_START:
+			find_or_start(data);
 			break;
 	}
 	client_free(c);
@@ -713,6 +773,7 @@ void focus_change(XFocusChangeEvent *e)
 int main(int argc, char *argv[])
 {
 	int i, j;
+	signal(SIGCHLD, catch_exit);
 
 	if(!(display = XOpenDisplay(0))) return 1;
 
@@ -738,6 +799,9 @@ int main(int argc, char *argv[])
 	{
 		XGrabKey(display, XKeysymToKeycode(display, keys[i].key), keys[i].mod, root,
 			True, GrabModeAsync, GrabModeAsync);
+
+		if (keys[i].mod == AnyModifier) continue;
+
 		XGrabKey(display, XKeysymToKeycode(display, keys[i].key), keys[i].mod|LockMask, root,
 			True, GrabModeAsync, GrabModeAsync);
 		XGrabKey(display, XKeysymToKeycode(display, keys[i].key), keys[i].mod|NumlockMask, root,
