@@ -183,6 +183,7 @@ client* window_client(Window win)
 				: SPOT1;
 
 		window_get_atom_prop(c->window, atoms[_NET_WM_STATE], c->states, MAX_NET_WM_STATES);
+		c->urgent = client_state(c, atoms[_NET_WM_STATE_DEMANDS_ATTENTION]);
 
 		if (c->visible)
 		{
@@ -194,8 +195,8 @@ client* window_client(Window win)
 			}
 			long sr;
 			XGetWMNormalHints(display, c->window, &c->size, &sr);
-			c->input   = c->hints.flags & InputHint && c->hints.input ? 1:0;
-			c->urgent  = c->hints.flags & XUrgencyHint ? 1: 0;
+			c->input  = c->hints.flags & InputHint && c->hints.input ? 1:0;
+			c->urgent = c->urgent || c->hints.flags & XUrgencyHint ? 1: 0;
 		}
 		return c;
 	}
@@ -611,7 +612,9 @@ void window_listen(Window win)
 // set border color based on focus
 void client_review(client *c)
 {
-	XSetWindowBorder(display, c->window, color_get(c->window == current ? BORDER_FOCUS: BORDER_BLUR));
+	XSetWindowBorder(display, c->window,
+		color_get(c->window == current ? BORDER_FOCUS:
+			(c->urgent ? BORDER_URGENT: BORDER_BLUR)));
 	XSetWindowBorderWidth(display, c->window, client_state(c, atoms[_NET_WM_STATE_FULLSCREEN]) ? 0: BORDER);
 }
 
@@ -886,6 +889,16 @@ void focus_change(XFocusChangeEvent *e)
 	client_free(c);
 }
 
+void property_notify(XPropertyEvent *e)
+{
+	client *c = window_client(e->window);
+
+	if (c && c->manage)
+		client_review(c);
+
+	client_free(c);
+}
+
 int main(int argc, char *argv[])
 {
 	int i, j;
@@ -1048,6 +1061,9 @@ int main(int argc, char *argv[])
 			case FocusIn:
 			case FocusOut:
 				focus_change(&ev.xfocus);
+				break;
+			case PropertyNotify:
+				property_notify(&ev.xproperty);
 				break;
 		}
 	}

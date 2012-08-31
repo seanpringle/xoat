@@ -40,4 +40,5 @@ void key_press(XKeyEvent *e);
 void button_press(XButtonEvent *e);
 void client_message(XClientMessageEvent *e);
 void focus_change(XFocusChangeEvent *e);
+void property_notify(XPropertyEvent *e);
 int main(int argc, char *argv[]);

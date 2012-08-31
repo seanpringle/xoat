@@ -3,6 +3,7 @@
 #define BORDER 2
 #define BORDER_BLUR "Dark Gray"
 #define BORDER_FOCUS "Royal Blue"
+#define BORDER_URGENT "Red"
 
 // There are three static tiles called SPOT1, SPOT2, and SPOT3.
 // Want more? Different layouts? Go away ;)
