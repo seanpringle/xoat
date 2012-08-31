@@ -63,13 +63,15 @@ typedef struct {
 monitor monitors[MAX_MONITORS];
 int nmonitors;
 
+#define MAX_NET_WM_STATES 5
+
 typedef struct {
 	Window window;
 	XWindowAttributes attr;
 	XWMHints hints;
 	XSizeHints size;
 	Window transient_for;
-	Atom type;
+	Atom type, states[MAX_NET_WM_STATES];
 	short monitor, spot, visible, trans, manage, input, urgent;
 } client;
 
@@ -109,6 +111,8 @@ int struts[4] = { 0, 0, 0, 0 };
 	X(_NET_WM_WINDOW_TYPE_DIALOG),\
 	X(_NET_CLIENT_LIST_STACKING),\
 	X(_NET_WM_STATE),\
+	X(_NET_WM_STATE_FULLSCREEN),\
+	X(_NET_WM_STATE_DEMANDS_ATTENTION),\
 	X(WM_PROTOCOLS)
 
 enum { GENERAL_ATOMS(ATOM_ENUM), ATOMS };
@@ -134,6 +138,7 @@ enum {
 	ACTION_MOVE_MONITOR_DEC,
 	ACTION_FOCUS_MONITOR_INC,
 	ACTION_FOCUS_MONITOR_DEC,
+	ACTION_FULLSCREEN_TOGGLE,
 	ACTIONS
 };
 

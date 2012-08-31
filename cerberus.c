@@ -182,6 +182,8 @@ client* window_client(Window win)
 			? (c->attr.y > m->y + m->h/2 ? SPOT3: SPOT2)
 				: SPOT1;
 
+		window_get_atom_prop(c->window, atoms[_NET_WM_STATE], c->states, MAX_NET_WM_STATES);
+
 		if (c->visible)
 		{
 			XWMHints *hints = XGetWMHints(display, c->window);
@@ -200,6 +202,55 @@ client* window_client(Window win)
 
 	free(c);
 	return NULL;
+}
+
+// check _NET_WM_STATE
+int client_state(client *c, Atom state)
+{
+	int i;
+	for (i = 0; i < MAX_NET_WM_STATES && c->states[i]; i++)
+		if (c->states[i] == state)
+			return 1;
+	return 0;
+}
+
+int client_add_state(client *c, Atom state)
+{
+	int i;
+	for (i = 0; i < MAX_NET_WM_STATES; i++)
+	{
+		if (c->states[i]) continue;
+
+		c->states[i] = state;
+		window_set_atom_prop(c->window, atoms[_NET_WM_STATE], c->states, i+1);
+		return 1;
+	}
+	return 0;
+}
+
+int client_drop_state(client *c, Atom state)
+{
+	int i, j;
+	for (i = 0, j = 0; i < MAX_NET_WM_STATES && c->states[i]; i++)
+	{
+		if (c->states[i] == state) continue;
+		c->states[i] = c->states[j++];
+	}
+	window_set_atom_prop(c->window, atoms[_NET_WM_STATE], c->states, j);
+	int rc = i != j ? 1:0;
+
+	for (; j < MAX_NET_WM_STATES; j++)
+		c->states[j] = None;
+
+	return rc;
+}
+
+void client_toggle_state(client *c, Atom state)
+{
+	if (client_state(c, state))
+		client_drop_state(c, state);
+	else
+		client_add_state(c, state);
 }
 
 // build a list of visible windows
@@ -278,6 +329,13 @@ void client_close(client *c)
 void client_position(client *c, int x, int y, int w, int h)
 {
 	if (!c) return;
+	monitor *m = &monitors[c->monitor];
+
+	if (client_state(c, atoms[_NET_WM_STATE_FULLSCREEN]))
+	{
+		XMoveResizeWindow(display, c->window, m->x, m->y, m->w, m->h);
+		return;
+	}
 
 	w -= BORDER*2; h -= BORDER*2;
 
@@ -318,8 +376,6 @@ void client_position(client *c, int x, int y, int w, int h)
 	// center if smaller than supplied size
 	if (w < sw) x += (sw-w)/2;
 	if (h < sh) y += (sh-h)/2;
-
-	monitor *m = &monitors[c->monitor];
 
 	// bump onto screen
 	x = MAX(0, MIN(x, m->x + m->w - w - BORDER*2));
@@ -556,7 +612,7 @@ void window_listen(Window win)
 void client_review(client *c)
 {
 	XSetWindowBorder(display, c->window, color_get(c->window == current ? BORDER_FOCUS: BORDER_BLUR));
-	XSetWindowBorderWidth(display, c->window, BORDER);
+	XSetWindowBorderWidth(display, c->window, client_state(c, atoms[_NET_WM_STATE_FULLSCREEN]) ? 0: BORDER);
 }
 
 // ------- event handlers --------
@@ -733,6 +789,11 @@ void key_press(XKeyEvent *e)
 					c->monitor--;
 					client_spot(c, c->spot, 1);
 				}
+				break;
+			case ACTION_FULLSCREEN_TOGGLE:
+				client_toggle_state(c, atoms[_NET_WM_STATE_FULLSCREEN]);
+				client_review(c);
+				client_spot(c, c->spot, 1);
 				break;
 		}
 	}

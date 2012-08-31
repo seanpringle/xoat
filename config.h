@@ -63,6 +63,9 @@ binding keys[] = {
 	// Gracefully close the current window.
 	{ .mod = Mod4Mask, .key = XK_Escape, .act = ACTION_CLOSE },
 
+	// Toggle current window full screen.
+	{ .mod = Mod4Mask, .key = XK_f, .act = ACTION_FULLSCREEN_TOGGLE },
+
 	// Switch focus between monitors.
 	{ .mod = Mod4Mask, .key = XK_Right, .act = ACTION_FOCUS_MONITOR_INC },
 	{ .mod = Mod4Mask, .key = XK_Left,  .act = ACTION_FOCUS_MONITOR_DEC },

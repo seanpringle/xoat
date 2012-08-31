@@ -10,6 +10,10 @@ void window_set_cardinal_prop(Window w, Atom prop, unsigned long *values, int co
 void ewmh_client_list();
 void ewmh_active_window(Window w);
 client* window_client(Window win);
+int client_state(client *c, Atom state);
+int client_add_state(client *c, Atom state);
+int client_drop_state(client *c, Atom state);
+void client_toggle_state(client *c, Atom state);
 void windows_visible(stack *s);
 int window_message(Window target, Window subject, Atom atom, unsigned long protocol, unsigned long mask);
 void client_free(client *c);
