@@ -5,8 +5,8 @@
 #define BORDER_FOCUS "Royal Blue"
 
 // There are three static tiles called SPOT1, SPOT2, and SPOT3.
-// Want more? Go away ;)
-// 	------------------------------
+// Want more? Different layouts? Go away ;)
+// -------------------------------
 // |                   |         |
 // |                   |         |
 // |                   |    2    |
