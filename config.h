@@ -25,10 +25,12 @@
 // Make new windows go to the same spot as the current window.
 // This implies auto-raise and focus stealing.
 //#define SPOT_START SPOT_CURRENT
+
 // Make new windows go to the spot of best fit.
 // Works best when apps remember or specify their size.
 // If spot is not current, window won't steal focus.
 #define SPOT_START SPOT_SMART
+
 // Make all new windows go to a specific spot.
 // If spot is not current, window won't steal focus.
 //#define SPOT_START SPOT1
