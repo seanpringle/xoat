@@ -713,6 +713,9 @@ void key_press(XKeyEvent *e)
 		case ACTION_FOCUS_SPOT3:
 			spot_active(SPOT3, None);
 			break;
+		case ACTION_COMMAND:
+			exec_cmd(data);
+			break;
 		case ACTION_FIND_OR_START:
 			find_or_start(data);
 			break;

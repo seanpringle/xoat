@@ -56,6 +56,9 @@ binding keys[] = {
 	// Gracefully close the current window.
 	{ .mod = Mod4Mask, .key = XK_Escape, .act = ACTION_CLOSE },
 
+	// Launcher
+	{ .mod = Mod4Mask, .key = XK_x, .act = ACTION_COMMAND, .data = "dmenu_run" },
+
 	// Find or start apps by WM_CLASS (case insensitive).
 	{ .mod = AnyModifier, .key = XK_F1, .act = ACTION_FIND_OR_START, .data = "urxvt"    },
 	{ .mod = AnyModifier, .key = XK_F2, .act = ACTION_FIND_OR_START, .data = "kate"     },
