@@ -6,7 +6,7 @@
 #define BORDER_URGENT "Red"
 
 // There are three static tiles called SPOT1, SPOT2, and SPOT3.
-// Want more? Different layouts? Go away ;)
+// Want more tiles? Different layouts? Floating? Go away ;)
 // -------------------------------
 // |                   |         |
 // |                   |         |
@@ -43,6 +43,7 @@
 // If on multi-head, place windows on monitor holding current window.
 #define MONITOR_START MONITOR_CURRENT
 
+// If you use "AnyModifier" place those keys at the end of the array.
 binding keys[] = {
 
 	// Focus the top-most window in a spot.
@@ -78,7 +79,7 @@ binding keys[] = {
 	// Launcher
 	{ .mod = Mod4Mask, .key = XK_x, .act = ACTION_COMMAND, .data = "dmenu_run" },
 
-	// Find or start apps by WM_CLASS (case insensitive).
+	// Find or start apps by WM_CLASS (lower case match).
 	{ .mod = AnyModifier, .key = XK_F1, .act = ACTION_FIND_OR_START, .data = "urxvt"    },
 	{ .mod = AnyModifier, .key = XK_F2, .act = ACTION_FIND_OR_START, .data = "kate"     },
 	{ .mod = AnyModifier, .key = XK_F3, .act = ACTION_FIND_OR_START, .data = "chromium" },
