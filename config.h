@@ -20,15 +20,23 @@
 #define SPOT2_HEIGHT_PCT 67
 
 binding keys[] = {
+
+	// focus switching
 	{ .mod = Mod4Mask, .key = XK_1, .act = ACTION_FOCUS_SPOT1 },
 	{ .mod = Mod4Mask, .key = XK_2, .act = ACTION_FOCUS_SPOT2 },
 	{ .mod = Mod4Mask, .key = XK_3, .act = ACTION_FOCUS_SPOT3 },
 
+	// moving the current window
 	{ .mod = ShiftMask|Mod4Mask, .key = XK_1, .act = ACTION_MOVE_SPOT1 },
 	{ .mod = ShiftMask|Mod4Mask, .key = XK_2, .act = ACTION_MOVE_SPOT2 },
 	{ .mod = ShiftMask|Mod4Mask, .key = XK_3, .act = ACTION_MOVE_SPOT3 },
 
+	// flip between two windows in the current tile
 	{ .mod = Mod4Mask, .key = XK_Tab,    .act = ACTION_OTHER },
+
+	// cycle through all windows in the current tile
 	{ .mod = Mod4Mask, .key = XK_grave,  .act = ACTION_CYCLE },
+
+	// gracefully close the current window
 	{ .mod = Mod4Mask, .key = XK_Escape, .act = ACTION_CLOSE },
 };
