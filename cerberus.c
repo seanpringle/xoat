@@ -176,11 +176,16 @@ client* window_client(Window win)
 				c->attr.x, c->attr.y, c->attr.width, c->attr.height))
 					{ c->monitor = i; break; }
 
-		monitor *m = &monitors[c->monitor];
+		int x, y, w, h;
+		c->spot = SPOT1;
 
-		c->spot = c->attr.x > m->x + m->w/2
-			? (c->attr.y > m->y + m->h/2 ? SPOT3: SPOT2)
-				: SPOT1;
+		spot_xywh(SPOT2, c->monitor, &x, &y, &w, &h);
+		if (INTERSECT(x, y, w, h, c->attr.x + c->attr.width/2, c->attr.y+c->attr.height/2, 1, 1))
+			c->spot = SPOT2;
+
+		spot_xywh(SPOT3, c->monitor, &x, &y, &w, &h);
+		if (INTERSECT(x, y, w, h, c->attr.x + c->attr.width/2, c->attr.y+c->attr.height/2, 1, 1))
+			c->spot = SPOT3;
 
 		window_get_atom_prop(c->window, atoms[_NET_WM_STATE], c->states, MAX_NET_WM_STATES);
 		c->urgent = client_state(c, atoms[_NET_WM_STATE_DEMANDS_ATTENTION]);
