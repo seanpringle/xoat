@@ -296,8 +296,8 @@ void spot_xywh(int spot, int *x, int *y, int *w, int *h)
 {
 	spot = MAX(SPOT1, MIN(SPOT3, spot));
 
-	int width_spot1  = (double)screen_w / 100 * SPOT1_WIDTH_PCT;
-	int height_spot2 = (double)screen_h / 100 * SPOT2_HEIGHT_PCT;
+	int width_spot1  = (double)screen_w / 100 * MIN(90, MAX(10, SPOT1_WIDTH_PCT));
+	int height_spot2 = (double)screen_h / 100 * MIN(90, MAX(10, SPOT2_HEIGHT_PCT));
 
 	// default, left 2/3 of screen
 	*x = screen_x, *y = screen_y, *w = width_spot1, *h = screen_h;
@@ -536,7 +536,24 @@ void map_request(XMapEvent *e)
 	{
 		client_review(c);
 
-		int spot = SPOT_START == SPOT_CURRENT ? current_spot: SPOT_START;
+		int spot = SPOT_START;
+
+		if (SPOT_START == SPOT_CURRENT)
+			spot = current_spot;
+
+		if (SPOT_START == SPOT_SMART)
+		{
+			int x, y, w, h;
+			spot = SPOT1;
+
+			spot_xywh(SPOT2, &x, &y, &w, &h);
+			if (c->attr.width <= w && c->attr.height <= h)
+				spot = SPOT2;
+
+			spot_xywh(SPOT3, &x, &y, &w, &h);
+			if (c->attr.width <= w && c->attr.height <= h)
+				spot = SPOT3;
+		}
 		client_spot(c, spot, 0);
 	}
 	client_free(c);

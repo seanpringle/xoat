@@ -130,6 +130,7 @@ typedef struct {
 
 enum {
 	SPOT_CURRENT,
+	SPOT_SMART,
 	SPOT1, // large left pane
 	SPOT2, // medium top right pane
 	SPOT3  // small bottom right pane

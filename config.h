@@ -2,7 +2,19 @@
 #define BORDER 2
 #define BORDER_BLUR "Dark Gray"
 #define BORDER_FOCUS "Royal Blue"
-#define SPOT_START SPOT1
+
+// new windows go to the same tile as the active window.
+// this implies auto-raise and focus stealing.
+//#define SPOT_START SPOT_CURRENT
+
+// new windows go to the tile of best fit.
+// works best when apps remember their size.
+// if tile is not current, window won't steal focus.
+#define SPOT_START SPOT_SMART
+
+// all new windows go to a specific tile.
+// if tile is not current, window won't steal focus.
+//#define SPOT_START SPOT1
 
 #define SPOT1_WIDTH_PCT 67
 #define SPOT2_HEIGHT_PCT 67
