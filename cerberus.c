@@ -838,6 +838,7 @@ int main(int argc, char *argv[])
 	root     = DefaultRootWindow(display);
 	xerror   = XSetErrorHandler(oops);
 
+	// default non-multi-head setup
 	monitors[0].x = 0;
 	monitors[0].y = 0;
 	monitors[0].w = WidthOfScreen(screen);
@@ -846,6 +847,7 @@ int main(int argc, char *argv[])
 
 	XSelectInput(display, root, StructureNotifyMask | SubstructureRedirectMask | SubstructureNotifyMask);
 
+	// figure out NumlockMask
 	XModifierKeymap *modmap = XGetModifierMapping(display);
 	for (i = 0; i < 8; i++)
 		for (j = 0; j < (int)modmap->max_keypermod; j++)
@@ -853,6 +855,7 @@ int main(int argc, char *argv[])
 				{ NumlockMask = (1<<i); break; }
 	XFreeModifiermap(modmap);
 
+	// process config.h key bindings
 	for (i = 0; i < sizeof(keys)/sizeof(binding); i++)
 	{
 		XGrabKey(display, XKeysymToKeycode(display, keys[i].key), keys[i].mod, root,
@@ -868,6 +871,7 @@ int main(int argc, char *argv[])
 			True, GrabModeAsync, GrabModeAsync);
 	}
 
+	// we grab buttons to do click-to-focus. all clicks get passed through to apps.
 	XGrabButton(display, Button1, AnyModifier, root, True, ButtonPressMask, GrabModeSync, GrabModeSync, None, None);
 	XGrabButton(display, Button3, AnyModifier, root, True, ButtonPressMask, GrabModeSync, GrabModeSync, None, None);
 
@@ -876,7 +880,7 @@ int main(int argc, char *argv[])
 	stack wins;
 	memset(&wins, 0, sizeof(stack));
 
-	// panel struts
+	// detect panel struts
 	windows_visible(&wins);
 	inplay.depth = 0;
 	for (i = 0; i < wins.depth; i++)
@@ -910,11 +914,13 @@ int main(int argc, char *argv[])
 				monitors[i].w = info[i].width;
 				monitors[i].h = info[i].height - struts[TOP] - struts[BOTTOM];
 
+				// left struts affect first monitor
 				if (!i)
 				{
 					monitors[i].x += struts[LEFT];
 					monitors[i].w -= struts[LEFT];
 				}
+				// right struts affect last monitor
 				if (i == nmonitors-1)
 				{
 					monitors[i].w -= struts[RIGHT];
@@ -923,7 +929,7 @@ int main(int argc, char *argv[])
 			XFree(info);
 		}
 	}
-	// setup exiting managable windows
+	// setup existing managable windows
 	windows_visible(&wins);
 	inplay.depth = 0;
 	for (i = 0; i < wins.depth; i++)
@@ -932,6 +938,7 @@ int main(int argc, char *argv[])
 		if (c && c->manage)
 		{
 			window_listen(c->window);
+			// activate first one
 			if (!current && c->visible)
 			{
 				client_active(c);
