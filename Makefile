@@ -1,5 +1,5 @@
-CFLAGS?=-Wall -O2
-LDADD?=$(shell pkg-config --cflags --libs x11)
+CFLAGS?=-Wall -O2 -g
+LDADD?=$(shell pkg-config --cflags --libs x11 xinerama)
 
 normal:
 	$(CC) -o cerberus cerberus.c $(CFLAGS) $(LDADD) $(LDFLAGS)
