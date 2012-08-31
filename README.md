@@ -27,7 +27,7 @@ cerberus
 * Static tiling is more useful than dynamic tiling or floating.
 	* Windows moving around without user input is a crime.
 	* Having a choice of tiling layouts at run time is distracting.
-	* Make the layout choice once at build time and get on with work.
+		* Make the layout choice once at build time and get on with work.
 	* Apps that remember their size can handily be placed back in the correct tile.
 * Three tiles suffice because:
 	* App windows are always one of four types:
