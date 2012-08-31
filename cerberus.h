@@ -31,6 +31,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <X11/Xproto.h>
 #include <X11/keysym.h>
 #include <X11/XKBlib.h>
+#include <X11/extensions/Xinerama.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -55,13 +56,21 @@ Window root;
 Time latest;
 
 typedef struct {
+	short x, y, w, h;
+} monitor;
+
+#define MAX_MONITORS 3
+monitor monitors[MAX_MONITORS];
+int nmonitors;
+
+typedef struct {
 	Window window;
 	XWindowAttributes attr;
 	XWMHints hints;
 	XSizeHints size;
 	Window transient_for;
 	Atom type;
-	short spot, visible, trans, manage, input, urgent;
+	short monitor, spot, visible, trans, manage, input, urgent;
 } client;
 
 #define STACK 64
@@ -72,15 +81,14 @@ typedef struct {
 	Window windows[STACK];
 } stack;
 
-short current_spot = 0;
-Window current;
+short current_spot = 0, current_mon = 0;
+Window current = None;
 stack inplay;
 
 static int (*xerror)(Display *, XErrorEvent *);
 
 enum { LEFT, RIGHT, TOP, BOTTOM };
 int struts[4] = { 0, 0, 0, 0 };
-short screen_x, screen_y, screen_w, screen_h;
 
 #define ATOM_ENUM(x) x
 #define ATOM_CHAR(x) #x
@@ -122,6 +130,10 @@ enum {
 	ACTION_OTHER,
 	ACTION_COMMAND,
 	ACTION_FIND_OR_START,
+	ACTION_MOVE_MONITOR_INC,
+	ACTION_MOVE_MONITOR_DEC,
+	ACTION_FOCUS_MONITOR_INC,
+	ACTION_FOCUS_MONITOR_DEC,
 	ACTIONS
 };
 
@@ -131,6 +143,10 @@ typedef struct {
 	short act;
 	void *data;
 } binding;
+
+enum {
+	MONITOR_CURRENT=-1
+};
 
 enum {
 	SPOT_CURRENT,

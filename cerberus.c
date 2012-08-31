@@ -150,6 +150,7 @@ void ewmh_active_window(Window w)
 // build a client struct
 client* window_client(Window win)
 {
+	int i;
 	if (win == None) return NULL;
 
 	client *c = calloc(1, sizeof(client));
@@ -170,8 +171,15 @@ client* window_client(Window win)
 
 		c->trans = c->transient_for ? 1:0;
 
-		c->spot = c->attr.x > screen_x+screen_w/2
-			? (c->attr.y > screen_y+screen_h/2 ? SPOT3: SPOT2)
+		for (i = 0; i < nmonitors; i++)
+			if (INTERSECT(monitors[i].x, monitors[i].y, monitors[i].w, monitors[i].h,
+				c->attr.x, c->attr.y, c->attr.width, c->attr.height))
+					{ c->monitor = i; break; }
+
+		monitor *m = &monitors[c->monitor];
+
+		c->spot = c->attr.x > m->x + m->w/2
+			? (c->attr.y > m->y + m->h/2 ? SPOT3: SPOT2)
 				: SPOT1;
 
 		if (c->visible)
@@ -203,6 +211,7 @@ void windows_visible(stack *s)
 		memmove(s, &inplay, sizeof(stack));
 		return;
 	}
+	s->depth = 0;
 	unsigned int nwins; int i; Window w1, w2, *wins;
 	if (XQueryTree(display, root, &w1, &w2, &wins, &nwins) && wins)
 	{
@@ -310,40 +319,43 @@ void client_position(client *c, int x, int y, int w, int h)
 	if (w < sw) x += (sw-w)/2;
 	if (h < sh) y += (sh-h)/2;
 
+	monitor *m = &monitors[c->monitor];
+
 	// bump onto screen
-	x = MAX(0, MIN(x, screen_x + screen_w - w - BORDER*2));
-	y = MAX(0, MIN(y, screen_y + screen_h - h - BORDER*2));
+	x = MAX(0, MIN(x, m->x + m->w - w - BORDER*2));
+	y = MAX(0, MIN(y, m->y + m->h - h - BORDER*2));
 
 	XMoveResizeWindow(display, c->window, x, y, w, h);
 }
 
 // return co-ords for a screen "spot"
-void spot_xywh(int spot, int *x, int *y, int *w, int *h)
+void spot_xywh(int spot, int mon, int *x, int *y, int *w, int *h)
 {
 	spot = MAX(SPOT1, MIN(SPOT3, spot));
+	monitor *m = &monitors[MIN(nmonitors-1, MAX(0, mon))];
 
-	int width_spot1  = (double)screen_w / 100 * MIN(90, MAX(10, SPOT1_WIDTH_PCT));
-	int height_spot2 = (double)screen_h / 100 * MIN(90, MAX(10, SPOT2_HEIGHT_PCT));
+	int width_spot1  = (double)m->w / 100 * MIN(90, MAX(10, SPOT1_WIDTH_PCT));
+	int height_spot2 = (double)m->h / 100 * MIN(90, MAX(10, SPOT2_HEIGHT_PCT));
 
 	// default, left 2/3 of screen
-	*x = screen_x, *y = screen_y, *w = width_spot1, *h = screen_h;
+	*x = m->x, *y = m->y, *w = width_spot1, *h = m->h;
 
 	switch (spot)
 	{
 		// right top 2/9 of screen
 		case SPOT2:
-			*x = screen_x + width_spot1;
-			*y = screen_y;
-			*w = screen_w - width_spot1;
+			*x = m->x + width_spot1;
+			*y = m->y;
+			*w = m->w - width_spot1;
 			*h = height_spot2;
 			break;
 
 		// right bottom 1/9 of screen
 		case SPOT3:
-			*x = screen_x + width_spot1;
-			*y = screen_y + height_spot2;
-			*w = screen_w - width_spot1;
-			*h = screen_h - height_spot2;
+			*x = m->x + width_spot1;
+			*y = m->y + height_spot2;
+			*w = m->w - width_spot1;
+			*h = m->h - height_spot2;
 			break;
 	}
 }
@@ -361,7 +373,7 @@ void client_spot(client *c, int spot, int force)
 		spot = t->spot;
 		client_free(t);
 	}
-	spot_xywh(spot, &x, &y, &w, &h);
+	spot_xywh(spot, c->monitor, &x, &y, &w, &h);
 
 	if (c->type == atoms[_NET_WM_WINDOW_TYPE_DIALOG])
 	{
@@ -378,15 +390,15 @@ void client_spot(client *c, int spot, int force)
 // cycle through windows in a screen "spot"
 void client_cycle(client *c)
 {
-	spot_active(c->spot, c->window);
+	spot_active(c->spot, c->monitor, c->window);
 	client_lower(c);
 }
 
 // find a window within a screen "spot" and raise/activate
-Window spot_active(int spot, Window except)
+Window spot_active(int spot, int mon, Window except)
 {
 	int x, y, w, h;
-	spot_xywh(spot, &x, &y, &w, &h);
+	spot_xywh(spot, mon, &x, &y, &w, &h);
 
 	int i; stack wins;
 	memset(&wins, 0, sizeof(stack));
@@ -489,6 +501,7 @@ void client_active(client *c)
 	Window old = current;
 	current = c->window;
 	current_spot = c->spot;
+	current_mon  = c->monitor;
 
 	if (old && (o = window_client(old)))
 	{
@@ -602,14 +615,21 @@ void map_request(XMapEvent *e)
 			int x, y, w, h;
 			spot = SPOT1;
 
-			spot_xywh(SPOT2, &x, &y, &w, &h);
+			spot_xywh(SPOT2, c->monitor, &x, &y, &w, &h);
 			if (c->attr.width <= w && c->attr.height <= h)
 				spot = SPOT2;
 
-			spot_xywh(SPOT3, &x, &y, &w, &h);
+			spot_xywh(SPOT3, c->monitor, &x, &y, &w, &h);
 			if (c->attr.width <= w && c->attr.height <= h)
 				spot = SPOT3;
 		}
+
+		int monitor = MAX(nmonitors-1, MIN(0, MONITOR_START));
+
+		if (MONITOR_START == MONITOR_CURRENT)
+			monitor = current_mon;
+
+		c->monitor = monitor;
 		client_spot(c, spot, 0);
 	}
 	client_free(c);
@@ -642,12 +662,12 @@ void map_notify(XMapEvent *e)
 
 void unmap_notify(XUnmapEvent *e)
 {
-	if (e->window == current && !spot_active(current_spot, current))
+	if (e->window == current && !spot_active(current_spot, current_mon, current))
 	{
 		// find something to activate
-		if (!spot_active(SPOT1, current)
-			&& !spot_active(SPOT2, current)
-			&& !spot_active(SPOT3, current))
+		if (!spot_active(SPOT1, current_mon, current)
+			&& !spot_active(SPOT2, current_mon, current)
+			&& !spot_active(SPOT3, current_mon, current))
 				current = None;
 	}
 
@@ -695,29 +715,61 @@ void key_press(XKeyEvent *e)
 				client_cycle(c);
 				break;
 			case ACTION_OTHER:
-				spot_active(c->spot, c->window);
+				spot_active(c->spot, c->monitor, c->window);
 				break;
 			case ACTION_CLOSE:
 				client_close(c);
+				break;
+			case ACTION_MOVE_MONITOR_INC:
+				if (c->monitor < nmonitors-1)
+				{
+					c->monitor++;
+					client_spot(c, c->spot, 1);
+				}
+				break;
+			case ACTION_MOVE_MONITOR_DEC:
+				if (c->monitor > 0)
+				{
+					c->monitor--;
+					client_spot(c, c->spot, 1);
+				}
 				break;
 		}
 	}
 	switch (act)
 	{
 		case ACTION_FOCUS_SPOT1:
-			spot_active(SPOT1, None);
+			spot_active(SPOT1, current_mon, None);
 			break;
 		case ACTION_FOCUS_SPOT2:
-			spot_active(SPOT2, None);
+			spot_active(SPOT2, current_mon, None);
 			break;
 		case ACTION_FOCUS_SPOT3:
-			spot_active(SPOT3, None);
+			spot_active(SPOT3, current_mon, None);
 			break;
 		case ACTION_COMMAND:
 			exec_cmd(data);
 			break;
 		case ACTION_FIND_OR_START:
 			find_or_start(data);
+			break;
+		case ACTION_FOCUS_MONITOR_INC:
+			if (current_mon < nmonitors-1)
+			{
+				if (spot_active(current_spot, current_mon+1, None)) break;
+				if (spot_active(SPOT1, current_mon+1, None)) break;
+				if (spot_active(SPOT2, current_mon+1, None)) break;
+				if (spot_active(SPOT3, current_mon+1, None)) break;
+			}
+			break;
+		case ACTION_FOCUS_MONITOR_DEC:
+			if (current_mon > 0)
+			{
+				if (spot_active(current_spot, current_mon-1, None)) break;
+				if (spot_active(SPOT1, current_mon-1, None)) break;
+				if (spot_active(SPOT2, current_mon-1, None)) break;
+				if (spot_active(SPOT3, current_mon-1, None)) break;
+			}
 			break;
 	}
 	client_free(c);
@@ -776,6 +828,7 @@ void focus_change(XFocusChangeEvent *e)
 int main(int argc, char *argv[])
 {
 	int i, j;
+
 	signal(SIGCHLD, catch_exit);
 
 	if(!(display = XOpenDisplay(0))) return 1;
@@ -784,10 +837,12 @@ int main(int argc, char *argv[])
 	scr_id   = DefaultScreen(display);
 	root     = DefaultRootWindow(display);
 	xerror   = XSetErrorHandler(oops);
-	screen_x = 0;
-	screen_y = 0;
-	screen_w = WidthOfScreen(screen);
-	screen_h = HeightOfScreen(screen);
+
+	monitors[0].x = 0;
+	monitors[0].y = 0;
+	monitors[0].w = WidthOfScreen(screen);
+	monitors[0].h = HeightOfScreen(screen);
+	nmonitors = 1;
 
 	XSelectInput(display, root, StructureNotifyMask | SubstructureRedirectMask | SubstructureNotifyMask);
 
@@ -820,11 +875,10 @@ int main(int argc, char *argv[])
 
 	stack wins;
 	memset(&wins, 0, sizeof(stack));
+
+	// panel struts
 	windows_visible(&wins);
-
-	current = None;
-	current_spot = 0;
-
+	inplay.depth = 0;
 	for (i = 0; i < wins.depth; i++)
 	{
 		client *c = wins.clients[i];
@@ -840,6 +894,41 @@ int main(int argc, char *argv[])
 				struts[BOTTOM] = MAX(struts[BOTTOM], strut[BOTTOM]);
 			}
 		}
+		client_free(c);
+	}
+	// support multi-head.
+	if (XineramaIsActive(display))
+	{
+		XineramaScreenInfo *info = XineramaQueryScreens(display, &nmonitors);
+		if (info)
+		{
+			nmonitors = MIN(nmonitors, MAX_MONITORS);
+			for (i = 0; i < nmonitors; i++)
+			{
+				monitors[i].x = info[i].x_org;
+				monitors[i].y = info[i].y_org + struts[TOP];
+				monitors[i].w = info[i].width;
+				monitors[i].h = info[i].height - struts[TOP] - struts[BOTTOM];
+
+				if (!i)
+				{
+					monitors[i].x += struts[LEFT];
+					monitors[i].w -= struts[LEFT];
+				}
+				if (i == nmonitors-1)
+				{
+					monitors[i].w -= struts[RIGHT];
+				}
+			}
+			XFree(info);
+		}
+	}
+	// setup exiting managable windows
+	windows_visible(&wins);
+	inplay.depth = 0;
+	for (i = 0; i < wins.depth; i++)
+	{
+		client *c = wins.clients[i];
 		if (c && c->manage)
 		{
 			window_listen(c->window);
@@ -851,12 +940,9 @@ int main(int argc, char *argv[])
 			if (c->visible)
 				client_review(c);
 		}
+		client_free(c);
 	}
-	screen_x += struts[LEFT];
-	screen_y += struts[TOP];
-	screen_w -= struts[LEFT] + struts[RIGHT];
-	screen_h -= struts[TOP]  + struts[BOTTOM];
-
+	// main event loop
 	for (;;)
 	{
 		while (inplay.depth)

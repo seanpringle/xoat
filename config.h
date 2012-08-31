@@ -35,6 +35,13 @@
 // If spot is not current, window won't steal focus.
 //#define SPOT_START SPOT1
 
+// If on multi-head, place windows on monitor N.
+// (0-based index, same order as xrandr list)
+//#define MONITOR_START 0
+
+// If on multi-head, place windows on monitor holding current window.
+#define MONITOR_START MONITOR_CURRENT
+
 binding keys[] = {
 
 	// Focus the top-most window in a spot.
@@ -55,6 +62,14 @@ binding keys[] = {
 
 	// Gracefully close the current window.
 	{ .mod = Mod4Mask, .key = XK_Escape, .act = ACTION_CLOSE },
+
+	// Switch focus between monitors.
+	{ .mod = Mod4Mask, .key = XK_Right, .act = ACTION_FOCUS_MONITOR_INC },
+	{ .mod = Mod4Mask, .key = XK_Left,  .act = ACTION_FOCUS_MONITOR_DEC },
+
+	// Move windows between monitors.
+	{ .mod = ShiftMask|Mod4Mask, .key = XK_Right, .act = ACTION_MOVE_MONITOR_INC },
+	{ .mod = ShiftMask|Mod4Mask, .key = XK_Left,  .act = ACTION_MOVE_MONITOR_DEC },
 
 	// Launcher
 	{ .mod = Mod4Mask, .key = XK_x, .act = ACTION_COMMAND, .data = "dmenu_run" },
