@@ -296,28 +296,28 @@ void spot_xywh(int spot, int *x, int *y, int *w, int *h)
 {
 	spot = MAX(SPOT1, MIN(SPOT3, spot));
 
-	int width_3rd  = screen_w/3;
-	int height_3rd = screen_h/3;
+	int width_spot1  = (double)screen_w / 100 * SPOT1_WIDTH_PCT;
+	int height_spot2 = (double)screen_h / 100 * SPOT2_HEIGHT_PCT;
 
 	// default, left 2/3 of screen
-	*x = screen_x, *y = screen_y, *w = screen_w - width_3rd, *h = screen_h;
+	*x = screen_x, *y = screen_y, *w = width_spot1, *h = screen_h;
 
 	switch (spot)
 	{
 		// right top 2/9 of screen
 		case SPOT2:
-			*x = screen_x + screen_w - width_3rd;
+			*x = screen_x + width_spot1;
 			*y = screen_y;
-			*w = width_3rd;
-			*h = screen_h - height_3rd;
+			*w = screen_w - width_spot1;
+			*h = height_spot2;
 			break;
 
 		// right bottom 1/9 of screen
 		case SPOT3:
-			*x = screen_x + screen_w - width_3rd;
-			*y = screen_y + screen_h - height_3rd;
-			*w = width_3rd;
-			*h = height_3rd;
+			*x = screen_x + width_spot1;
+			*y = screen_y + height_spot2;
+			*w = screen_w - width_spot1;
+			*h = screen_h - height_spot2;
 			break;
 	}
 }

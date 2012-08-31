@@ -6,6 +6,7 @@ cerberus
 * Bare minimum EWMH to support panels and [simpleswitcher](https://github.com/seanpringle/simpleswitcher)
 * A few keyboard controls for moving, focusing, cycling, closing.
 * Transient windows and dialogs are centered on parent, not tiled.
+* Splash screens and notification popups are displayed as requested, not tiled.
 * config.h for customization of borders and keys.
 
 ### The Layout

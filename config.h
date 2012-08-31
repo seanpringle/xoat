@@ -4,6 +4,9 @@
 #define BORDER_FOCUS "Royal Blue"
 #define SPOT_START SPOT1
 
+#define SPOT1_WIDTH_PCT 67
+#define SPOT2_HEIGHT_PCT 67
+
 binding keys[] = {
 	{ .mod = Mod4Mask, .key = XK_1, .act = ACTION_FOCUS_SPOT1 },
 	{ .mod = Mod4Mask, .key = XK_2, .act = ACTION_FOCUS_SPOT2 },
