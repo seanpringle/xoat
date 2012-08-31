@@ -19,7 +19,7 @@
 // Width of SPOT1 as percentage of screen width.
 #define SPOT1_WIDTH_PCT 67
 
-// Height of SPOT2 as percentage of screen width.
+// Height of SPOT2 as percentage of screen height.
 #define SPOT2_HEIGHT_PCT 67
 
 // Make new windows go to the same spot as the current window.
