@@ -985,21 +985,17 @@ int main(int argc, char *argv[])
 				monitors[i].w = info[i].width;
 				monitors[i].h = info[i].height - struts[TOP] - struts[BOTTOM];
 
-				// left struts affect first monitor
-				if (!i)
-				{
-					monitors[i].x += struts[LEFT];
-					monitors[i].w -= struts[LEFT];
-				}
-				// right struts affect last monitor
-				if (i == nmonitors-1)
-				{
-					monitors[i].w -= struts[RIGHT];
-				}
 			}
 			XFree(info);
 		}
 	}
+
+	// left struts affect first monitor
+	monitors[0].x += struts[LEFT];
+	monitors[0].w -= struts[LEFT];
+	// right struts affect last monitor
+	monitors[nmonitors-1].w -= struts[RIGHT];
+
 	// setup existing managable windows
 	windows_visible(&wins);
 	inplay.depth = 0;
