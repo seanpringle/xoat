@@ -1,4 +1,4 @@
-// Cerberus config.
+// xoat config.
 
 #define BORDER 2
 #define BORDER_BLUR "Dark Gray"

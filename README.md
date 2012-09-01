@@ -1,5 +1,7 @@
-cerberus
-========
+xoat
+====
+
+*X Obstinate Asymmetric Tiler*
 
 * Designed for wide screens, including multi-head support.
 * Static tiling; you get just three fixed asymmetric tiles and windows never move automatically.
