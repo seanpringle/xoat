@@ -1,0 +1,42 @@
+# Contributor: Sean Pringle <sean.pringle@gmail.com>
+
+pkgname=xoat-git
+pkgver=20120901
+pkgrel=1
+pkgdesc="X11 Obstinate Asymmetric Tiler"
+arch=('i686' 'x86_64')
+url="http://github.com/seanpringle/xoat"
+license=('MIT')
+depends=('libx11')
+makedepends=('git')
+provides=('xoat')
+conflicts=('xoat')
+
+_gitroot="git://github.com/seanpringle/xoat.git"
+_gitname="xoat"
+
+build() {
+  cd "$srcdir"
+  msg "Connecting to GIT server...."
+
+  if [ -d $_gitname ] ; then
+    cd $_gitname && git pull origin
+    msg "The local files are updated."
+  else
+    git clone $_gitroot --depth=1
+  fi
+
+  msg "GIT checkout done or server timeout"
+  msg "Starting make..."
+
+  rm -rf "$srcdir/$_gitname-build"
+  cp -r "$srcdir/$_gitname" "$srcdir/$_gitname-build"
+  cd "$srcdir/$_gitname-build"
+
+  make
+}
+
+package() {
+  cd "$srcdir/$_gitname-build"
+  install -Dm 755 $_gitname "$pkgdir/usr/bin/$_gitname"
+}

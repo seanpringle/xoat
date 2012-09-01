@@ -40,6 +40,6 @@ xoat
 * Keyboard controls generally preferred over the mouse, when practical.
 	* Faster. Muscle memory.
 * Click-to-focus model preferred over focus-follows-mouse.
-	* FfM means keeping track of the mouse or warping the pointer around.
+	* FfM means mentally keeping track of the mouse or warping the pointer around.
 	* CtF is harder to get wrong and makes it easy to forget about the mouse for some tasks.
 * 2/3 is a nice fraction.
