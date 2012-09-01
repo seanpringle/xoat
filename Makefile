@@ -7,7 +7,10 @@ normal:
 proto:
 	cat *.c | egrep '^(void|int|char|unsigned|Window|client)' | sed -r 's/\)/);/' > proto.h
 
+docs:
+	pandoc -s -w man xoat.md -o xoat.1
+
 clean:
 	rm -f xoat
 
-all: proto normal
+all: docs proto normal

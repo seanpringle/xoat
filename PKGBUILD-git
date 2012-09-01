@@ -39,4 +39,6 @@ build() {
 package() {
   cd "$srcdir/$_gitname-build"
   install -Dm 755 $_gitname "$pkgdir/usr/bin/$_gitname"
+  gzip -c "$_gitname.1" > "$_gitname.1.gz"
+  install -Dm644 "$_gitname.1.gz" "$pkgdir/usr/share/man/man1/$_gitname.1.gz"
 }
