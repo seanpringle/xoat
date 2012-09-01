@@ -72,8 +72,7 @@ int oops(Display *d, XErrorEvent *ee)
 // get pixel value for X named color
 unsigned int color_get(const char *name)
 {
-	XColor color;
-	Colormap map = DefaultColormap(display, DefaultScreen(display));
+	XColor color; Colormap map = DefaultColormap(display, DefaultScreen(display));
 	return XAllocNamedColor(display, map, name, &color, &color) ? color.pixel: None;
 }
 
@@ -205,7 +204,6 @@ client* window_client(Window win)
 		}
 		return c;
 	}
-
 	free(c);
 	return NULL;
 }
@@ -344,7 +342,6 @@ void client_position(client *c, int x, int y, int w, int h)
 	}
 
 	w -= BORDER*2; h -= BORDER*2;
-
 	int basew = 0, baseh = 0;
 	int sw = w, sh = h;
 
@@ -444,7 +441,6 @@ void client_spot(client *c, int spot, int force)
 		w = c->attr.width + BORDER*2;
 		h = c->attr.height + BORDER*2;
 	}
-
 	c->spot = spot;
 	client_position(c, x, y, w, h);
 }
@@ -734,7 +730,6 @@ void unmap_notify(XUnmapEvent *e)
 			&& !spot_active(SPOT3, current_mon, current))
 				current = None;
 	}
-
 	ewmh_client_list();
 }
 
@@ -850,13 +845,10 @@ void button_press(XButtonEvent *e)
 	latest = e->time;
 	client *c = window_client(e->subwindow);
 
-	if (c)
+	if (c && c->manage)
 	{
-		if (c->manage)
-		{
-			client_raise(c);
-			client_active(c);
-		}
+		client_raise(c);
+		client_active(c);
 	}
 	client_free(c);
 
