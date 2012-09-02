@@ -79,12 +79,21 @@ binding keys[] = {
 	// Launcher
 	{ .mod = Mod4Mask, .key = XK_x, .act = ACTION_COMMAND, .data = "dmenu_run" },
 
+	// Raise tag groups
+	{ .mod = Mod4Mask, .key = XK_F1, .act = ACTION_RAISE_TAG, .num = TAG1 },
+	{ .mod = Mod4Mask, .key = XK_F2, .act = ACTION_RAISE_TAG, .num = TAG2 },
+	{ .mod = Mod4Mask, .key = XK_F3, .act = ACTION_RAISE_TAG, .num = TAG3 },
+
+	// Tag/untag the current window
+	{ .mod = ShiftMask|Mod4Mask, .key = XK_F1, .act = ACTION_TAG, .num = TAG1 },
+	{ .mod = ShiftMask|Mod4Mask, .key = XK_F2, .act = ACTION_TAG, .num = TAG2 },
+	{ .mod = ShiftMask|Mod4Mask, .key = XK_F3, .act = ACTION_TAG, .num = TAG3 },
+	{ .mod = ShiftMask|ControlMask|Mod4Mask, .key = XK_F1, .act = ACTION_UNTAG, .num = TAG1 },
+	{ .mod = ShiftMask|ControlMask|Mod4Mask, .key = XK_F2, .act = ACTION_UNTAG, .num = TAG2 },
+	{ .mod = ShiftMask|ControlMask|Mod4Mask, .key = XK_F3, .act = ACTION_UNTAG, .num = TAG3 },
+
 	// Find or start apps by WM_CLASS (lower case match).
 	{ .mod = AnyModifier, .key = XK_F1, .act = ACTION_FIND_OR_START, .data = "urxvt"    },
-	{ .mod = AnyModifier, .key = XK_F2, .act = ACTION_FIND_OR_START, .data = "kate"     },
-	{ .mod = AnyModifier, .key = XK_F3, .act = ACTION_FIND_OR_START, .data = "chromium" },
-	{ .mod = AnyModifier, .key = XK_F4, .act = ACTION_FIND_OR_START, .data = "pcmanfm"  },
-
-	{ .mod = AnyModifier, .key = XK_F5, .act = ACTION_FIND_OR_START, .data = "firefox"  },
-	{ .mod = AnyModifier, .key = XK_F6, .act = ACTION_FIND_OR_START, .data = "xchat"    },
+	{ .mod = AnyModifier, .key = XK_F2, .act = ACTION_FIND_OR_START, .data = "chromium" },
+	{ .mod = AnyModifier, .key = XK_F3, .act = ACTION_FIND_OR_START, .data = "pcmanfm"  },
 };

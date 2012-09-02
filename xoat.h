@@ -55,6 +55,8 @@ Screen *screen;
 int scr_id;
 Window root;
 Time latest;
+char *self;
+Window ewmh;
 
 typedef struct {
 	short x, y, w, h;
@@ -62,7 +64,7 @@ typedef struct {
 
 #define MAX_MONITORS 3
 monitor monitors[MAX_MONITORS];
-int nmonitors;
+int nmonitors = 1;
 
 #define MAX_NET_WM_STATES 5
 
@@ -74,6 +76,8 @@ typedef struct {
 	Window transient_for;
 	Atom type, states[MAX_NET_WM_STATES];
 	short monitor, spot, visible, trans, manage, input, urgent;
+	unsigned short tags;
+	char *class;
 } client;
 
 #define STACK 64
@@ -98,23 +102,36 @@ int struts[4] = { 0, 0, 0, 0 };
 
 #define GENERAL_ATOMS(X) \
 	X(XOAT_SPOT),\
+	X(XOAT_TAGS),\
+	X(XOAT_EXIT),\
+	X(XOAT_RESTART),\
 	X(_MOTIF_WM_HINTS),\
-	X(WM_DELETE_WINDOW),\
-	X(WM_TAKE_FOCUS),\
+	X(_NET_SUPPORTED),\
+	X(_NET_CURRENT_DESKTOP),\
+	X(_NET_NUMBER_OF_DESKTOPS),\
+	X(_NET_DESKTOP_GEOMETRY),\
+	X(_NET_DESKTOP_VIEWPORT),\
 	X(_NET_ACTIVE_WINDOW),\
 	X(_NET_CLOSE_WINDOW),\
-	X(_NET_WM_STRUT_PARTIAL),\
+	X(_NET_CLIENT_LIST_STACKING),\
+	X(_NET_CLIENT_LIST),\
+	X(_NET_SUPPORTING_WM_CHECK),\
+	X(_NET_WM_NAME),\
+	X(_NET_WM_PID),\
+	X(_NET_WM_DESKTOP),\
 	X(_NET_WM_STRUT),\
+	X(_NET_WM_STRUT_PARTIAL),\
 	X(_NET_WM_WINDOW_TYPE),\
 	X(_NET_WM_WINDOW_TYPE_DESKTOP),\
 	X(_NET_WM_WINDOW_TYPE_DOCK),\
 	X(_NET_WM_WINDOW_TYPE_SPLASH),\
 	X(_NET_WM_WINDOW_TYPE_NOTIFICATION),\
 	X(_NET_WM_WINDOW_TYPE_DIALOG),\
-	X(_NET_CLIENT_LIST_STACKING),\
 	X(_NET_WM_STATE),\
 	X(_NET_WM_STATE_FULLSCREEN),\
 	X(_NET_WM_STATE_DEMANDS_ATTENTION),\
+	X(WM_DELETE_WINDOW),\
+	X(WM_TAKE_FOCUS),\
 	X(WM_PROTOCOLS)
 
 enum { GENERAL_ATOMS(ATOM_ENUM), ATOMS };
@@ -141,6 +158,9 @@ enum {
 	ACTION_FOCUS_MONITOR_INC,
 	ACTION_FOCUS_MONITOR_DEC,
 	ACTION_FULLSCREEN_TOGGLE,
+	ACTION_TAG,
+	ACTION_UNTAG,
+	ACTION_RAISE_TAG,
 	ACTIONS
 };
 
@@ -148,7 +168,10 @@ typedef struct {
 	unsigned int mod;
 	KeySym key;
 	short act;
-	void *data;
+	union {
+		void *data;
+		int num;
+	};
 } binding;
 
 enum {
@@ -156,9 +179,13 @@ enum {
 };
 
 enum {
-	SPOT_CURRENT,
-	SPOT_SMART,
-	SPOT1, // large left pane
+	SPOT1=1, // large left pane
 	SPOT2, // medium top right pane
-	SPOT3  // small bottom right pane
+	SPOT3,  // small bottom right pane
+	SPOT_CURRENT,
+	SPOT_SMART
 };
+
+#define TAG1 1<<0
+#define TAG2 1<<1
+#define TAG3 1<<2

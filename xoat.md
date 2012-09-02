@@ -68,6 +68,33 @@ Shift-Mod4-x
 F1
 :	Launch urxvt
 
+Mod4-F1
+:	Raise windows in tag 1.
+
+Shift-Mod4-F1
+:	Place current window in tag 1.
+
+Shift-Control-Mod4-F1
+:	Remove current window from tag 1.
+
+Mod4-F2
+:	Raise windows in tag 2.
+
+Shift-Mod4-F2
+:	Place current window in tag 2.
+
+Shift-Control-Mod4-F2
+:	Remove current window from tag 2.
+
+Mod4-F3
+:	Raise windows in tag 3.
+
+Shift-Mod4-F3
+:	Place current window in tag 3.
+
+Shift-Control-Mod4-F3
+:	Remove current window from tag 3.
+
 # SEE ALSO
 
 **dmenu** (1)
