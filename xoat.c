@@ -772,6 +772,7 @@ void key_press(XKeyEvent *e)
 				client_close(c);
 				break;
 			case ACTION_MOVE_MONITOR_INC:
+				client_raise(c);
 				if (c->monitor < nmonitors-1)
 				{
 					c->monitor++;
@@ -779,6 +780,7 @@ void key_press(XKeyEvent *e)
 				}
 				break;
 			case ACTION_MOVE_MONITOR_DEC:
+				client_raise(c);
 				if (c->monitor > 0)
 				{
 					c->monitor--;
@@ -787,6 +789,7 @@ void key_press(XKeyEvent *e)
 				break;
 			case ACTION_FULLSCREEN_TOGGLE:
 				spot = c->spot;
+				client_raise(c);
 				if (client_state(c, atoms[_NET_WM_STATE_FULLSCREEN]))
 				{
 					client_drop_state(c, atoms[_NET_WM_STATE_FULLSCREEN]);
