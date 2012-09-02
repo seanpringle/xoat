@@ -97,6 +97,7 @@ int struts[4] = { 0, 0, 0, 0 };
 #define ATOM_CHAR(x) #x
 
 #define GENERAL_ATOMS(X) \
+	X(XOAT_SPOT),\
 	X(_MOTIF_WM_HINTS),\
 	X(WM_DELETE_WINDOW),\
 	X(WM_TAKE_FOCUS),\

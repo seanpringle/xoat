@@ -249,14 +249,6 @@ int client_drop_state(client *c, Atom state)
 	return rc;
 }
 
-void client_toggle_state(client *c, Atom state)
-{
-	if (client_state(c, state))
-		client_drop_state(c, state);
-	else
-		client_add_state(c, state);
-}
-
 // build a list of visible windows
 void windows_visible(stack *s)
 {
@@ -744,6 +736,7 @@ void key_press(XKeyEvent *e)
 	short act = ACTION_NONE; void *data = NULL;
 	KeySym key = XkbKeycodeToKeysym(display, e->keycode, 0, 0);
 	unsigned int state = e->state & ~(LockMask|NumlockMask);
+	unsigned long spot;
 
 	for (i = 0; i < sizeof(keys)/sizeof(binding); i++)
 	{
@@ -794,7 +787,18 @@ void key_press(XKeyEvent *e)
 				}
 				break;
 			case ACTION_FULLSCREEN_TOGGLE:
-				client_toggle_state(c, atoms[_NET_WM_STATE_FULLSCREEN]);
+				spot = c->spot;
+				if (client_state(c, atoms[_NET_WM_STATE_FULLSCREEN]))
+				{
+					client_drop_state(c, atoms[_NET_WM_STATE_FULLSCREEN]);
+					if (window_get_cardinal_prop(c->window, atoms[XOAT_SPOT], &spot, 1))
+						c->spot = spot;
+				}
+				else
+				{
+					client_add_state(c, atoms[_NET_WM_STATE_FULLSCREEN]);
+					window_set_cardinal_prop(c->window, atoms[XOAT_SPOT], &spot, 1);
+				}
 				client_review(c);
 				client_spot(c, c->spot, 1);
 				break;

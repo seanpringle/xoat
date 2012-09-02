@@ -13,7 +13,6 @@ client* window_client(Window win);
 int client_state(client *c, Atom state);
 int client_add_state(client *c, Atom state);
 int client_drop_state(client *c, Atom state);
-void client_toggle_state(client *c, Atom state);
 void windows_visible(stack *s);
 int window_message(Window target, Window subject, Atom atom, unsigned long protocol, unsigned long mask);
 void client_free(client *c);
