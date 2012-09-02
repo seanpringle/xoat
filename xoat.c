@@ -457,9 +457,8 @@ Window spot_active(int spot, int mon, Window except)
 	for (i = 0; i < wins.depth; i++)
 	{
 		client *o = wins.clients[i];
-		if (o->window != except && o->manage
-			&& INTERSECT(x + w/2, y + h/2, 1, 1,
-				o->attr.x, o->attr.y, o->attr.width, o->attr.height))
+		if (o->window != except && o->manage && o->spot == spot
+			&& INTERSECT(x + w/2, y + h/2, 1, 1, o->attr.x, o->attr.y, o->attr.width, o->attr.height))
 		{
 			client_raise(o);
 			client_active(o);
@@ -798,6 +797,7 @@ void key_press(XKeyEvent *e)
 				{
 					client_add_state(c, atoms[_NET_WM_STATE_FULLSCREEN]);
 					window_set_cardinal_prop(c->window, atoms[XOAT_SPOT], &spot, 1);
+					c->spot = SPOT1;
 				}
 				client_review(c);
 				client_spot(c, c->spot, 1);
