@@ -125,14 +125,13 @@ void window_set_window_prop(Window w, Atom prop, Window *values, int count)
 
 void ewmh_client_list()
 {
-	int i; stack all, wins;
+	int i; client *c; stack all, wins;
 	memset(&wins, 0, sizeof(stack));
 	windows_visible(&all);
 
 	for (i = all.depth-1; i > -1; i--)
 	{
-		client *c = all.clients[i];
-		if (c && c->manage)
+		if ((c = all.clients[i]) && c->manage)
 		{
 			wins.clients[wins.depth] = c;
 			wins.windows[wins.depth++] = c->window;
@@ -263,19 +262,17 @@ void windows_visible(stack *s)
 		return;
 	}
 	memset(s, 0, sizeof(stack));
-	unsigned int nwins; int i; Window w1, w2, *wins;
+	unsigned int nwins; int i; Window w1, w2, *wins; client *c;
 	if (XQueryTree(display, root, &w1, &w2, &wins, &nwins) && wins)
 	{
 		for (i = nwins-1; i > -1; i--)
 		{
-			client *c = window_client(wins[i]);
-			if (c && c->visible && s->depth < STACK)
+			if ((c = window_client(wins[i])) && c->visible && s->depth < STACK)
 			{
 				s->clients[s->depth] = c;
 				s->windows[s->depth++] = wins[i];
 			}
-			else
-				client_free(c);
+			else client_free(c);
 		}
 	}
 	if (wins) XFree(wins);
@@ -337,8 +334,7 @@ void client_position(client *c, int x, int y, int w, int h)
 	}
 
 	w -= BORDER*2; h -= BORDER*2;
-	int basew = 0, baseh = 0;
-	int sw = w, sh = h;
+	int basew = 0, baseh = 0, sw = w, sh = h;
 
 	if (c->size.flags & PBaseSize)
 	{
@@ -393,23 +389,21 @@ void spot_xywh(int spot, int mon, int *x, int *y, int *w, int *h)
 	// default, left 2/3 of screen
 	*x = m->x, *y = m->y, *w = width_spot1, *h = m->h;
 
-	switch (spot)
+	if (spot != SPOT1)
 	{
+		*x = m->x + width_spot1;
+		*w = m->w - width_spot1;
 		// right top 2/9 of screen
-		case SPOT2:
-			*x = m->x + width_spot1;
-			*y = m->y;
-			*w = m->w - width_spot1;
+		if (spot == SPOT2)
+		{
 			*h = height_spot2;
-			break;
-
+		}
 		// right bottom 1/9 of screen
-		case SPOT3:
-			*x = m->x + width_spot1;
+		if (spot == SPOT3)
+		{
 			*y = m->y + height_spot2;
-			*w = m->w - width_spot1;
 			*h = m->h - height_spot2;
-			break;
+		}
 	}
 }
 
@@ -443,20 +437,26 @@ void client_spot(client *c, int spot, int force)
 void client_cycle(client *c)
 {
 	spot_active(c->spot, c->monitor, c->window);
-	client_lower(c);
+
+	stack lower, all;
+	memset(&lower, 0, sizeof(stack));
+	windows_visible(&all);
+
+	client_stack(c, &all, &lower);
+	XLowerWindow(display, lower.windows[0]);
+	XRestackWindows(display, lower.windows, lower.depth);
 }
 
 // find a window within a screen "spot" and raise/activate
 Window spot_active(int spot, int mon, Window except)
 {
-	int i, x, y, w, h;
+	int i, x, y, w, h; client *o;
 	spot_xywh(spot, mon, &x, &y, &w, &h);
 	stack wins; windows_visible(&wins);
 
 	for (i = 0; i < wins.depth; i++)
 	{
-		client *o = wins.clients[i];
-		if (o->window != except && o->manage && o->spot == spot
+		if ((o = wins.clients[i]) && o->window != except && o->manage && o->spot == spot
 			&& INTERSECT(x + w/2, y + h/2, 1, 1, o->attr.x, o->attr.y, o->attr.width, o->attr.height))
 		{
 			client_raise(o);
@@ -470,14 +470,13 @@ Window spot_active(int spot, int mon, Window except)
 // build a stack of a window's transients and itself
 void client_stack(client *c, stack *all, stack *raise)
 {
-	int i; client *self = NULL;
+	int i; client *o, *self = NULL;
 	for (i = 0; i < all->depth; i++)
 	{
-		client *o = all->clients[i];
-		if (o->manage && o->visible && o->transient_for == c->window)
+		if ((o = all->clients[i]) && o->manage && o->visible && o->transient_for == c->window)
 			client_stack(o, all, raise);
 		else
-		if (o->visible && o->window == c->window)
+		if (o && o->visible && o->window == c->window)
 			self = o;
 	}
 	if (self)
@@ -492,34 +491,28 @@ void client_raise(client *c)
 {
 	if (!c) return;
 
-	int i; stack raise, all, family;
+	int i; client *o; stack raise, all, family;
 	memset(&raise,  0, sizeof(stack));
 	memset(&family, 0, sizeof(stack));
 	windows_visible(&all);
 
 	for (i = 0; i < all.depth; i++)
-	{
-		client *o = all.clients[i];
-		if (o && o->type == atoms[_NET_WM_WINDOW_TYPE_DOCK])
+		if ((o = all.clients[i]) && o->type == atoms[_NET_WM_WINDOW_TYPE_DOCK])
 			client_stack(o, &all, &raise);
-	}
+
 	// above only counts for fullscreen windows
 	if (client_state(c, atoms[_NET_WM_STATE_FULLSCREEN]))
-	{
 		for (i = 0; i < all.depth; i++)
-		{
-			client *o = all.clients[i];
-			if (o && client_state(o, atoms[_NET_WM_STATE_ABOVE]))
+			if ((o = all.clients[i]) && client_state(o, atoms[_NET_WM_STATE_ABOVE]))
 				client_stack(o, &all, &raise);
-		}
-	}
+
 	while (c->trans)
 	{
 		client *t = window_client(c->transient_for);
 		if (t) c = family.clients[family.depth++] = t;
 	}
-	client_stack(c, &all, &raise);
 
+	client_stack(c, &all, &raise);
 	XRaiseWindow(display, raise.windows[0]);
 	XRestackWindows(display, raise.windows, raise.depth);
 
@@ -527,28 +520,12 @@ void client_raise(client *c)
 		client_free(family.clients[--family.depth]);
 }
 
-// lower a window and all its transients
-void client_lower(client *c)
-{
-	if (!c || client_state(c, atoms[_NET_WM_STATE_ABOVE]))
-		return;
-
-	stack lower, all;
-	memset(&lower, 0, sizeof(stack));
-	windows_visible(&all);
-
-	client_stack(c, &all, &lower);
-
-	XLowerWindow(display, lower.windows[0]);
-	XRestackWindows(display, lower.windows, lower.depth);
-}
-
 // focus a window
 void client_active(client *c)
 {
-	client *o;
 	if (!c || !c->visible) return;
 
+	client *o;
 	Window old = current;
 	current = c->window;
 	current_spot = c->spot;
@@ -569,14 +546,13 @@ void client_active(client *c)
 // real simple switcher/launcher
 void find_or_start(char *class)
 {
-	int i; client *found = NULL;
+	int i; client *c, *found = NULL;
 	stack all; windows_visible(&all);
 
 	for (i = 0; !found && i < all.depth; i++)
 	{
 		XClassHint chint;
-		client *c = all.clients[i];
-		if (c && c->manage && XGetClassHint(display, c->window, &chint))
+		if ((c = all.clients[i]) && c->manage && XGetClassHint(display, c->window, &chint))
 		{
 			if (!strcasecmp(chint.res_class, class) || !strcasecmp(chint.res_name, class))
 				found = c;
@@ -615,8 +591,7 @@ void raise_tag(unsigned long tag)
 
 	for (i = all.depth-1; i > -1; i--)
 	{
-		c = all.clients[i];
-		if (c && c->manage && c->visible && c->tags & tag)
+		if ((c = all.clients[i]) && c->manage && c->visible && c->tags & tag)
 		{
 			if (c->monitor == current_mon && c->spot == current_spot) t = c;
 			client_raise(c);
@@ -624,9 +599,7 @@ void raise_tag(unsigned long tag)
 	}
 	if (t) client_active(t);
 
-	unsigned long desktop = 0;
-	if (tag & TAG2) desktop = 1;
-	if (tag & TAG3) desktop = 2;
+	unsigned long desktop = tag & TAG2 ? 1: (tag & TAG3 ? 2: 0);
 	window_set_cardinal_prop(root, atoms[_NET_CURRENT_DESKTOP], &desktop, 1);
 }
 
@@ -635,10 +608,7 @@ void client_set_tags(client *c)
 	unsigned long tags = c->tags;
 	window_set_cardinal_prop(c->window, atoms[XOAT_TAGS], &tags, 1);
 
-	unsigned long desktop = 0xffffffff;
-	if (tags & TAG3) desktop = 2;
-	if (tags & TAG2) desktop = 1;
-	if (tags & TAG1) desktop = 0;
+	unsigned long desktop = tags & TAG3 ? 2: (tags & TAG2 ? 1: (tags & TAG1 ? 0: 0xffffffff));
 	window_set_cardinal_prop(c->window, atoms[_NET_WM_DESKTOP], &desktop, 1);
 }
 
@@ -686,16 +656,14 @@ void map_request(XMapEvent *e)
 
 	if (c && c->manage)
 	{
-		client_review(c);
-
-		int spot = SPOT_START;
+		int x, y, w, h, spot = SPOT_START,
+			monitor = MAX(nmonitors-1, MIN(0, MONITOR_START));
 
 		if (SPOT_START == SPOT_CURRENT)
 			spot = current_spot;
 
 		if (SPOT_START == SPOT_SMART)
 		{
-			int x, y, w, h;
 			spot = SPOT1;
 
 			spot_xywh(SPOT2, c->monitor, &x, &y, &w, &h);
@@ -707,13 +675,12 @@ void map_request(XMapEvent *e)
 				spot = SPOT3;
 		}
 
-		int monitor = MAX(nmonitors-1, MIN(0, MONITOR_START));
-
 		if (MONITOR_START == MONITOR_CURRENT)
 			monitor = current_mon;
 
 		c->monitor = monitor;
 		client_spot(c, spot, 0);
+		client_review(c);
 	}
 	client_free(c);
 	XMapWindow(display, e->window);
@@ -726,15 +693,11 @@ void map_notify(XMapEvent *e)
 	if (c && c->manage)
 	{
 		client_raise(c);
-		a = window_client(current);
-
+		client_review(c);
 		// if no current window, or new window has opened in the
 		// current spot, activate it
-		if (!a || (a && a->spot == c->spot))
+		if (!(a = window_client(current)) || (a && a->spot == c->spot))
 			client_active(c);
-		else
-			client_review(c);
-
 		client_free(a);
 	}
 	client_free(c);
@@ -804,19 +767,13 @@ void key_press(XKeyEvent *e)
 				break;
 			case ACTION_MOVE_MONITOR_INC:
 				client_raise(c);
-				if (c->monitor < nmonitors-1)
-				{
-					c->monitor++;
-					client_spot(c, c->spot, 1);
-				}
+				c->monitor = MIN(c->monitor+1, nmonitors-1);
+				client_spot(c, c->spot, 1);
 				break;
 			case ACTION_MOVE_MONITOR_DEC:
 				client_raise(c);
-				if (c->monitor > 0)
-				{
-					c->monitor--;
-					client_spot(c, c->spot, 1);
-				}
+				c->monitor = MAX(c->monitor-1, 0);
+				client_spot(c, c->spot, 1);
 				break;
 			case ACTION_FULLSCREEN_TOGGLE:
 				spot = c->spot;
@@ -950,19 +907,9 @@ void client_message(XClientMessageEvent *e)
 	client_free(c);
 }
 
-void focus_change(XFocusChangeEvent *e)
+void any_event(XEvent *e)
 {
-	client *c = window_client(e->window);
-
-	if (c && c->manage)
-		client_review(c);
-
-	client_free(c);
-}
-
-void property_notify(XPropertyEvent *e)
-{
-	client *c = window_client(e->window);
+	client *c = window_client(e->xany.window);
 
 	if (c && c->manage)
 		client_review(c);
@@ -972,8 +919,8 @@ void property_notify(XPropertyEvent *e)
 
 int main(int argc, char *argv[])
 {
-	int i, j; self = argv[0];
-	stack wins; memset(&wins, 0, sizeof(stack));
+	int i, j; self = argv[0]; stack wins;
+	memset(&wins, 0, sizeof(stack));
 	signal(SIGCHLD, catch_exit);
 
 	if (!(display = XOpenDisplay(0))) return 1;
@@ -1066,12 +1013,12 @@ int main(int argc, char *argv[])
 	ewmh = XCreateSimpleWindow(display, root, 0, 0, 1, 1, 0, 0, 0);
 
 	window_set_atom_prop(root,     atoms[_NET_SUPPORTED],           atoms, ATOMS);
-	window_set_window_prop(root,   atoms[_NET_SUPPORTING_WM_CHECK], &ewmh, 1);
-	window_set_cardinal_prop(root, atoms[_NET_CURRENT_DESKTOP],     &desktop, 1);
+	window_set_window_prop(root,   atoms[_NET_SUPPORTING_WM_CHECK], &ewmh,     1);
+	window_set_cardinal_prop(root, atoms[_NET_CURRENT_DESKTOP],     &desktop,  1);
 	window_set_cardinal_prop(root, atoms[_NET_NUMBER_OF_DESKTOPS],  &desktops, 1);
-	window_set_cardinal_prop(root, atoms[_NET_DESKTOP_GEOMETRY],    geometry, 2);
-	window_set_cardinal_prop(root, atoms[_NET_DESKTOP_VIEWPORT],    viewport, 2);
-	window_set_cardinal_prop(ewmh, atoms[_NET_WM_PID],              &pid, 1);
+	window_set_cardinal_prop(root, atoms[_NET_DESKTOP_GEOMETRY],    geometry,  2);
+	window_set_cardinal_prop(root, atoms[_NET_DESKTOP_VIEWPORT],    viewport,  2);
+	window_set_cardinal_prop(ewmh, atoms[_NET_WM_PID],              &pid,      1);
 
 	XChangeProperty(display, ewmh, atoms[_NET_WM_NAME], XA_STRING, 8, PropModeReplace, (const unsigned char*)"xoat", 4);
 
@@ -1163,10 +1110,8 @@ int main(int argc, char *argv[])
 				break;
 			case FocusIn:
 			case FocusOut:
-				focus_change(&ev.xfocus);
-				break;
 			case PropertyNotify:
-				property_notify(&ev.xproperty);
+				any_event(&ev);
 				break;
 		}
 	}
