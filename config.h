@@ -4,6 +4,7 @@
 #define BORDER_BLUR "Dark Gray"
 #define BORDER_FOCUS "Royal Blue"
 #define BORDER_URGENT "Red"
+#define BORDER_ABOVE "Dark Green"
 
 // There are three static tiles called SPOT1, SPOT2, and SPOT3.
 // Want more tiles? Different layouts? Floating? Go away ;)
@@ -67,6 +68,9 @@ binding keys[] = {
 
 	// Toggle current window full screen.
 	{ .mod = Mod4Mask, .key = XK_f, .act = ACTION_FULLSCREEN_TOGGLE },
+
+	// Toggle current window above.
+	{ .mod = Mod4Mask, .key = XK_a, .act = ACTION_ABOVE_TOGGLE },
 
 	// Switch focus between monitors.
 	{ .mod = Mod4Mask, .key = XK_Right, .act = ACTION_FOCUS_MONITOR_INC },

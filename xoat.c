@@ -490,6 +490,8 @@ void client_stack(client *c, stack *all, stack *raise)
 // raise a window and all its transients
 void client_raise(client *c)
 {
+	if (!c) return;
+
 	int i; stack raise, all, family;
 	memset(&raise,  0, sizeof(stack));
 	memset(&family, 0, sizeof(stack));
@@ -498,21 +500,23 @@ void client_raise(client *c)
 	for (i = 0; i < all.depth; i++)
 	{
 		client *o = all.clients[i];
-		// docks stay on top
 		if (o && o->type == atoms[_NET_WM_WINDOW_TYPE_DOCK])
+			client_stack(o, &all, &raise);
+	}
+	// above only counts for fullscreen windows
+	if (client_state(c, atoms[_NET_WM_STATE_FULLSCREEN]))
+	{
+		for (i = 0; i < all.depth; i++)
 		{
-			raise.clients[raise.depth] = o;
-			raise.windows[raise.depth++] = o->window;
+			client *o = all.clients[i];
+			if (o && client_state(o, atoms[_NET_WM_STATE_ABOVE]))
+				client_stack(o, &all, &raise);
 		}
 	}
 	while (c->trans)
 	{
 		client *t = window_client(c->transient_for);
-		if (t)
-		{
-			family.clients[family.depth++] = t;
-			c = t;
-		}
+		if (t) c = family.clients[family.depth++] = t;
 	}
 	client_stack(c, &all, &raise);
 
@@ -526,6 +530,9 @@ void client_raise(client *c)
 // lower a window and all its transients
 void client_lower(client *c)
 {
+	if (!c || client_state(c, atoms[_NET_WM_STATE_ABOVE]))
+		return;
+
 	stack lower, all;
 	memset(&lower, 0, sizeof(stack));
 	windows_visible(&all);
@@ -596,8 +603,8 @@ void window_listen(Window win)
 void client_review(client *c)
 {
 	XSetWindowBorder(display, c->window,
-		color_get(c->window == current ? BORDER_FOCUS:
-			(c->urgent ? BORDER_URGENT: BORDER_BLUR)));
+		color_get(c->window == current ? BORDER_FOCUS: (c->urgent ? BORDER_URGENT:
+			(client_state(c, atoms[_NET_WM_STATE_ABOVE]) ? BORDER_ABOVE: BORDER_BLUR))));
 	XSetWindowBorderWidth(display, c->window, client_state(c, atoms[_NET_WM_STATE_FULLSCREEN]) ? 0: BORDER);
 }
 
@@ -828,6 +835,16 @@ void key_press(XKeyEvent *e)
 				}
 				client_review(c);
 				client_spot(c, c->spot, 1);
+				break;
+			case ACTION_ABOVE_TOGGLE:
+				spot = c->spot;
+				client_raise(c);
+				if (client_state(c, atoms[_NET_WM_STATE_ABOVE]))
+					client_drop_state(c, atoms[_NET_WM_STATE_ABOVE]);
+				else
+					client_add_state(c, atoms[_NET_WM_STATE_ABOVE]);
+				client_review(c);
+				client_raise(c);
 				break;
 			case ACTION_TAG:
 				c->tags |= (unsigned int)num;

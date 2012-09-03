@@ -48,7 +48,10 @@ Mod4-Escape
 :	Close a window.
 
 Mod4-f
-:	Toggle fullscreen. While in fullscreen mode, an window is considered to be in tile 1.
+:	Toggle state fullscreen. While in fullscreen mode, an window is considered to be in tile 1.
+
+Mod4-a
+:	Toggle state above (only placed above fullscreen windows).
 
 Mod4-Right
 :	Focus next monitor.
