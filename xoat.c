@@ -992,15 +992,15 @@ int main(int argc, char *argv[])
 		client *c = wins.clients[i];
 		if (!c) continue;
 
-		unsigned long strut[12]; memset(strut, 0, sizeof(strut));
-		if (window_get_cardinal_prop(c->window, atoms[_NET_WM_STRUT_PARTIAL], strut, 12)
-			|| window_get_cardinal_prop(c->window, atoms[_NET_WM_STRUT], strut, 4))
+		wm_strut strut; memset(&strut, 0, sizeof(wm_strut));
+		if (window_get_cardinal_prop(c->window, atoms[_NET_WM_STRUT_PARTIAL], (unsigned long*)&strut, 12)
+			|| window_get_cardinal_prop(c->window, atoms[_NET_WM_STRUT], (unsigned long*)&strut, 4))
 		{
-			struts[LEFT]   = MAX(struts[LEFT],   strut[LEFT]);
-			struts[RIGHT]  = MAX(struts[RIGHT],  strut[RIGHT]);
-			struts[TOP]    = MAX(struts[TOP],    strut[TOP]);
-			struts[BOTTOM] = MAX(struts[BOTTOM], strut[BOTTOM]);
-			warnx("struts %ld %ld %ld %ld 0x%08lx %s", strut[LEFT], strut[LEFT], strut[LEFT], strut[LEFT], (long)c->window, c->class);
+			struts.left   = MAX(struts.left,   strut.left);
+			struts.right  = MAX(struts.right,  strut.right);
+			struts.top    = MAX(struts.top,    strut.top);
+			struts.bottom = MAX(struts.bottom, strut.bottom);
+			warnx("struts %ld %ld %ld %ld 0x%08lx %s", strut.left, strut.left, strut.left, strut.left, (long)c->window, c->class);
 		}
 		client_free(c);
 	}
@@ -1014,9 +1014,9 @@ int main(int argc, char *argv[])
 			for (i = 0; i < nmonitors; i++)
 			{
 				monitors[i].x = info[i].x_org;
-				monitors[i].y = info[i].y_org + struts[TOP];
+				monitors[i].y = info[i].y_org + struts.top;
 				monitors[i].w = info[i].width;
-				monitors[i].h = info[i].height - struts[TOP] - struts[BOTTOM];
+				monitors[i].h = info[i].height - struts.top - struts.bottom;
 				warnx("monitor %d %dx%d+%d+%d", i, monitors[i].w, monitors[i].h, monitors[i].x, monitors[i].y);
 			}
 			XFree(info);
@@ -1024,11 +1024,11 @@ int main(int argc, char *argv[])
 	}
 
 	// left struts affect first monitor
-	monitors[0].x += struts[LEFT];
-	monitors[0].w -= struts[LEFT];
+	monitors[0].x += struts.left;
+	monitors[0].w -= struts.left;
 
 	// right struts affect last monitor
-	monitors[nmonitors-1].w -= struts[RIGHT];
+	monitors[nmonitors-1].w -= struts.right;
 
 	// dump atoms for debug
 	for (i = 0; i < ATOMS; i++) warnx("atom 0x%lx %s", (long)atoms[i], atom_names[i]);

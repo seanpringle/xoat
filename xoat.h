@@ -94,8 +94,13 @@ stack inplay;
 
 static int (*xerror)(Display *, XErrorEvent *);
 
-enum { LEFT, RIGHT, TOP, BOTTOM };
-int struts[4] = { 0, 0, 0, 0 };
+typedef struct {
+	long left, right, top, bottom,
+		left_start_y, left_end_y, right_start_y, right_end_y,
+		top_start_x, top_end_x, bottom_start_x, bottom_end_x;
+} wm_strut;
+
+wm_strut struts;
 
 #define ATOM_ENUM(x) x
 #define ATOM_CHAR(x) #x

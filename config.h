@@ -48,14 +48,16 @@
 binding keys[] = {
 
 	// Focus the top-most window in a spot.
-	{ .mod = Mod4Mask, .key = XK_1, .act = ACTION_FOCUS, .num = SPOT1 },
-	{ .mod = Mod4Mask, .key = XK_2, .act = ACTION_FOCUS, .num = SPOT2 },
-	{ .mod = Mod4Mask, .key = XK_3, .act = ACTION_FOCUS, .num = SPOT3 },
+	{ .mod = Mod4Mask, .key = XK_Left,  .act = ACTION_FOCUS, .num = SPOT1 },
+	{ .mod = Mod4Mask, .key = XK_Up,    .act = ACTION_FOCUS, .num = SPOT2 },
+	{ .mod = Mod4Mask, .key = XK_Right, .act = ACTION_FOCUS, .num = SPOT2 },
+	{ .mod = Mod4Mask, .key = XK_Down,  .act = ACTION_FOCUS, .num = SPOT3 },
 
 	// Move the current window to another spot.
-	{ .mod = ShiftMask|Mod4Mask, .key = XK_1, .act = ACTION_MOVE, .num = SPOT1 },
-	{ .mod = ShiftMask|Mod4Mask, .key = XK_2, .act = ACTION_MOVE, .num = SPOT2 },
-	{ .mod = ShiftMask|Mod4Mask, .key = XK_3, .act = ACTION_MOVE, .num = SPOT3 },
+	{ .mod = ShiftMask|Mod4Mask, .key = XK_Left,  .act = ACTION_MOVE, .num = SPOT1 },
+	{ .mod = ShiftMask|Mod4Mask, .key = XK_Up,    .act = ACTION_MOVE, .num = SPOT2 },
+	{ .mod = ShiftMask|Mod4Mask, .key = XK_Right, .act = ACTION_MOVE, .num = SPOT2 },
+	{ .mod = ShiftMask|Mod4Mask, .key = XK_Down,  .act = ACTION_MOVE, .num = SPOT3 },
 
 	// Flip between the top two windows in the current spot.
 	{ .mod = Mod4Mask, .key = XK_Tab,    .act = ACTION_OTHER },
@@ -73,28 +75,28 @@ binding keys[] = {
 	{ .mod = Mod4Mask, .key = XK_a, .act = ACTION_ABOVE_TOGGLE },
 
 	// Switch focus between monitors.
-	{ .mod = Mod4Mask, .key = XK_Right, .act = ACTION_FOCUS_MONITOR, .num =  1 },
-	{ .mod = Mod4Mask, .key = XK_Left,  .act = ACTION_FOCUS_MONITOR, .num = -1 },
+	{ .mod = Mod4Mask, .key = XK_Next,  .act = ACTION_FOCUS_MONITOR, .num =  1 },
+	{ .mod = Mod4Mask, .key = XK_Prior, .act = ACTION_FOCUS_MONITOR, .num = -1 },
 
 	// Move windows between monitors.
-	{ .mod = ShiftMask|Mod4Mask, .key = XK_Right, .act = ACTION_MOVE_MONITOR, .num =  1 },
-	{ .mod = ShiftMask|Mod4Mask, .key = XK_Left,  .act = ACTION_MOVE_MONITOR, .num = -1 },
+	{ .mod = ShiftMask|Mod4Mask, .key = XK_Next,  .act = ACTION_MOVE_MONITOR, .num =  1 },
+	{ .mod = ShiftMask|Mod4Mask, .key = XK_Prior, .act = ACTION_MOVE_MONITOR, .num = -1 },
 
 	// Launcher
 	{ .mod = Mod4Mask, .key = XK_x, .act = ACTION_COMMAND, .data = "dmenu_run" },
 
 	// Raise tag groups
-	{ .mod = Mod4Mask, .key = XK_F1, .act = ACTION_RAISE_TAG, .num = TAG1 },
-	{ .mod = Mod4Mask, .key = XK_F2, .act = ACTION_RAISE_TAG, .num = TAG2 },
-	{ .mod = Mod4Mask, .key = XK_F3, .act = ACTION_RAISE_TAG, .num = TAG3 },
+	{ .mod = Mod4Mask, .key = XK_1, .act = ACTION_RAISE_TAG, .num = TAG1 },
+	{ .mod = Mod4Mask, .key = XK_2, .act = ACTION_RAISE_TAG, .num = TAG2 },
+	{ .mod = Mod4Mask, .key = XK_3, .act = ACTION_RAISE_TAG, .num = TAG3 },
 
 	// Tag/untag the current window
-	{ .mod = ShiftMask|Mod4Mask, .key = XK_F1, .act = ACTION_TAG, .num = TAG1 },
-	{ .mod = ShiftMask|Mod4Mask, .key = XK_F2, .act = ACTION_TAG, .num = TAG2 },
-	{ .mod = ShiftMask|Mod4Mask, .key = XK_F3, .act = ACTION_TAG, .num = TAG3 },
-	{ .mod = ShiftMask|ControlMask|Mod4Mask, .key = XK_F1, .act = ACTION_UNTAG, .num = TAG1 },
-	{ .mod = ShiftMask|ControlMask|Mod4Mask, .key = XK_F2, .act = ACTION_UNTAG, .num = TAG2 },
-	{ .mod = ShiftMask|ControlMask|Mod4Mask, .key = XK_F3, .act = ACTION_UNTAG, .num = TAG3 },
+	{ .mod = ShiftMask|Mod4Mask, .key = XK_1, .act = ACTION_TAG, .num = TAG1 },
+	{ .mod = ShiftMask|Mod4Mask, .key = XK_2, .act = ACTION_TAG, .num = TAG2 },
+	{ .mod = ShiftMask|Mod4Mask, .key = XK_3, .act = ACTION_TAG, .num = TAG3 },
+	{ .mod = ShiftMask|ControlMask|Mod4Mask, .key = XK_1, .act = ACTION_UNTAG, .num = TAG1 },
+	{ .mod = ShiftMask|ControlMask|Mod4Mask, .key = XK_2, .act = ACTION_UNTAG, .num = TAG2 },
+	{ .mod = ShiftMask|ControlMask|Mod4Mask, .key = XK_3, .act = ACTION_UNTAG, .num = TAG3 },
 
 	// Find or start apps by WM_CLASS (lower case match).
 	{ .mod = AnyModifier, .key = XK_F1, .act = ACTION_FIND_OR_START, .data = "urxvt"    },
