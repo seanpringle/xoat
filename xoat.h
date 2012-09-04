@@ -38,6 +38,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <stdarg.h>
 #include <unistd.h>
 #include <ctype.h>
+#include <error.h>
 #include <err.h>
 #include <signal.h>
 #include <sys/types.h>
@@ -74,7 +75,7 @@ typedef struct {
 	XWMHints hints;
 	XSizeHints size;
 	Window transient_for;
-	Atom type, states[MAX_NET_WM_STATES];
+	Atom type, states[MAX_NET_WM_STATES+1];
 	short monitor, spot, visible, trans, manage, input, urgent;
 	unsigned short tags;
 	char *class;
