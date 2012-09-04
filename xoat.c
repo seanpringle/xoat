@@ -548,25 +548,17 @@ void client_active(client *c)
 // real simple switcher/launcher
 void find_or_start(char *class)
 {
-	int i; client *c, *found = NULL;
+	int i; client *c;
 	stack all; windows_visible(&all);
 
-	for (i = 0; !found && i < all.depth; i++)
+	for (i = 0; i < all.depth; i++)
 	{
-		XClassHint chint;
-		if ((c = all.clients[i]) && c->manage && XGetClassHint(display, c->window, &chint))
+		if ((c = all.clients[i]) && c->manage && !strcasecmp(c->class, class))
 		{
-			if (!strcasecmp(chint.res_class, class) || !strcasecmp(chint.res_name, class))
-				found = c;
-			XFree(chint.res_class);
-			XFree(chint.res_name);
+			client_raise(c);
+			client_active(c);
+			return;
 		}
-	}
-	if (found)
-	{
-		client_raise(found);
-		client_active(found);
-		return;
 	}
 	exec_cmd(class);
 }
