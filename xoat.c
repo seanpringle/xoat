@@ -540,6 +540,7 @@ void action_move(void *data, int num)
 	{
 		client_raise_family(c);
 		client_place_spot(c, num, 1);
+		client_free(c);
 	}
 }
 
@@ -550,18 +551,23 @@ void action_focus(void *data, int num)
 
 void action_close(void *data, int num)
 {
-	client_close(window_build_client(current));
+	client *c = window_build_client(current);
+	if (c) client_close(c);
+	client_free(c);
 }
 
 void action_cycle(void *data, int num)
 {
-	client_spot_cycle(window_build_client(current));
+	client *c = window_build_client(current);
+	if (c) client_spot_cycle(c);
+	client_free(c);
 }
 
 void action_other(void *data, int num)
 {
 	client *c = window_build_client(current);
 	if (c) spot_focus_top_window(c->spot, c->monitor, c->window);
+	client_free(c);
 }
 
 void action_command(void *data, int num)
@@ -595,6 +601,7 @@ void action_move_monitor(void *data, int num)
 	client_raise_family(c);
 	c->monitor = MAX(0, MIN(current_mon+num, nmonitors-1));
 	client_place_spot(c, c->spot, 1);
+	client_free(c);
 }
 
 void action_focus_monitor(void *data, int num)
@@ -642,6 +649,7 @@ void action_fullscreen(void *data, int num)
 
 	client_update_border(c);
 	client_place_spot(c, c->spot, 1);
+	client_free(c);
 }
 
 void action_above(void *data, int num)
@@ -652,6 +660,7 @@ void action_above(void *data, int num)
 	client_toggle_state(c, atoms[_NET_WM_STATE_ABOVE]);
 	client_update_border(c);
 	client_raise_family(c);
+	client_free(c);
 }
 
 void action_tag(void *data, int num)
@@ -661,6 +670,7 @@ void action_tag(void *data, int num)
 
 	c->tags |= (unsigned int)num;
 	client_flush_tags(c);
+	client_free(c);
 }
 
 void action_untag(void *data, int num)
@@ -670,6 +680,7 @@ void action_untag(void *data, int num)
 
 	c->tags &= ~((unsigned int)num);
 	client_flush_tags(c);
+	client_free(c);
 }
 
 // key actions
