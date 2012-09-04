@@ -98,6 +98,18 @@ Shift-Mod4-F3
 Shift-Control-Mod4-F3
 :	Remove current window from tag 3.
 
+# OPTIONS
+
+All configuration is done via config.h.
+
+The xoat binary may be used to send messages to a running instance of xoat. They include:
+
+xoat exit
+:	Exit the window manager.
+
+xoat restart
+:	Restart the window manager in place without affecting the X session.
+
 # SEE ALSO
 
 **dmenu** (1)
