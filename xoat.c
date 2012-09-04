@@ -545,24 +545,6 @@ void client_active(client *c)
 	client_review(c);
 }
 
-// real simple switcher/launcher
-void find_or_start(char *class)
-{
-	int i; client *c;
-	stack all; windows_visible(&all);
-
-	for (i = 0; i < all.depth; i++)
-	{
-		if ((c = all.clients[i]) && c->manage && !strcasecmp(c->class, class))
-		{
-			client_raise(c);
-			client_active(c);
-			return;
-		}
-	}
-	exec_cmd(class);
-}
-
 // client events we care about
 void window_listen(Window win)
 {
@@ -576,25 +558,6 @@ void client_review(client *c)
 		color_get(c->window == current ? BORDER_FOCUS: (c->urgent ? BORDER_URGENT:
 			(client_state(c, atoms[_NET_WM_STATE_ABOVE]) ? BORDER_ABOVE: BORDER_BLUR))));
 	XSetWindowBorderWidth(display, c->window, client_state(c, atoms[_NET_WM_STATE_FULLSCREEN]) ? 0: BORDER);
-}
-
-void raise_tag(unsigned long tag)
-{
-	int i; client *c = NULL, *t = NULL;
-	stack all; windows_visible(&all);
-
-	for (i = all.depth-1; i > -1; i--)
-	{
-		if ((c = all.clients[i]) && c->manage && c->visible && c->tags & tag)
-		{
-			if (c->monitor == current_mon && c->spot == current_spot) t = c;
-			client_raise(c);
-		}
-	}
-	if (t) client_active(t);
-
-	unsigned long desktop = tag & TAG2 ? 1: (tag & TAG3 ? 2: 0);
-	window_set_cardinal_prop(root, atoms[_NET_CURRENT_DESKTOP], &desktop, 1);
 }
 
 void client_set_tags(client *c)
@@ -644,9 +607,22 @@ void action_command(void *data, int num)
 	exec_cmd(data);
 }
 
+// real simple switcher/launcher
 void action_find_or_start(void *data, int num)
 {
-	find_or_start(data);
+	int i; client *c; char *class = data;
+	stack all; windows_visible(&all);
+
+	for (i = 0; i < all.depth; i++)
+	{
+		if ((c = all.clients[i]) && c->manage && !strcasecmp(c->class, class))
+		{
+			client_raise(c);
+			client_active(c);
+			return;
+		}
+	}
+	exec_cmd(class);
 }
 
 void action_move_monitor(void *data, int num)
@@ -670,9 +646,23 @@ void action_focus_monitor(void *data, int num)
 	if (spot_active(SPOT3, mon, None)) return;
 }
 
-void action_raise_tag(void *data, int num)
+void action_raise_tag(void *data, int tag)
 {
-	raise_tag(num);
+	int i; client *c = NULL, *t = NULL;
+	stack all; windows_visible(&all);
+
+	for (i = all.depth-1; i > -1; i--)
+	{
+		if ((c = all.clients[i]) && c->manage && c->visible && c->tags & tag)
+		{
+			if (c->monitor == current_mon && c->spot == current_spot) t = c;
+			client_raise(c);
+		}
+	}
+	if (t) client_active(t);
+
+	unsigned long desktop = tag & TAG2 ? 1: (tag & TAG3 ? 2: 0);
+	window_set_cardinal_prop(root, atoms[_NET_CURRENT_DESKTOP], &desktop, 1);
 }
 
 void action_fullscreen(void *data, int num)
