@@ -436,6 +436,8 @@ void client_spot(client *c, int spot, int force)
 // cycle through windows in a screen "spot"
 void client_cycle(client *c)
 {
+	if (!c) return;
+
 	spot_active(c->spot, c->monitor, c->window);
 
 	stack lower, all;
@@ -612,6 +614,151 @@ void client_set_tags(client *c)
 	window_set_cardinal_prop(c->window, atoms[_NET_WM_DESKTOP], &desktop, 1);
 }
 
+// ------- key actions -------
+
+void action_move(void *data, int num)
+{
+	client *c = window_client(current);
+	if (c)
+	{
+		client_raise(c);
+		client_spot(c, num, 1);
+	}
+}
+
+void action_focus(void *data, int num)
+{
+	spot_active(num, current_mon, None);
+}
+
+void action_close(void *data, int num)
+{
+	client_close(window_client(current));
+}
+
+void action_cycle(void *data, int num)
+{
+	client_cycle(window_client(current));
+}
+
+void action_other(void *data, int num)
+{
+	client *c = window_client(current);
+	if (c) spot_active(c->spot, c->monitor, c->window);
+}
+
+void action_command(void *data, int num)
+{
+	exec_cmd(data);
+}
+
+void action_find_or_start(void *data, int num)
+{
+	find_or_start(data);
+}
+
+void action_move_monitor(void *data, int num)
+{
+	int mon = MAX(0, MIN(current_mon+num, nmonitors-1));
+	client *c = window_client(current);
+	if (c)
+	{
+		client_raise(c);
+		c->monitor = mon;
+		client_spot(c, c->spot, 1);
+	}
+}
+
+void action_focus_monitor(void *data, int num)
+{
+	int mon = MAX(0, MIN(current_mon+num, nmonitors-1));
+	if (spot_active(current_spot, mon, None)) return;
+	if (spot_active(SPOT1, mon, None)) return;
+	if (spot_active(SPOT2, mon, None)) return;
+	if (spot_active(SPOT3, mon, None)) return;
+}
+
+void action_raise_tag(void *data, int num)
+{
+	raise_tag(num);
+}
+
+void action_fullscreen(void *data, int num)
+{
+	client *c = window_client(current);
+	if (!c) return;
+
+	unsigned long spot = c->spot;
+	client_raise(c);
+	if (client_state(c, atoms[_NET_WM_STATE_FULLSCREEN]))
+	{
+		client_drop_state(c, atoms[_NET_WM_STATE_FULLSCREEN]);
+		if (window_get_cardinal_prop(c->window, atoms[XOAT_SPOT], &spot, 1))
+			c->spot = spot;
+	}
+	else
+	{
+		client_add_state(c, atoms[_NET_WM_STATE_FULLSCREEN]);
+		window_set_cardinal_prop(c->window, atoms[XOAT_SPOT], &spot, 1);
+		c->spot = SPOT1;
+	}
+	client_review(c);
+	client_spot(c, c->spot, 1);
+}
+
+void action_above(void *data, int num)
+{
+	client *c = window_client(current);
+	if (!c) return;
+
+	if (client_state(c, atoms[_NET_WM_STATE_ABOVE]))
+		client_drop_state(c, atoms[_NET_WM_STATE_ABOVE]);
+	else
+		client_add_state(c, atoms[_NET_WM_STATE_ABOVE]);
+
+	client_review(c);
+	client_raise(c);
+}
+
+void action_tag(void *data, int num)
+{
+	client *c = window_client(current);
+	if (!c) return;
+
+	c->tags |= (unsigned int)num;
+	client_set_tags(c);
+	warnx("tags %d 0x%08lx %s", c->tags, (long)c->window, c->class);
+}
+
+void action_untag(void *data, int num)
+{
+	client *c = window_client(current);
+	if (!c) return;
+
+	c->tags &= ~((unsigned int)num);
+	client_set_tags(c);
+	warnx("tags %d 0x%08lx %s", c->tags, (long)c->window, c->class);
+}
+
+// key actions
+action actions[ACTIONS] = {
+	[ACTION_NONE]              = NULL,
+	[ACTION_MOVE]              = action_move,
+	[ACTION_FOCUS]             = action_focus,
+	[ACTION_CYCLE]             = action_cycle,
+	[ACTION_CLOSE]             = action_close,
+	[ACTION_OTHER]             = action_other,
+	[ACTION_COMMAND]           = action_command,
+	[ACTION_FIND_OR_START]     = action_find_or_start,
+	[ACTION_MOVE_MONITOR]      = action_move_monitor,
+	[ACTION_FOCUS_MONITOR]     = action_focus_monitor,
+	[ACTION_FULLSCREEN_TOGGLE] = action_fullscreen,
+	[ACTION_ABOVE_TOGGLE]      = action_above,
+	[ACTION_TAG]               = action_tag,
+	[ACTION_UNTAG]             = action_untag,
+	[ACTION_RAISE_TAG]         = action_raise_tag,
+};
+
 // ------- event handlers --------
 
 void create_notify(XCreateWindowEvent *e)
@@ -720,16 +867,12 @@ void unmap_notify(XUnmapEvent *e)
 
 void key_press(XKeyEvent *e)
 {
-	int i; XEvent ev;
-	while (XCheckTypedEvent(display, KeyPress, &ev));
-
-	latest = e->time;
-	client *c = window_client(current);
+	int i; XEvent ev; latest = e->time;
 
 	short act = ACTION_NONE; void *data = NULL; int num = 0;
 	KeySym key = XkbKeycodeToKeysym(display, e->keycode, 0, 0);
 	unsigned int state = e->state & ~(LockMask|NumlockMask);
-	unsigned long spot;
+	while (XCheckTypedEvent(display, KeyPress, &ev));
 
 	for (i = 0; i < sizeof(keys)/sizeof(binding); i++)
 	{
@@ -741,122 +884,8 @@ void key_press(XKeyEvent *e)
 			break;
 		}
 	}
-	if (c && c->visible)
-	{
-		switch (act)
-		{
-			case ACTION_MOVE_SPOT1:
-				client_raise(c);
-				client_spot(c, SPOT1, 1);
-				break;
-			case ACTION_MOVE_SPOT2:
-				client_raise(c);
-				client_spot(c, SPOT2, 1);
-				break;
-			case ACTION_MOVE_SPOT3:
-				client_raise(c);
-				client_spot(c, SPOT3, 1);
-				break;
-			case ACTION_CYCLE:
-				client_cycle(c);
-				break;
-			case ACTION_OTHER:
-				spot_active(c->spot, c->monitor, c->window);
-				break;
-			case ACTION_CLOSE:
-				client_close(c);
-				break;
-			case ACTION_MOVE_MONITOR_INC:
-				client_raise(c);
-				c->monitor = MIN(c->monitor+1, nmonitors-1);
-				client_spot(c, c->spot, 1);
-				break;
-			case ACTION_MOVE_MONITOR_DEC:
-				client_raise(c);
-				c->monitor = MAX(c->monitor-1, 0);
-				client_spot(c, c->spot, 1);
-				break;
-			case ACTION_FULLSCREEN_TOGGLE:
-				spot = c->spot;
-				client_raise(c);
-				if (client_state(c, atoms[_NET_WM_STATE_FULLSCREEN]))
-				{
-					client_drop_state(c, atoms[_NET_WM_STATE_FULLSCREEN]);
-					if (window_get_cardinal_prop(c->window, atoms[XOAT_SPOT], &spot, 1))
-						c->spot = spot;
-				}
-				else
-				{
-					client_add_state(c, atoms[_NET_WM_STATE_FULLSCREEN]);
-					window_set_cardinal_prop(c->window, atoms[XOAT_SPOT], &spot, 1);
-					c->spot = SPOT1;
-				}
-				client_review(c);
-				client_spot(c, c->spot, 1);
-				break;
-			case ACTION_ABOVE_TOGGLE:
-				spot = c->spot;
-				client_raise(c);
-				if (client_state(c, atoms[_NET_WM_STATE_ABOVE]))
-					client_drop_state(c, atoms[_NET_WM_STATE_ABOVE]);
-				else
-					client_add_state(c, atoms[_NET_WM_STATE_ABOVE]);
-				client_review(c);
-				client_raise(c);
-				break;
-			case ACTION_TAG:
-				c->tags |= (unsigned int)num;
-				client_set_tags(c);
-				warnx("tags %d 0x%08lx %s", c->tags, (long)c->window, c->class);
-				break;
-			case ACTION_UNTAG:
-				c->tags &= ~((unsigned int)num);
-				client_set_tags(c);
-				warnx("tags %d 0x%08lx %s", c->tags, (long)c->window, c->class);
-				break;
-		}
-	}
-	switch (act)
-	{
-		case ACTION_FOCUS_SPOT1:
-			spot_active(SPOT1, current_mon, None);
-			break;
-		case ACTION_FOCUS_SPOT2:
-			spot_active(SPOT2, current_mon, None);
-			break;
-		case ACTION_FOCUS_SPOT3:
-			spot_active(SPOT3, current_mon, None);
-			break;
-		case ACTION_COMMAND:
-			exec_cmd(data);
-			break;
-		case ACTION_FIND_OR_START:
-			find_or_start(data);
-			break;
-		case ACTION_FOCUS_MONITOR_INC:
-			if (current_mon < nmonitors-1)
-			{
-				if (spot_active(current_spot, current_mon+1, None)) break;
-				if (spot_active(SPOT1, current_mon+1, None)) break;
-				if (spot_active(SPOT2, current_mon+1, None)) break;
-				if (spot_active(SPOT3, current_mon+1, None)) break;
-			}
-			break;
-		case ACTION_FOCUS_MONITOR_DEC:
-			if (current_mon > 0)
-			{
-				if (spot_active(current_spot, current_mon-1, None)) break;
-				if (spot_active(SPOT1, current_mon-1, None)) break;
-				if (spot_active(SPOT2, current_mon-1, None)) break;
-				if (spot_active(SPOT3, current_mon-1, None)) break;
-			}
-			break;
-		case ACTION_RAISE_TAG:
-			raise_tag(num);
-			break;
-	}
-	client_free(c);
-	ewmh_client_list();
+	if (actions[act])
+		actions[act](data, num);
 }
 
 void button_press(XButtonEvent *e)

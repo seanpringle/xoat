@@ -143,21 +143,15 @@ unsigned int NumlockMask = 0;
 
 enum {
 	ACTION_NONE,
-	ACTION_MOVE_SPOT1,
-	ACTION_MOVE_SPOT2,
-	ACTION_MOVE_SPOT3,
-	ACTION_FOCUS_SPOT1,
-	ACTION_FOCUS_SPOT2,
-	ACTION_FOCUS_SPOT3,
+	ACTION_MOVE,
+	ACTION_FOCUS,
 	ACTION_CYCLE,
 	ACTION_CLOSE,
 	ACTION_OTHER,
 	ACTION_COMMAND,
 	ACTION_FIND_OR_START,
-	ACTION_MOVE_MONITOR_INC,
-	ACTION_MOVE_MONITOR_DEC,
-	ACTION_FOCUS_MONITOR_INC,
-	ACTION_FOCUS_MONITOR_DEC,
+	ACTION_MOVE_MONITOR,
+	ACTION_FOCUS_MONITOR,
 	ACTION_FULLSCREEN_TOGGLE,
 	ACTION_ABOVE_TOGGLE,
 	ACTION_TAG,
@@ -166,14 +160,14 @@ enum {
 	ACTIONS
 };
 
+typedef void (*action)(void*, int);
+
 typedef struct {
 	unsigned int mod;
 	KeySym key;
 	short act;
-	union {
-		void *data;
-		int num;
-	};
+	void *data;
+	int num;
 } binding;
 
 enum {

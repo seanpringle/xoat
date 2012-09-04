@@ -48,14 +48,14 @@
 binding keys[] = {
 
 	// Focus the top-most window in a spot.
-	{ .mod = Mod4Mask, .key = XK_1, .act = ACTION_FOCUS_SPOT1 },
-	{ .mod = Mod4Mask, .key = XK_2, .act = ACTION_FOCUS_SPOT2 },
-	{ .mod = Mod4Mask, .key = XK_3, .act = ACTION_FOCUS_SPOT3 },
+	{ .mod = Mod4Mask, .key = XK_1, .act = ACTION_FOCUS, .num = SPOT1 },
+	{ .mod = Mod4Mask, .key = XK_2, .act = ACTION_FOCUS, .num = SPOT2 },
+	{ .mod = Mod4Mask, .key = XK_3, .act = ACTION_FOCUS, .num = SPOT3 },
 
 	// Move the current window to another spot.
-	{ .mod = ShiftMask|Mod4Mask, .key = XK_1, .act = ACTION_MOVE_SPOT1 },
-	{ .mod = ShiftMask|Mod4Mask, .key = XK_2, .act = ACTION_MOVE_SPOT2 },
-	{ .mod = ShiftMask|Mod4Mask, .key = XK_3, .act = ACTION_MOVE_SPOT3 },
+	{ .mod = ShiftMask|Mod4Mask, .key = XK_1, .act = ACTION_MOVE, .num = SPOT1 },
+	{ .mod = ShiftMask|Mod4Mask, .key = XK_2, .act = ACTION_MOVE, .num = SPOT2 },
+	{ .mod = ShiftMask|Mod4Mask, .key = XK_3, .act = ACTION_MOVE, .num = SPOT3 },
 
 	// Flip between the top two windows in the current spot.
 	{ .mod = Mod4Mask, .key = XK_Tab,    .act = ACTION_OTHER },
@@ -73,12 +73,12 @@ binding keys[] = {
 	{ .mod = Mod4Mask, .key = XK_a, .act = ACTION_ABOVE_TOGGLE },
 
 	// Switch focus between monitors.
-	{ .mod = Mod4Mask, .key = XK_Right, .act = ACTION_FOCUS_MONITOR_INC },
-	{ .mod = Mod4Mask, .key = XK_Left,  .act = ACTION_FOCUS_MONITOR_DEC },
+	{ .mod = Mod4Mask, .key = XK_Right, .act = ACTION_FOCUS_MONITOR, .num =  1 },
+	{ .mod = Mod4Mask, .key = XK_Left,  .act = ACTION_FOCUS_MONITOR, .num = -1 },
 
 	// Move windows between monitors.
-	{ .mod = ShiftMask|Mod4Mask, .key = XK_Right, .act = ACTION_MOVE_MONITOR_INC },
-	{ .mod = ShiftMask|Mod4Mask, .key = XK_Left,  .act = ACTION_MOVE_MONITOR_DEC },
+	{ .mod = ShiftMask|Mod4Mask, .key = XK_Right, .act = ACTION_MOVE_MONITOR, .num =  1 },
+	{ .mod = ShiftMask|Mod4Mask, .key = XK_Left,  .act = ACTION_MOVE_MONITOR, .num = -1 },
 
 	// Launcher
 	{ .mod = Mod4Mask, .key = XK_x, .act = ACTION_COMMAND, .data = "dmenu_run" },
