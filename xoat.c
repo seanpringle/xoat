@@ -681,6 +681,7 @@ void map_request(XMapEvent *e)
 		c->monitor = monitor;
 		client_spot(c, spot, 0);
 		client_review(c);
+		client_set_tags(c);
 	}
 	client_free(c);
 	XMapWindow(display, e->window);
