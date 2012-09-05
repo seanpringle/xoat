@@ -362,18 +362,17 @@ void spot_calc_xywh(int spot, int mon, int *x, int *y, int *w, int *h)
 	monitor *m = &monitors[MIN(nmonitors-1, MAX(0, mon))];
 	int width_spot1  = (double)m->w / 100 * MIN(90, MAX(10, SPOT1_WIDTH_PCT));
 	int height_spot2 = (double)m->h / 100 * MIN(90, MAX(10, SPOT2_HEIGHT_PCT));
+	int x_spot1 = SPOT1_ALIGN == SPOT1_LEFT ? m->x: m->x + m->w - width_spot1;
+	int x_spot2 = SPOT1_ALIGN == SPOT1_LEFT ? m->x + width_spot1: m->x;
 
-	// default, left 2/3 of screen
-	*x = m->x, *y = m->y, *w = width_spot1, *h = m->h;
+	*x = x_spot1, *y = m->y, *w = width_spot1, *h = m->h;
 	if (spot == SPOT1) return;
 
-	// right top 2/9 of screen
-	*x = m->x + width_spot1;
+	*x = x_spot2;
 	*w = m->w - width_spot1;
 	*h = height_spot2;
 	if (spot == SPOT2) return;
 
-	// right bottom 1/9 of screen
 	*y = m->y + height_spot2;
 	*h = m->h - height_spot2;
 }

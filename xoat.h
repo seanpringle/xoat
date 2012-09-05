@@ -185,7 +185,9 @@ enum {
 	SPOT2, // medium top right pane
 	SPOT3,  // small bottom right pane
 	SPOT_CURRENT,
-	SPOT_SMART
+	SPOT_SMART,
+	SPOT1_LEFT,
+	SPOT1_RIGHT
 };
 
 #define TAG1 1<<0
