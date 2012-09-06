@@ -39,19 +39,17 @@ int execsh(char *cmd)
 	return execlp("/bin/sh", "sh", "-c", cmd, NULL);
 }
 
-pid_t exec_cmd(char *cmd)
+void exec_cmd(char *cmd)
 {
-	if (!cmd || !cmd[0]) return -1;
+	if (!cmd || !cmd[0]) return;
 	warnx("exec_cmd %s", cmd);
+
 	signal(SIGCHLD, catch_exit);
-	pid_t pid = fork();
-	if (!pid)
-	{
-		setsid();
-		execsh(cmd);
-		exit(EXIT_FAILURE);
-	}
-	return pid;
+	if (fork()) return;
+
+	setsid();
+	execsh(cmd);
+	exit(EXIT_FAILURE);
 }
 
 // X error handler
@@ -215,6 +213,12 @@ void client_free(client *c)
 	free(c);
 }
 
+void stack_free(stack *s)
+{
+	while (s->depth)
+		client_free(s->clients[--s->depth]);
+}
+
 int client_has_state(client *c, Atom state)
 {
 	int i;
@@ -312,13 +316,11 @@ void client_position_xywh(client *c, int x, int y, int w, int h)
 	}
 
 	w -= BORDER*2; h -= BORDER*2;
-	int basew = 0, baseh = 0, sw = w, sh = h;
+	int sw = w, sh = h;
 
-	if (c->size.flags & PBaseSize)
-	{
-		basew = c->size.base_width;
-		baseh = c->size.base_height;
-	}
+	int basew = c->size.flags & PBaseSize ? c->size.base_width : 0;
+	int baseh = c->size.flags & PBaseSize ? c->size.base_height: 0;
+
 	if (c->size.flags & PMinSize)
 	{
 		w = MAX(w, c->size.min_width);
@@ -481,21 +483,19 @@ void client_raise_family(client *c)
 	client_stack_family(c, &all, &raise);
 	XRaiseWindow(display, raise.windows[0]);
 	XRestackWindows(display, raise.windows, raise.depth);
-
-	while (family.depth)
-		client_free(family.clients[--family.depth]);
+	stack_free(&family);
 }
 
 void client_set_focus(client *c)
 {
 	if (!c || !c->visible) return;
 
-	client *o;
-	Window old = current;
-	current = c->window;
+	Window old   = current;
+	current      = c->window;
 	current_spot = c->spot;
 	current_mon  = c->monitor;
 
+	client *o;
 	if (old && (o = window_build_client(old)))
 	{
 		client_update_border(o);
@@ -532,50 +532,41 @@ void client_flush_tags(client *c)
 
 // ------- key actions -------
 
-void action_move(void *data, int num)
+void action_move(void *data, int num, client *cli)
 {
-	client *c = window_build_client(current);
-	if (c)
-	{
-		client_raise_family(c);
-		client_place_spot(c, num, 1);
-		client_free(c);
-	}
+	if (!cli) return;
+
+	client_raise_family(cli);
+	client_place_spot(cli, num, 1);
 }
 
-void action_focus(void *data, int num)
+void action_focus(void *data, int num, client *cli)
 {
 	spot_focus_top_window(num, current_mon, None);
 }
 
-void action_close(void *data, int num)
+void action_close(void *data, int num, client *cli)
 {
-	client *c = window_build_client(current);
-	if (c) client_close(c);
-	client_free(c);
+	if (cli) client_close(cli);
 }
 
-void action_cycle(void *data, int num)
+void action_cycle(void *data, int num, client *cli)
 {
-	client *c = window_build_client(current);
-	if (c) client_spot_cycle(c);
-	client_free(c);
+	if (cli) client_spot_cycle(cli);
 }
 
-void action_other(void *data, int num)
+void action_other(void *data, int num, client *cli)
 {
-	client *c = window_build_client(current);
-	if (c) spot_focus_top_window(c->spot, c->monitor, c->window);
-	client_free(c);
+	if (cli) spot_focus_top_window(cli->spot, cli->monitor, cli->window);
 }
 
-void action_command(void *data, int num)
+void action_command(void *data, int num, client *cli)
 {
 	exec_cmd(data);
 }
 
 // real simple switcher/launcher
-void action_find_or_start(void *data, int num)
+void action_find_or_start(void *data, int num, client *cli)
 {
 	int i; client *c; char *class = data;
 	stack all; query_visible_windows(&all);
@@ -592,25 +583,23 @@ void action_find_or_start(void *data, int num)
 	exec_cmd(class);
 }
 
-void action_move_monitor(void *data, int num)
+void action_move_monitor(void *data, int num, client *cli)
 {
-	client *c = window_build_client(current);
-	if (!c) return;
+	if (!cli) return;
 
-	client_raise_family(c);
-	c->monitor = MAX(0, MIN(current_mon+num, nmonitors-1));
-	client_place_spot(c, c->spot, 1);
-	client_free(c);
+	client_raise_family(cli);
+	cli->monitor = MAX(0, MIN(current_mon+num, nmonitors-1));
+	client_place_spot(cli, cli->spot, 1);
 }
 
-void action_focus_monitor(void *data, int num)
+void action_focus_monitor(void *data, int num, client *cli)
 {
 	int i, mon = MAX(0, MIN(current_mon+num, nmonitors-1));
 	if (spot_focus_top_window(current_spot, mon, None)) return;
 	for (i = SPOT1; i <= SPOT3 && !spot_focus_top_window(i, mon, None); i++);
 }
 
-void action_raise_tag(void *data, int tag)
+void action_raise_tag(void *data, int tag, client *cli)
 {
 	int i; client *c = NULL, *t = NULL;
 	stack all; query_visible_windows(&all);
@@ -629,57 +618,49 @@ void action_raise_tag(void *data, int tag)
 	window_set_cardinal_prop(root, atoms[_NET_CURRENT_DESKTOP], &desktop, 1);
 }
 
-void action_fullscreen(void *data, int num)
+void action_fullscreen(void *data, int num, client *cli)
 {
-	client *c = window_build_client(current);
-	if (!c) return;
+	if (!cli) return;
 
-	unsigned long spot = c->spot;
-	client_raise_family(c);
+	unsigned long spot = cli->spot;
+	client_raise_family(cli);
 
-	if (client_toggle_state(c, atoms[_NET_WM_STATE_FULLSCREEN]))
+	if (client_toggle_state(cli, atoms[_NET_WM_STATE_FULLSCREEN]))
 	{
-		window_set_cardinal_prop(c->window, atoms[XOAT_SPOT], &spot, 1);
-		c->spot = SPOT1;
+		window_set_cardinal_prop(cli->window, atoms[XOAT_SPOT], &spot, 1);
+		cli->spot = SPOT1;
 	}
 	else
-	if (window_get_cardinal_prop(c->window, atoms[XOAT_SPOT], &spot, 1))
-		c->spot = spot;
+	if (window_get_cardinal_prop(cli->window, atoms[XOAT_SPOT], &spot, 1))
+		cli->spot = spot;
 
-	client_update_border(c);
-	client_place_spot(c, c->spot, 1);
-	client_free(c);
+	client_update_border(cli);
+	client_place_spot(cli, cli->spot, 1);
 }
 
-void action_above(void *data, int num)
+void action_above(void *data, int num, client *cli)
 {
-	client *c = window_build_client(current);
-	if (!c) return;
+	if (!cli) return;
 
-	client_toggle_state(c, atoms[_NET_WM_STATE_ABOVE]);
-	client_update_border(c);
-	client_raise_family(c);
-	client_free(c);
+	client_toggle_state(cli, atoms[_NET_WM_STATE_ABOVE]);
+	client_update_border(cli);
+	client_raise_family(cli);
 }
 
-void action_tag(void *data, int num)
+void action_tag(void *data, int num, client *cli)
 {
-	client *c = window_build_client(current);
-	if (!c) return;
+	if (!cli) return;
 
-	c->tags |= (unsigned int)num;
-	client_flush_tags(c);
-	client_free(c);
+	cli->tags |= (unsigned int)num;
+	client_flush_tags(cli);
 }
 
-void action_untag(void *data, int num)
+void action_untag(void *data, int num, client *cli)
 {
-	client *c = window_build_client(current);
-	if (!c) return;
+	if (!cli) return;
 
-	c->tags &= ~((unsigned int)num);
-	client_flush_tags(c);
-	client_free(c);
+	cli->tags &= ~((unsigned int)num);
+	client_flush_tags(cli);
 }
 
 // key actions
@@ -822,7 +803,11 @@ void key_press(XKeyEvent *e)
 		}
 	}
 	if (actions[act])
-		actions[act](data, num);
+	{
+		client *cli = window_build_client(current);
+		actions[act](data, num, cli);
+		client_free(cli);
+	}
 }
 
 void button_press(XButtonEvent *e)
@@ -920,7 +905,6 @@ int main(int argc, char *argv[])
 
 	// detect panel struts
 	query_visible_windows(&wins);
-	inplay.depth = 0;
 	for (i = 0; i < wins.depth; i++)
 	{
 		if (!(c = wins.clients[i])) continue;
@@ -935,8 +919,9 @@ int main(int argc, char *argv[])
 			struts.bottom = MAX(struts.bottom, strut.bottom);
 			warnx("struts %ld %ld %ld %ld 0x%08lx %s", strut.left, strut.left, strut.left, strut.left, (long)c->window, c->class);
 		}
-		client_free(c);
 	}
+	stack_free(&inplay);
+
 	// support multi-head.
 	if (XineramaIsActive(display))
 	{
@@ -1001,12 +986,9 @@ int main(int argc, char *argv[])
 
 		if (keys[i].mod == AnyModifier) continue;
 
-		XGrabKey(display, XKeysymToKeycode(display, keys[i].key), keys[i].mod|LockMask, root,
-			True, GrabModeAsync, GrabModeAsync);
-		XGrabKey(display, XKeysymToKeycode(display, keys[i].key), keys[i].mod|NumlockMask, root,
-			True, GrabModeAsync, GrabModeAsync);
-		XGrabKey(display, XKeysymToKeycode(display, keys[i].key), keys[i].mod|LockMask|NumlockMask, root,
-			True, GrabModeAsync, GrabModeAsync);
+		XGrabKey(display, XKeysymToKeycode(display, keys[i].key), keys[i].mod|LockMask, root, True, GrabModeAsync, GrabModeAsync);
+		XGrabKey(display, XKeysymToKeycode(display, keys[i].key), keys[i].mod|NumlockMask, root, True, GrabModeAsync, GrabModeAsync);
+		XGrabKey(display, XKeysymToKeycode(display, keys[i].key), keys[i].mod|LockMask|NumlockMask, root, True, GrabModeAsync, GrabModeAsync);
 	}
 
 	// we grab buttons to do click-to-focus. all clicks get passed through to apps.
@@ -1015,7 +997,6 @@ int main(int argc, char *argv[])
 
 	// setup existing managable windows
 	query_visible_windows(&wins);
-	inplay.depth = 0;
 	for (i = 0; i < wins.depth; i++)
 	{
 		if (!(c = wins.clients[i]) || !c->manage) continue;
@@ -1033,14 +1014,12 @@ int main(int argc, char *argv[])
 				client_set_focus(c);
 			}
 		}
-		client_free(c);
 	}
+
 	// main event loop
 	for (;;)
 	{
-		while (inplay.depth)
-			client_free(inplay.clients[--inplay.depth]);
-
+		stack_free(&inplay);
 		XEvent ev; XNextEvent(display, &ev);
 
 		switch (ev.type)

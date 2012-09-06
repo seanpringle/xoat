@@ -166,7 +166,7 @@ enum {
 	ACTIONS
 };
 
-typedef void (*action)(void*, int);
+typedef void (*action)(void*, int, client*);
 
 typedef struct {
 	unsigned int mod;
