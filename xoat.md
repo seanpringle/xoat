@@ -6,7 +6,7 @@ xoat \- X11 Obstinate Asymmetric Tiler
 
 # SYNOPSIS
 
-**xoat**
+**xoat** [restart] [exit]
 
 # DESCRIPTION
 

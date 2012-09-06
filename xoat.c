@@ -161,19 +161,14 @@ client* window_build_client(Window win)
 
 		for (i = 0; i < nmonitors; i++)
 			if (INTERSECT(monitors[i].x, monitors[i].y, monitors[i].w, monitors[i].h,
-				c->attr.x, c->attr.y, c->attr.width, c->attr.height))
+				c->attr.x + c->attr.width/2, c->attr.y+c->attr.height/2, 1, 1))
 					{ c->monitor = i; break; }
 
-		c->spot = SPOT1;
 		monitor *m = &monitors[c->monitor];
 
-		if (INTERSECT(m->spots[SPOT2].x, m->spots[SPOT2].y, m->spots[SPOT2].w, m->spots[SPOT2].h,
-			c->attr.x + c->attr.width/2, c->attr.y+c->attr.height/2, 1, 1))
-				c->spot = SPOT2;
-
-		if (INTERSECT(m->spots[SPOT3].x, m->spots[SPOT3].y, m->spots[SPOT3].w, m->spots[SPOT3].h,
-			c->attr.x + c->attr.width/2, c->attr.y+c->attr.height/2, 1, 1))
-				c->spot = SPOT3;
+		for (c->spot = SPOT3; c->spot > SPOT1; c->spot--)
+			if (INTERSECT(m->spots[c->spot].x, m->spots[c->spot].y, m->spots[c->spot].w, m->spots[c->spot].h,
+				c->attr.x + c->attr.width/2, c->attr.y+c->attr.height/2, 1, 1)) break;
 
 		if (c->visible)
 		{
@@ -664,18 +659,17 @@ action actions[ACTIONS] = {
 
 // ------- event handlers --------
 
-void create_notify(XCreateWindowEvent *e)
+void create_notify(XEvent *e)
 {
-	client *c = window_build_client(e->window);
-
+	client *c = window_build_client(e->xcreatewindow.window);
 	if (c && c->manage)
 		window_listen(c->window);
-
 	client_free(c);
 }
 
-void configure_request(XConfigureRequestEvent *e)
+void configure_request(XEvent *ev)
 {
+	XConfigureRequestEvent *e = &ev->xconfigurerequest;
 	client *c = window_build_client(e->window);
 	if (!c) return;
 
@@ -698,9 +692,17 @@ void configure_request(XConfigureRequestEvent *e)
 	client_free(c);
 }
 
-void map_request(XMapEvent *e)
+void configure_notify(XEvent *e)
 {
-	client *c = window_build_client(e->window);
+	client *c = window_build_client(e->xconfigure.window);
+	if (c && c->manage)
+		ewmh_client_list();
+	client_free(c);
+}
+
+void map_request(XEvent *e)
+{
+	client *c = window_build_client(e->xmaprequest.window);
 	if (!c) return;
 
 	if (c->manage)
@@ -717,27 +719,21 @@ void map_request(XMapEvent *e)
 			spot = current_spot;
 
 		if (SPOT_START == SPOT_SMART)
-		{
-			spot = SPOT1;
-
-			if (c->attr.width <= m->spots[SPOT2].w && c->attr.height <= m->spots[SPOT2].h)
-				spot = SPOT2;
-
-			if (c->attr.width <= m->spots[SPOT3].w && c->attr.height <= m->spots[SPOT3].h)
-				spot = SPOT3;
-		}
+			for (spot = SPOT3; spot > SPOT1; spot--)
+				if (c->attr.width <= m->spots[spot].w && c->attr.height <= m->spots[spot].h)
+					break;
 
 		client_place_spot(c, spot, 0);
 		client_update_border(c);
 		client_flush_tags(c);
 	}
+	XMapWindow(display, c->window);
 	client_free(c);
-	XMapWindow(display, e->window);
 }
 
-void map_notify(XMapEvent *e)
+void map_notify(XEvent *e)
 {
-	client *a = NULL, *c = window_build_client(e->window);
+	client *a = NULL, *c = window_build_client(e->xmap.window);
 	if (!c) return;
 
 	if (c->manage)
@@ -753,23 +749,23 @@ void map_notify(XMapEvent *e)
 	ewmh_client_list();
 }
 
-void unmap_notify(XUnmapEvent *e)
+void unmap_notify(XEvent *e)
 {
 	int i;
 	// if this window was focused, find something else
-	if (e->window == current && !spot_focus_top_window(current_spot, current_mon, current))
+	if (e->xunmap.window == current && !spot_focus_top_window(current_spot, current_mon, current))
 		for (i = SPOT1; i <= SPOT3 && !spot_focus_top_window(i, current_mon, current); i++);
 	ewmh_client_list();
 }
 
-void key_press(XKeyEvent *e)
+void key_press(XEvent *ev)
 {
-	int i; XEvent ev; latest = e->time;
+	XKeyEvent *e = &ev->xkey; int i; latest = e->time;
 	short act = ACTION_NONE; void *data = NULL; int num = 0;
 
-	while (XCheckTypedEvent(display, KeyPress, &ev));
 	KeySym key = XkbKeycodeToKeysym(display, e->keycode, 0, 0);
 	unsigned int state = e->state & ~(LockMask|NumlockMask);
+	while (XCheckTypedEvent(display, KeyPress, ev));
 
 	for (i = 0; i < sizeof(keys)/sizeof(binding); i++)
 	{
@@ -789,10 +785,11 @@ void key_press(XKeyEvent *e)
 	}
 }
 
-void button_press(XButtonEvent *e)
+void button_press(XEvent *ev)
 {
-	latest = e->time;
+	XButtonEvent *e = &ev->xbutton;
 	client *c = window_build_client(e->subwindow);
+	latest = e->time;
 
 	if (c && c->manage)
 	{
@@ -800,13 +797,12 @@ void button_press(XButtonEvent *e)
 		client_set_focus(c);
 	}
 	client_free(c);
-
 	XAllowEvents(display, ReplayPointer, CurrentTime);
-	ewmh_client_list();
 }
 
-void client_message(XClientMessageEvent *e)
+void client_message(XEvent *ev)
 {
+	XClientMessageEvent *e = &ev->xclient;
 	if (e->message_type == atoms[XOAT_EXIT])
 	{
 		warnx("exit!");
@@ -841,16 +837,29 @@ void client_message(XClientMessageEvent *e)
 void any_event(XEvent *e)
 {
 	client *c = window_build_client(e->xany.window);
-
-	if (c && c->manage)
+	if (c && c->visible && c->manage)
 		client_update_border(c);
-
 	client_free(c);
 }
 
+handler handlers[LASTEvent] = {
+	[CreateNotify]     = create_notify,
+	[ConfigureRequest] = configure_request,
+	[ConfigureNotify]  = configure_notify,
+	[MapRequest]       = map_request,
+	[MapNotify]        = map_notify,
+	[UnmapNotify]      = unmap_notify,
+	[KeyPress]         = key_press,
+	[ButtonPress]      = button_press,
+	[ClientMessage]    = client_message,
+	[FocusIn]          = any_event,
+	[FocusOut]         = any_event,
+	[PropertyNotify]   = any_event,
+};
+
 int main(int argc, char *argv[])
 {
-	int i, j; Atom msg = None; client *c;
+	int i, j; Atom msg = None; client *c; XEvent ev;
 	stack wins; memset(&wins, 0, sizeof(stack));
 	signal(SIGCHLD, catch_exit);
 
@@ -933,17 +942,15 @@ int main(int argc, char *argv[])
 		monitor *m = &monitors[i];
 		int width_spot1  = (double)m->w / 100 * MIN(90, MAX(10, SPOT1_WIDTH_PCT));
 		int height_spot2 = (double)m->h / 100 * MIN(90, MAX(10, SPOT2_HEIGHT_PCT));
-		int x_spot1 = SPOT1_ALIGN == SPOT1_LEFT ? m->x: m->x + m->w - width_spot1;
-		int x_spot2 = SPOT1_ALIGN == SPOT1_LEFT ? m->x + width_spot1: m->x;
 		for (j = SPOT1; j <= SPOT3; j++)
 		{
-			m->spots[j].x = x_spot1;
+			m->spots[j].x = SPOT1_ALIGN == SPOT1_LEFT ? m->x: m->x + m->w - width_spot1;
 			m->spots[j].y = m->y;
 			m->spots[j].w = width_spot1;
 			m->spots[j].h = m->h;
 			if (j == SPOT1) continue;
 
-			m->spots[j].x = x_spot2;
+			m->spots[j].x = SPOT1_ALIGN == SPOT1_LEFT ? m->x + width_spot1: m->x;
 			m->spots[j].w = m->w - width_spot1;
 			m->spots[j].h = height_spot2;
 			if (j == SPOT2) continue;
@@ -1013,7 +1020,6 @@ int main(int argc, char *argv[])
 
 		// only activate first one
 		if (current) continue;
-
 		client_raise_family(c);
 		client_set_focus(c);
 	}
@@ -1022,40 +1028,9 @@ int main(int argc, char *argv[])
 	for (;;)
 	{
 		stack_free(&inplay);
-		XEvent ev; XNextEvent(display, &ev);
-
-		switch (ev.type)
-		{
-			case CreateNotify:
-				create_notify(&ev.xcreatewindow);
-				break;
-			case ConfigureRequest:
-				configure_request(&ev.xconfigurerequest);
-				break;
-			case MapRequest:
-				map_request(&ev.xmap);
-				break;
-			case MapNotify:
-				map_notify(&ev.xmap);
-				break;
-			case UnmapNotify:
-				unmap_notify(&ev.xunmap);
-				break;
-			case KeyPress:
-				key_press(&ev.xkey);
-				break;
-			case ButtonPress:
-				button_press(&ev.xbutton);
-				break;
-			case ClientMessage:
-				client_message(&ev.xclient);
-				break;
-			case FocusIn:
-			case FocusOut:
-			case PropertyNotify:
-				any_event(&ev);
-				break;
-		}
+		XNextEvent(display, &ev);
+		if (handlers[ev.type])
+			handlers[ev.type](&ev);
 	}
-	return 0;
+	return EXIT_SUCCESS;
 }

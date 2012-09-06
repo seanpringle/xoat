@@ -189,6 +189,7 @@ enum {
 	ACTIONS
 };
 
+typedef void (*handler)(XEvent*);
 typedef void (*action)(void*, int, client*);
 
 typedef struct {
