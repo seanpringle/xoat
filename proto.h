@@ -20,7 +20,6 @@ int window_send_clientmessage(Window target, Window subject, Atom atom, unsigned
 int client_send_wm_protocol(client *c, Atom protocol);
 void client_close(client *c);
 void client_position_xywh(client *c, int x, int y, int w, int h);
-void spot_calc_xywh(int spot, int mon, int *x, int *y, int *w, int *h);
 void client_place_spot(client *c, int spot, int force);
 void client_spot_cycle(client *c);
 Window spot_focus_top_window(int spot, int mon, Window except);

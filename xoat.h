@@ -59,8 +59,31 @@ Time latest;
 char *self;
 Window ewmh;
 
+enum {
+	MONITOR_CURRENT=-1
+};
+
+enum {
+	SPOT1=1, // large left pane
+	SPOT2, // medium top right pane
+	SPOT3,  // small bottom right pane
+	SPOT_CURRENT,
+	SPOT_SMART,
+	SPOT1_LEFT,
+	SPOT1_RIGHT
+};
+
+#define TAG1 1<<0
+#define TAG2 1<<1
+#define TAG3 1<<2
+
 typedef struct {
 	short x, y, w, h;
+} box;
+
+typedef struct {
+	short x, y, w, h;
+	box spots[SPOT3+1];
 } monitor;
 
 #define MAX_MONITORS 3
@@ -175,21 +198,3 @@ typedef struct {
 	void *data;
 	int num;
 } binding;
-
-enum {
-	MONITOR_CURRENT=-1
-};
-
-enum {
-	SPOT1=1, // large left pane
-	SPOT2, // medium top right pane
-	SPOT3,  // small bottom right pane
-	SPOT_CURRENT,
-	SPOT_SMART,
-	SPOT1_LEFT,
-	SPOT1_RIGHT
-};
-
-#define TAG1 1<<0
-#define TAG2 1<<1
-#define TAG3 1<<2

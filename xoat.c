@@ -138,7 +138,7 @@ void ewmh_client_list()
 
 client* window_build_client(Window win)
 {
-	int i, x, y, w, h;
+	int i;
 	if (win == None) return NULL;
 
 	client *c = calloc(1, sizeof(client));
@@ -165,14 +165,15 @@ client* window_build_client(Window win)
 					{ c->monitor = i; break; }
 
 		c->spot = SPOT1;
+		monitor *m = &monitors[c->monitor];
 
-		spot_calc_xywh(SPOT2, c->monitor, &x, &y, &w, &h);
-		if (INTERSECT(x, y, w, h, c->attr.x + c->attr.width/2, c->attr.y+c->attr.height/2, 1, 1))
-			c->spot = SPOT2;
+		if (INTERSECT(m->spots[SPOT2].x, m->spots[SPOT2].y, m->spots[SPOT2].w, m->spots[SPOT2].h,
+			c->attr.x + c->attr.width/2, c->attr.y+c->attr.height/2, 1, 1))
+				c->spot = SPOT2;
 
-		spot_calc_xywh(SPOT3, c->monitor, &x, &y, &w, &h);
-		if (INTERSECT(x, y, w, h, c->attr.x + c->attr.width/2, c->attr.y+c->attr.height/2, 1, 1))
-			c->spot = SPOT3;
+		if (INTERSECT(m->spots[SPOT3].x, m->spots[SPOT3].y, m->spots[SPOT3].w, m->spots[SPOT3].h,
+			c->attr.x + c->attr.width/2, c->attr.y+c->attr.height/2, 1, 1))
+				c->spot = SPOT3;
 
 		if (c->visible)
 		{
@@ -352,38 +353,15 @@ void client_position_xywh(client *c, int x, int y, int w, int h)
 	if (h < sh) y += (sh-h)/2;
 
 	// bump onto screen
-	x = MAX(0, MIN(x, m->x + m->w - w - BORDER*2));
-	y = MAX(0, MIN(y, m->y + m->h - h - BORDER*2));
+	x = MAX(m->x, MIN(x, m->x + m->w - w - BORDER*2));
+	y = MAX(m->y, MIN(y, m->y + m->h - h - BORDER*2));
 
 	XMoveResizeWindow(display, c->window, x, y, w, h);
-}
-
-void spot_calc_xywh(int spot, int mon, int *x, int *y, int *w, int *h)
-{
-	spot = MAX(SPOT1, MIN(SPOT3, spot));
-	monitor *m = &monitors[MIN(nmonitors-1, MAX(0, mon))];
-	int width_spot1  = (double)m->w / 100 * MIN(90, MAX(10, SPOT1_WIDTH_PCT));
-	int height_spot2 = (double)m->h / 100 * MIN(90, MAX(10, SPOT2_HEIGHT_PCT));
-	int x_spot1 = SPOT1_ALIGN == SPOT1_LEFT ? m->x: m->x + m->w - width_spot1;
-	int x_spot2 = SPOT1_ALIGN == SPOT1_LEFT ? m->x + width_spot1: m->x;
-
-	*x = x_spot1, *y = m->y, *w = width_spot1, *h = m->h;
-	if (spot == SPOT1) return;
-
-	*x = x_spot2;
-	*w = m->w - width_spot1;
-	*h = height_spot2;
-	if (spot == SPOT2) return;
-
-	*y = m->y + height_spot2;
-	*h = m->h - height_spot2;
 }
 
 void client_place_spot(client *c, int spot, int force)
 {
 	if (!c) return;
-	int x, y, w, h;
-	spot = MAX(SPOT1, MIN(SPOT3, spot));
 
 	if (c->trans && !force)
 	{
@@ -391,17 +369,19 @@ void client_place_spot(client *c, int spot, int force)
 		spot = t->spot;
 		client_free(t);
 	}
-	spot_calc_xywh(spot, c->monitor, &x, &y, &w, &h);
+
+	box b;
+	memmove(&b, &monitors[c->monitor].spots[spot], sizeof(box));
 
 	if (c->type == atoms[_NET_WM_WINDOW_TYPE_DIALOG])
 	{
-		x += (w - c->attr.width)/2;
-		y += (h - c->attr.height)/2;
-		w = c->attr.width + BORDER*2;
-		h = c->attr.height + BORDER*2;
+		b.x += (b.w - c->attr.width)/2;
+		b.y += (b.h - c->attr.height)/2;
+		b.w = c->attr.width + BORDER*2;
+		b.h = c->attr.height + BORDER*2;
 	}
 	c->spot = spot;
-	client_position_xywh(c, x, y, w, h);
+	client_position_xywh(c, b.x, b.y, b.w, b.h);
 }
 
 void client_spot_cycle(client *c)
@@ -420,14 +400,14 @@ void client_spot_cycle(client *c)
 
 Window spot_focus_top_window(int spot, int mon, Window except)
 {
-	int i, x, y, w, h; client *o;
-	spot_calc_xywh(spot, mon, &x, &y, &w, &h);
+	int i; client *o; box b;
+	memmove(&b, &monitors[mon].spots[spot], sizeof(box));
 	stack wins; query_visible_windows(&wins);
 
 	for (i = 0; i < wins.depth; i++)
 	{
 		if ((o = wins.clients[i]) && o->window != except && o->manage && o->spot == spot
-			&& INTERSECT(x + w/2, y + h/2, 1, 1, o->attr.x, o->attr.y, o->attr.width, o->attr.height))
+			&& INTERSECT(b.x + b.w/2, b.y + b.h/2, 1, 1, o->attr.x, o->attr.y, o->attr.width, o->attr.height))
 		{
 			client_raise_family(o);
 			client_set_focus(o);
@@ -488,7 +468,7 @@ void client_raise_family(client *c)
 
 void client_set_focus(client *c)
 {
-	if (!c || !c->visible) return;
+	if (!c || !c->visible || c->window == current) return;
 
 	Window old   = current;
 	current      = c->window;
@@ -725,8 +705,13 @@ void map_request(XMapEvent *e)
 
 	if (c->manage)
 	{
-		int x, y, w, h, spot = SPOT_START,
-			monitor = MAX(nmonitors-1, MIN(0, MONITOR_START));
+		int spot = SPOT_START, mon = MAX(nmonitors-1, MIN(0, MONITOR_START));
+
+		if (MONITOR_START == MONITOR_CURRENT)
+			mon = current_mon;
+
+		c->monitor = mon;
+		monitor *m = &monitors[mon];
 
 		if (SPOT_START == SPOT_CURRENT)
 			spot = current_spot;
@@ -735,19 +720,13 @@ void map_request(XMapEvent *e)
 		{
 			spot = SPOT1;
 
-			spot_calc_xywh(SPOT2, c->monitor, &x, &y, &w, &h);
-			if (c->attr.width <= w && c->attr.height <= h)
+			if (c->attr.width <= m->spots[SPOT2].w && c->attr.height <= m->spots[SPOT2].h)
 				spot = SPOT2;
 
-			spot_calc_xywh(SPOT3, c->monitor, &x, &y, &w, &h);
-			if (c->attr.width <= w && c->attr.height <= h)
+			if (c->attr.width <= m->spots[SPOT3].w && c->attr.height <= m->spots[SPOT3].h)
 				spot = SPOT3;
 		}
 
-		if (MONITOR_START == MONITOR_CURRENT)
-			monitor = current_mon;
-
-		c->monitor = monitor;
 		client_place_spot(c, spot, 0);
 		client_update_border(c);
 		client_flush_tags(c);
@@ -948,6 +927,32 @@ int main(int argc, char *argv[])
 	// right struts affect last monitor
 	monitors[nmonitors-1].w -= struts.right;
 
+	// calculate spot boxes
+	for (i = 0; i < nmonitors; i++)
+	{
+		monitor *m = &monitors[i];
+		int width_spot1  = (double)m->w / 100 * MIN(90, MAX(10, SPOT1_WIDTH_PCT));
+		int height_spot2 = (double)m->h / 100 * MIN(90, MAX(10, SPOT2_HEIGHT_PCT));
+		int x_spot1 = SPOT1_ALIGN == SPOT1_LEFT ? m->x: m->x + m->w - width_spot1;
+		int x_spot2 = SPOT1_ALIGN == SPOT1_LEFT ? m->x + width_spot1: m->x;
+		for (j = SPOT1; j <= SPOT3; j++)
+		{
+			m->spots[j].x = x_spot1;
+			m->spots[j].y = m->y;
+			m->spots[j].w = width_spot1;
+			m->spots[j].h = m->h;
+			if (j == SPOT1) continue;
+
+			m->spots[j].x = x_spot2;
+			m->spots[j].w = m->w - width_spot1;
+			m->spots[j].h = height_spot2;
+			if (j == SPOT2) continue;
+
+			m->spots[j].y = m->y + height_spot2;
+			m->spots[j].h = m->h - height_spot2;
+		}
+	}
+
 	// dump atoms for debug
 	for (i = 0; i < ATOMS; i++) warnx("atom 0x%lx %s", (long)atoms[i], atom_names[i]);
 
@@ -1000,20 +1005,17 @@ int main(int argc, char *argv[])
 	for (i = 0; i < wins.depth; i++)
 	{
 		if (!(c = wins.clients[i]) || !c->manage) continue;
-
 		warnx("window 0x%08lx (%d,%d,%d) %s", (long)c->window, c->tags, c->monitor, c->spot, c->class);
+
 		window_listen(c->window);
-		if (c->visible)
-		{
-			client_update_border(c);
-			client_flush_tags(c);
-			// activate first one
-			if (!current)
-			{
-				client_raise_family(c);
-				client_set_focus(c);
-			}
-		}
+		client_update_border(c);
+		client_flush_tags(c);
+
+		// only activate first one
+		if (current) continue;
+
+		client_raise_family(c);
+		client_set_focus(c);
 	}
 
 	// main event loop
