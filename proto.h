@@ -26,6 +26,7 @@ Window spot_focus_top_window(int spot, int mon, Window except);
 void client_stack_family(client *c, stack *all, stack *raise);
 void client_raise_family(client *c);
 void client_set_focus(client *c);
+void client_activate(client *c);
 void window_listen(Window win);
 void client_update_border(client *c);
 void client_flush_tags(client *c);
