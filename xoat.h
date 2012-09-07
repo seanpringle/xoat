@@ -51,8 +51,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define INTERSECT(x,y,w,h,x1,y1,w1,h1) (OVERLAP((x),(w),(x1),(w1)) && OVERLAP((y),(h),(y1),(h1)))
 
 Display *display;
-Screen *screen;
-int scr_id;
 Window root;
 Time latest;
 char *self;
@@ -99,7 +97,7 @@ typedef struct {
 	XSizeHints size;
 	Window transient_for;
 	Atom type, states[MAX_NET_WM_STATES+1];
-	short monitor, spot, visible, trans, manage, input, urgent;
+	short monitor, spot, visible, manage, input, urgent;
 	unsigned short tags;
 	char *class;
 } client;
@@ -191,6 +189,7 @@ enum {
 
 typedef void (*handler)(XEvent*);
 typedef void (*action)(void*, int, client*);
+typedef void (*message)(client*);
 
 typedef struct {
 	unsigned int mod;

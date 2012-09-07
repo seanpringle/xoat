@@ -42,8 +42,6 @@ int execsh(char *cmd)
 void exec_cmd(char *cmd)
 {
 	if (!cmd || !cmd[0]) return;
-	warnx("exec_cmd %s", cmd);
-
 	signal(SIGCHLD, catch_exit);
 	if (fork()) return;
 
@@ -154,8 +152,6 @@ client* window_build_client(Window win)
 			&& c->type != atoms[_NET_WM_WINDOW_TYPE_DOCK]
 			&& c->type != atoms[_NET_WM_WINDOW_TYPE_SPLASH]
 			? 1:0;
-
-		c->trans = c->transient_for ? 1:0;
 
 		for (i = 0; i < nmonitors; i++)
 			if (INTERSECT(monitors[i].x, monitors[i].y, monitors[i].w, monitors[i].h,
@@ -354,7 +350,7 @@ void client_place_spot(client *c, int spot, int force)
 {
 	if (!c) return;
 
-	if (c->trans && !force)
+	if (c->transient_for && !force)
 	{
 		client *t = window_build_client(c->transient_for);
 		spot = t->spot;
@@ -444,7 +440,7 @@ void client_raise_family(client *c)
 			if ((o = all.clients[i]) && client_has_state(o, atoms[_NET_WM_STATE_ABOVE]))
 				client_stack_family(o, &all, &raise);
 
-	while (c->trans)
+	while (c->transient_for)
 	{
 		client *t = window_build_client(c->transient_for);
 		if (t) c = family.clients[family.depth++] = t;
@@ -661,7 +657,7 @@ void configure_request(XEvent *ev)
 {
 	XConfigureRequestEvent *e = &ev->xconfigurerequest;
 	client *c = window_build_client(e->window);
-	if (c && c->manage && c->visible && !c->trans)
+	if (c && c->manage && c->visible && !c->transient_for)
 	{
 		client_update_border(c);
 		client_place_spot(c, c->spot, 0);
@@ -770,6 +766,11 @@ void button_press(XEvent *ev)
 	XAllowEvents(display, ReplayPointer, CurrentTime);
 }
 
+message messages[ATOMS] = {
+	[_NET_ACTIVE_WINDOW] = client_activate,
+	[_NET_CLOSE_WINDOW]  = client_close,
+};
+
 void client_message(XEvent *ev)
 {
 	XClientMessageEvent *e = &ev->xclient;
@@ -784,15 +785,8 @@ void client_message(XEvent *ev)
 		execsh(self);
 	}
 	client *c = window_build_client(e->window);
-	if (c && c->manage)
-	{
-		warnx("client message 0x%lx 0x%08lx %s", e->message_type, (long)c->window, c->class);
-		if (e->message_type == atoms[_NET_ACTIVE_WINDOW])
-			client_activate(c);
-		else
-		if (e->message_type == atoms[_NET_CLOSE_WINDOW])
-			client_close(c);
-	}
+	if (c && c->manage && messages[e->message_type])
+		messages[e->message_type](c);
 	client_free(c);
 }
 
@@ -828,7 +822,6 @@ int main(int argc, char *argv[])
 	if (!(display = XOpenDisplay(0))) return 1;
 
 	self   = argv[0];
-	screen = DefaultScreenOfDisplay(display);
 	root   = DefaultRootWindow(display);
 	xerror = XSetErrorHandler(oops);
 
@@ -847,9 +840,8 @@ int main(int argc, char *argv[])
 
 	// default non-multi-head setup
 	memset(monitors, 0, sizeof(monitors));
-	monitors[0].w = WidthOfScreen(screen);
-	monitors[0].h = HeightOfScreen(screen);
-	warnx("screen(%d): %dx%d+%d+%d", DefaultScreen(display), monitors[0].w, monitors[0].h, monitors[0].x, monitors[0].y);
+	monitors[0].w = WidthOfScreen(DefaultScreenOfDisplay(display));
+	monitors[0].h = HeightOfScreen(DefaultScreenOfDisplay(display));
 
 	// detect panel struts
 	query_visible_windows(&wins);
@@ -865,7 +857,6 @@ int main(int argc, char *argv[])
 			struts.right  = MIN(MAX_STRUT, MAX(struts.right,  strut.right));
 			struts.top    = MIN(MAX_STRUT, MAX(struts.top,    strut.top));
 			struts.bottom = MIN(MAX_STRUT, MAX(struts.bottom, strut.bottom));
-			warnx("struts %ld %ld %ld %ld 0x%08lx %s", strut.left, strut.left, strut.left, strut.left, (long)c->window, c->class);
 		}
 	}
 	stack_free(&inplay);
@@ -881,7 +872,6 @@ int main(int argc, char *argv[])
 			monitors[i].y = info[i].y_org + struts.top;
 			monitors[i].w = info[i].width;
 			monitors[i].h = info[i].height - struts.top - struts.bottom;
-			warnx("monitor %d %dx%d+%d+%d", i, monitors[i].w, monitors[i].h, monitors[i].x, monitors[i].y);
 		}
 		XFree(info);
 	}
@@ -917,15 +907,12 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	// dump atoms for debug
-	for (i = 0; i < ATOMS; i++) warnx("atom 0x%lx %s", (long)atoms[i], atom_names[i]);
-
 	// become the window manager
 	XSelectInput(display, root, StructureNotifyMask | SubstructureRedirectMask | SubstructureNotifyMask);
 
 	// ewmh support
 	unsigned long desktop = 0, desktops = 3, pid = getpid(), viewport[2] = { 0, 0 },
-		geometry[2] = { WidthOfScreen(screen), HeightOfScreen(screen) };
+		geometry[2] = { monitors[0].w, monitors[0].h };
 
 	ewmh = XCreateSimpleWindow(display, root, 0, 0, 1, 1, 0, 0, 0);
 
@@ -967,7 +954,6 @@ int main(int argc, char *argv[])
 	for (i = 0; i < wins.depth; i++)
 	{
 		if (!(c = wins.clients[i]) || !c->manage) continue;
-		warnx("window 0x%08lx (%d,%d,%d) %s", (long)c->window, c->tags, c->monitor, c->spot, c->class);
 
 		window_listen(c->window);
 		client_update_border(c);
