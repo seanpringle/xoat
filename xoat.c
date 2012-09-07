@@ -695,7 +695,7 @@ void map_request(XEvent *e)
 	if (c && c->manage)
 	{
 		c->monitor = MONITOR_START == MONITOR_CURRENT ? current_mon: MONITOR_START;
-		c->monitor = MAX(nmonitors-1, MIN(0, c->monitor));
+		c->monitor = MIN(nmonitors-1, MAX(0, c->monitor));
 		monitor *m = &monitors[c->monitor];
 
 		int spot = SPOT_START == SPOT_CURRENT ? current_spot: SPOT_START;
@@ -861,32 +861,29 @@ int main(int argc, char *argv[])
 		if (window_get_cardinal_prop(c->window, atoms[_NET_WM_STRUT_PARTIAL], (unsigned long*)&strut, 12)
 			|| window_get_cardinal_prop(c->window, atoms[_NET_WM_STRUT], (unsigned long*)&strut, 4))
 		{
-			struts.left   = MAX(struts.left,   strut.left);
-			struts.right  = MAX(struts.right,  strut.right);
-			struts.top    = MAX(struts.top,    strut.top);
-			struts.bottom = MAX(struts.bottom, strut.bottom);
+			struts.left   = MIN(MAX_STRUT, MAX(struts.left,   strut.left));
+			struts.right  = MIN(MAX_STRUT, MAX(struts.right,  strut.right));
+			struts.top    = MIN(MAX_STRUT, MAX(struts.top,    strut.top));
+			struts.bottom = MIN(MAX_STRUT, MAX(struts.bottom, strut.bottom));
 			warnx("struts %ld %ld %ld %ld 0x%08lx %s", strut.left, strut.left, strut.left, strut.left, (long)c->window, c->class);
 		}
 	}
 	stack_free(&inplay);
 
 	// support multi-head.
-	if (XineramaIsActive(display))
+	XineramaScreenInfo *info;
+	if (XineramaIsActive(display) && (info = XineramaQueryScreens(display, &nmonitors)))
 	{
-		XineramaScreenInfo *info = XineramaQueryScreens(display, &nmonitors);
-		if (info)
+		nmonitors = MIN(nmonitors, MAX_MONITORS);
+		for (i = 0; i < nmonitors; i++)
 		{
-			nmonitors = MIN(nmonitors, MAX_MONITORS);
-			for (i = 0; i < nmonitors; i++)
-			{
-				monitors[i].x = info[i].x_org;
-				monitors[i].y = info[i].y_org + struts.top;
-				monitors[i].w = info[i].width;
-				monitors[i].h = info[i].height - struts.top - struts.bottom;
-				warnx("monitor %d %dx%d+%d+%d", i, monitors[i].w, monitors[i].h, monitors[i].x, monitors[i].y);
-			}
-			XFree(info);
+			monitors[i].x = info[i].x_org;
+			monitors[i].y = info[i].y_org + struts.top;
+			monitors[i].w = info[i].width;
+			monitors[i].h = info[i].height - struts.top - struts.bottom;
+			warnx("monitor %d %dx%d+%d+%d", i, monitors[i].w, monitors[i].h, monitors[i].x, monitors[i].y);
 		}
+		XFree(info);
 	}
 
 	// left struts affect first monitor
@@ -975,7 +972,7 @@ int main(int argc, char *argv[])
 		window_listen(c->window);
 		client_update_border(c);
 		client_flush_tags(c);
-		client_place_spot(c, c->spot, 1);
+		client_place_spot(c, c->spot, 0);
 
 		// only activate first one
 		if (!current) client_activate(c);

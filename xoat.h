@@ -86,6 +86,7 @@ typedef struct {
 	box spots[SPOT3+1];
 } monitor;
 
+#define MAX_STRUT 150
 #define MAX_MONITORS 3
 monitor monitors[MAX_MONITORS];
 int nmonitors = 1;
