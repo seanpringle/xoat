@@ -38,7 +38,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <stdarg.h>
 #include <unistd.h>
 #include <ctype.h>
-#include <error.h>
 #include <err.h>
 #include <signal.h>
 #include <sys/types.h>

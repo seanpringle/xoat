@@ -840,7 +840,7 @@ int main(int argc, char *argv[])
 		Window cli = XCreateSimpleWindow(display, root, 0, 0, 1, 1, 0, None, None);
 		     if (!strcmp(argv[1], "restart")) msg = atoms[XOAT_RESTART];
 		else if (!strcmp(argv[1], "exit"))    msg = atoms[XOAT_EXIT];
-		else error(EXIT_FAILURE, 0, "huh? %s", argv[1]);
+		else errx(EXIT_FAILURE, "huh? %s", argv[1]);
 		window_send_clientmessage(root, cli, msg, 0, SubstructureNotifyMask | SubstructureRedirectMask);
 		exit(EXIT_SUCCESS);
 	}
