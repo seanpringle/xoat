@@ -547,13 +547,9 @@ void action_find_or_start(void *data, int num, client *cli)
 	stack all; query_visible_windows(&all);
 
 	for (i = 0; i < all.depth; i++)
-	{
 		if ((c = all.clients[i]) && c->manage && !strcasecmp(c->class, class))
-		{
-			client_activate(c);
-			return;
-		}
-	}
+			{ client_activate(c); return; }
+
 	exec_cmd(class);
 }
 
@@ -665,14 +661,13 @@ void configure_request(XEvent *ev)
 {
 	XConfigureRequestEvent *e = &ev->xconfigurerequest;
 	client *c = window_build_client(e->window);
-	if (!c) return;
-
-	if (c->manage && c->visible && !c->trans)
+	if (c && c->manage && c->visible && !c->trans)
 	{
 		client_update_border(c);
 		client_place_spot(c, c->spot, 0);
 	}
 	else
+	if (c)
 	{
 		XWindowChanges wc;
 		if (e->value_mask & CWX) wc.x = e->x;
@@ -697,22 +692,15 @@ void configure_notify(XEvent *e)
 void map_request(XEvent *e)
 {
 	client *c = window_build_client(e->xmaprequest.window);
-	if (!c) return;
-
-	if (c->manage)
+	if (c && c->manage)
 	{
-		int spot = SPOT_START, mon = MAX(nmonitors-1, MIN(0, MONITOR_START));
+		c->monitor = MONITOR_START == MONITOR_CURRENT ? current_mon: MONITOR_START;
+		c->monitor = MAX(nmonitors-1, MIN(0, c->monitor));
+		monitor *m = &monitors[c->monitor];
 
-		if (MONITOR_START == MONITOR_CURRENT)
-			mon = current_mon;
+		int spot = SPOT_START == SPOT_CURRENT ? current_spot: SPOT_START;
 
-		c->monitor = mon;
-		monitor *m = &monitors[mon];
-
-		if (SPOT_START == SPOT_CURRENT)
-			spot = current_spot;
-
-		if (SPOT_START == SPOT_SMART)
+		if (SPOT_START == SPOT_SMART) // find spot of best fit
 			for (spot = SPOT3; spot > SPOT1; spot--)
 				if (c->attr.width <= m->spots[spot].w && c->attr.height <= m->spots[spot].h)
 					break;
@@ -721,16 +709,14 @@ void map_request(XEvent *e)
 		client_update_border(c);
 		client_flush_tags(c);
 	}
-	XMapWindow(display, c->window);
+	if (c) XMapWindow(display, c->window);
 	client_free(c);
 }
 
 void map_notify(XEvent *e)
 {
 	client *a = NULL, *c = window_build_client(e->xmap.window);
-	if (!c) return;
-
-	if (c->manage)
+	if (c && c->manage)
 	{
 		client_raise_family(c);
 		client_update_border(c);
@@ -738,9 +724,9 @@ void map_notify(XEvent *e)
 		if (!(a = window_build_client(current)) || (a && a->spot == c->spot))
 			client_set_focus(c);
 		client_free(a);
+		ewmh_client_list();
 	}
 	client_free(c);
-	ewmh_client_list();
 }
 
 void unmap_notify(XEvent *e)
@@ -797,11 +783,8 @@ void client_message(XEvent *ev)
 		warnx("restart!");
 		execsh(self);
 	}
-
 	client *c = window_build_client(e->window);
-	if (!c) return;
-
-	if (c->manage)
+	if (c && c->manage)
 	{
 		warnx("client message 0x%lx 0x%08lx %s", e->message_type, (long)c->window, c->class);
 		if (e->message_type == atoms[_NET_ACTIVE_WINDOW])
@@ -995,8 +978,7 @@ int main(int argc, char *argv[])
 		client_place_spot(c, c->spot, 1);
 
 		// only activate first one
-		if (current) continue;
-		client_activate(c);
+		if (!current) client_activate(c);
 	}
 
 	// main event loop
