@@ -93,8 +93,6 @@ int nmonitors = 1;
 typedef struct {
 	Window window;
 	XWindowAttributes attr;
-	XWMHints hints;
-	XSizeHints size;
 	Window transient_for;
 	Atom type, states[MAX_NET_WM_STATES+1];
 	short monitor, spot, visible, manage, input, urgent;

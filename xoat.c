@@ -176,13 +176,10 @@ client* window_build_client(Window win)
 			XWMHints *hints = XGetWMHints(display, c->window);
 			if (hints)
 			{
-				memmove(&c->hints, hints, sizeof(XWMHints));
+				c->input  = hints->flags & InputHint && hints->input ? 1:0;
+				c->urgent = c->urgent || hints->flags & XUrgencyHint ? 1:0;
 				XFree(hints);
 			}
-			long sr; XGetWMNormalHints(display, c->window, &c->size, &sr);
-			c->input  = c->hints.flags & InputHint && c->hints.input ? 1:0;
-			c->urgent = c->urgent || c->hints.flags & XUrgencyHint ? 1: 0;
-
 			XClassHint chint;
 			if (XGetClassHint(display, c->window, &chint))
 			{
@@ -304,37 +301,39 @@ void client_position_xywh(client *c, int x, int y, int w, int h)
 		return;
 	}
 	w -= BORDER*2; h -= BORDER*2;
-	int sw = w, sh = h;
+	int sw = w, sh = h; long sr; XSizeHints size;
 
-	int basew = c->size.flags & PBaseSize ? c->size.base_width : 0;
-	int baseh = c->size.flags & PBaseSize ? c->size.base_height: 0;
+	if (XGetWMNormalHints(display, c->window, &size, &sr))
+	{
+		int basew = size.flags & PBaseSize ? size.base_width : 0;
+		int baseh = size.flags & PBaseSize ? size.base_height: 0;
 
-	if (c->size.flags & PMinSize)
-	{
-		w = MAX(w, c->size.min_width);
-		h = MAX(h, c->size.min_height);
+		if (size.flags & PMinSize)
+		{
+			w = MAX(w, size.min_width);
+			h = MAX(h, size.min_height);
+		}
+		if (size.flags & PMaxSize)
+		{
+			w = MIN(w, size.max_width);
+			h = MIN(h, size.max_height);
+		}
+		if (size.flags & PResizeInc)
+		{
+			w -= basew; h -= baseh;
+			w -= w % size.width_inc;
+			h -= h % size.height_inc;
+			w += basew; h += baseh;
+		}
+		if (size.flags & PAspect)
+		{
+			double ratio = (double) w / h;
+			double minr  = (double) size.min_aspect.x / size.min_aspect.y;
+			double maxr  = (double) size.max_aspect.x / size.max_aspect.y;
+				if (ratio < minr) h = (int)(w / minr);
+			else if (ratio > maxr) w = (int)(h * maxr);
+		}
 	}
-	if (c->size.flags & PMaxSize)
-	{
-		w = MIN(w, c->size.max_width);
-		h = MIN(h, c->size.max_height);
-	}
-	if (c->size.flags & PResizeInc)
-	{
-		w -= basew; h -= baseh;
-		w -= w % c->size.width_inc;
-		h -= h % c->size.height_inc;
-		w += basew; h += baseh;
-	}
-	if (c->size.flags & PAspect)
-	{
-		double ratio = (double) w / h;
-		double minr  = (double) c->size.min_aspect.x / c->size.min_aspect.y;
-		double maxr  = (double) c->size.max_aspect.x / c->size.max_aspect.y;
-			if (ratio < minr) h = (int)(w / minr);
-		else if (ratio > maxr) w = (int)(h * maxr);
-	}
-
 	// center if smaller than supplied size
 	if (w < sw) x += (sw-w)/2;
 	if (h < sh) y += (sh-h)/2;
