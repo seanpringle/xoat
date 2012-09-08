@@ -143,7 +143,6 @@ client* window_build_client(Window win)
 	if (XGetWindowAttributes(display, c->window, &c->attr))
 	{
 		c->visible = c->attr.map_state == IsViewable ? 1:0;
-		XGetTransientForHint(display, c->window, &c->transient_for);
 		window_get_atom_prop(win, atoms[_NET_WM_WINDOW_TYPE], &c->type, 1);
 
 		c->manage = !c->attr.override_redirect
@@ -166,6 +165,7 @@ client* window_build_client(Window win)
 
 		if (c->visible)
 		{
+			XGetTransientForHint(display, c->window, &c->transient_for);
 			window_get_atom_prop(c->window, atoms[_NET_WM_STATE], c->states, MAX_NET_WM_STATES);
 			c->urgent = client_has_state(c, atoms[_NET_WM_STATE_DEMANDS_ATTENTION]);
 
@@ -290,11 +290,28 @@ void client_close(client *c)
 		XKillClient(display, c->window);
 }
 
-void client_position_xywh(client *c, int x, int y, int w, int h)
+void client_place_spot(client *c, int spot, int force)
 {
 	if (!c) return;
-	monitor *m = &monitors[c->monitor];
 
+	if (c->transient_for && !force)
+	{
+		client *t = window_build_client(c->transient_for);
+		spot = t->spot;
+		client_free(t);
+	}
+	c->spot = spot;
+	monitor *m = &monitors[c->monitor];
+	int x = m->spots[spot].x, y = m->spots[spot].y, w = m->spots[spot].w, h = m->spots[spot].h;
+
+	if (c->type == atoms[_NET_WM_WINDOW_TYPE_DIALOG])
+	{
+		x += (w - c->attr.width)/2;
+		y += (h - c->attr.height)/2;
+		w = c->attr.width + BORDER*2;
+		h = c->attr.height + BORDER*2;
+	}
+	else
 	if (client_has_state(c, atoms[_NET_WM_STATE_FULLSCREEN]))
 	{
 		XMoveResizeWindow(display, c->window, m->x, m->y, m->w, m->h);
@@ -345,30 +362,6 @@ void client_position_xywh(client *c, int x, int y, int w, int h)
 	XMoveResizeWindow(display, c->window, x, y, w, h);
 }
 
-void client_place_spot(client *c, int spot, int force)
-{
-	if (!c) return;
-
-	if (c->transient_for && !force)
-	{
-		client *t = window_build_client(c->transient_for);
-		spot = t->spot;
-		client_free(t);
-	}
-	box b;
-	memmove(&b, &monitors[c->monitor].spots[spot], sizeof(box));
-
-	if (c->type == atoms[_NET_WM_WINDOW_TYPE_DIALOG])
-	{
-		b.x += (b.w - c->attr.width)/2;
-		b.y += (b.h - c->attr.height)/2;
-		b.w = c->attr.width + BORDER*2;
-		b.h = c->attr.height + BORDER*2;
-	}
-	c->spot = spot;
-	client_position_xywh(c, b.x, b.y, b.w, b.h);
-}
-
 void client_spot_cycle(client *c)
 {
 	if (!c) return;
@@ -385,18 +378,15 @@ void client_spot_cycle(client *c)
 
 Window spot_focus_top_window(int spot, int mon, Window except)
 {
-	int i; client *o; box b;
-	memmove(&b, &monitors[mon].spots[spot], sizeof(box));
+	int i; client *c;
 	stack wins; query_visible_windows(&wins);
-
 	for (i = 0; i < wins.depth; i++)
 	{
-		if ((o = wins.clients[i]) && o->window != except && o->manage && o->spot == spot
-			&& INTERSECT(b.x + b.w/2, b.y + b.h/2, 1, 1, o->attr.x, o->attr.y, o->attr.width, o->attr.height))
+		if ((c = wins.clients[i]) && c->window != except && c->manage && c->spot == spot && c->monitor == mon)
 		{
-			client_raise_family(o);
-			client_set_focus(o);
-			return o->window;
+			client_raise_family(c);
+			client_set_focus(c);
+			return c->window;
 		}
 	}
 	return None;
@@ -466,7 +456,6 @@ void client_set_focus(client *c)
 		client_update_border(o);
 		client_free(o);
 	}
-
 	client_send_wm_protocol(c, atoms[WM_TAKE_FOCUS]);
 	XSetInputFocus(display, c->input ? c->window: PointerRoot, RevertToPointerRoot, CurrentTime);
 	window_set_window_prop(root, atoms[_NET_ACTIVE_WINDOW], &c->window, 1);
@@ -535,7 +524,6 @@ void action_command(void *data, int num, client *cli)
 	exec_cmd(data);
 }
 
-// real simple switcher/launcher
 void action_find_or_start(void *data, int num, client *cli)
 {
 	int i; client *c; char *class = data;
@@ -814,9 +802,7 @@ handler handlers[LASTEvent] = {
 
 int main(int argc, char *argv[])
 {
-	int i, j; Atom msg = None; client *c; XEvent ev;
-	stack wins; memset(&wins, 0, sizeof(stack));
-	signal(SIGCHLD, catch_exit);
+	int i, j; client *c; XEvent ev; stack wins;
 
 	if (!(display = XOpenDisplay(0))) return 1;
 
@@ -829,6 +815,7 @@ int main(int argc, char *argv[])
 	// check for restart/exit
 	if (argc > 1)
 	{
+		Atom msg = None;
 		Window cli = XCreateSimpleWindow(display, root, 0, 0, 1, 1, 0, None, None);
 		     if (!strcmp(argv[1], "restart")) msg = atoms[XOAT_RESTART];
 		else if (!strcmp(argv[1], "exit"))    msg = atoms[XOAT_EXIT];
