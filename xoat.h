@@ -70,10 +70,6 @@ enum {
 	SPOT1_RIGHT
 };
 
-#define TAG1 1<<0
-#define TAG2 1<<1
-#define TAG3 1<<2
-
 typedef struct {
 	short x, y, w, h;
 } box;
@@ -96,7 +92,6 @@ typedef struct {
 	Window transient_for;
 	Atom type, states[MAX_NET_WM_STATES+1];
 	short monitor, spot, visible, manage, input, urgent;
-	unsigned short tags;
 	char *class;
 } client;
 
@@ -110,7 +105,7 @@ typedef struct {
 
 short current_spot = 0, current_mon = 0;
 Window current = None;
-stack inplay;
+stack inplay, snapshot;
 
 static int (*xerror)(Display *, XErrorEvent *);
 
@@ -127,7 +122,6 @@ wm_strut struts;
 
 #define GENERAL_ATOMS(X) \
 	X(XOAT_SPOT),\
-	X(XOAT_TAGS),\
 	X(XOAT_EXIT),\
 	X(XOAT_RESTART),\
 	X(_MOTIF_WM_HINTS),\
@@ -179,9 +173,8 @@ enum {
 	ACTION_FOCUS_MONITOR,
 	ACTION_FULLSCREEN_TOGGLE,
 	ACTION_ABOVE_TOGGLE,
-	ACTION_TAG,
-	ACTION_UNTAG,
-	ACTION_RAISE_TAG,
+	ACTION_SNAPSHOT,
+	ACTION_ROLLBACK,
 	ACTIONS
 };
 

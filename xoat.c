@@ -169,10 +169,6 @@ client* window_build_client(Window win)
 			window_get_atom_prop(c->window, atoms[_NET_WM_STATE], c->states, MAX_NET_WM_STATES);
 			c->urgent = client_has_state(c, atoms[_NET_WM_STATE_DEMANDS_ATTENTION]);
 
-			unsigned long tags = 0;
-			if (window_get_cardinal_prop(c->window, atoms[XOAT_TAGS], &tags, 1))
-				c->tags = tags;
-
 			XWMHints *hints = XGetWMHints(display, c->window);
 			if (hints)
 			{
@@ -481,15 +477,6 @@ void client_update_border(client *c)
 	XSetWindowBorderWidth(display, c->window, client_has_state(c, atoms[_NET_WM_STATE_FULLSCREEN]) ? 0: BORDER);
 }
 
-void client_flush_tags(client *c)
-{
-	unsigned long tags = c->tags;
-	window_set_cardinal_prop(c->window, atoms[XOAT_TAGS], &tags, 1);
-
-	unsigned long desktop = tags & TAG3 ? 2: (tags & TAG2 ? 1: (tags & TAG1 ? 0: 0xffffffff));
-	window_set_cardinal_prop(c->window, atoms[_NET_WM_DESKTOP], &desktop, 1);
-}
-
 // ------- key actions -------
 
 void action_move(void *data, int num, client *cli)
@@ -551,25 +538,6 @@ void action_focus_monitor(void *data, int num, client *cli)
 	for (i = SPOT1; i <= SPOT3 && !spot_focus_top_window(i, mon, None); i++);
 }
 
-void action_raise_tag(void *data, int tag, client *cli)
-{
-	int i; client *c = NULL, *t = NULL;
-	stack all; query_visible_windows(&all);
-
-	for (i = all.depth-1; i > -1; i--)
-	{
-		if ((c = all.clients[i]) && c->manage && c->visible && c->tags & tag)
-		{
-			if (c->monitor == current_mon && c->spot == current_spot) t = c;
-			client_raise_family(c);
-		}
-	}
-	if (t) client_set_focus(t);
-
-	unsigned long desktop = tag & TAG2 ? 1: (tag & TAG3 ? 2: 0);
-	window_set_cardinal_prop(root, atoms[_NET_CURRENT_DESKTOP], &desktop, 1);
-}
-
 void action_fullscreen(void *data, int num, client *cli)
 {
 	if (!cli) return;
@@ -597,18 +565,44 @@ void action_above(void *data, int num, client *cli)
 	client_raise_family(cli);
 }
 
-void action_tag(void *data, int num, client *cli)
+void action_snapshot(void *data, int num, client *cli)
 {
-	if (!cli) return;
-	cli->tags |= (unsigned int)num;
-	client_flush_tags(cli);
+	int i; client *c; stack wins;
+	stack_free(&snapshot);
+	query_visible_windows(&wins);
+	for (i = 0; i < wins.depth; i++)
+	{
+		if ((c = wins.clients[i]) && c->manage)
+		{
+			snapshot.clients[snapshot.depth] = window_build_client(c->window);
+			snapshot.windows[snapshot.depth++] = c->window;
+		}
+	}
 }
 
-void action_untag(void *data, int num, client *cli)
+void action_rollback(void *data, int num, client *cli)
 {
-	if (!cli) return;
-	cli->tags &= ~((unsigned int)num);
-	client_flush_tags(cli);
+	int i; client *c = NULL, *s, *a = NULL;
+	for (i = snapshot.depth-1; i > -1; i--)
+	{
+		if ((s = snapshot.clients[i]) && (c = window_build_client(s->window)) && c->visible && c->manage)
+		{
+			c->monitor = s->monitor;
+			client_place_spot(c, s->spot, 1);
+			client_raise_family(c);
+			if (s->spot == current_spot && s->monitor == current_mon)
+			{
+				client_free(a);
+				a = c; c = NULL;
+			}
+		}
+		client_free(c);
+	}
+	if (a)
+	{
+		client_set_focus(a);
+		client_free(a);
+	}
 }
 
 // key actions
@@ -625,9 +619,8 @@ action actions[ACTIONS] = {
 	[ACTION_FOCUS_MONITOR]     = action_focus_monitor,
 	[ACTION_FULLSCREEN_TOGGLE] = action_fullscreen,
 	[ACTION_ABOVE_TOGGLE]      = action_above,
-	[ACTION_TAG]               = action_tag,
-	[ACTION_UNTAG]             = action_untag,
-	[ACTION_RAISE_TAG]         = action_raise_tag,
+	[ACTION_SNAPSHOT]          = action_snapshot,
+	[ACTION_ROLLBACK]          = action_rollback,
 };
 
 // ------- event handlers --------
@@ -690,7 +683,6 @@ void map_request(XEvent *e)
 
 		client_place_spot(c, spot, 0);
 		client_update_border(c);
-		client_flush_tags(c);
 	}
 	if (c) XMapWindow(display, c->window);
 	client_free(c);
@@ -936,6 +928,7 @@ int main(int argc, char *argv[])
 	XGrabButton(display, Button3, AnyModifier, root, True, ButtonPressMask, GrabModeSync, GrabModeSync, None, None);
 
 	// setup existing managable windows
+	memset(&snapshot, 0, sizeof(stack));
 	query_visible_windows(&wins);
 	for (i = 0; i < wins.depth; i++)
 	{
@@ -943,7 +936,6 @@ int main(int argc, char *argv[])
 
 		window_listen(c->window);
 		client_update_border(c);
-		client_flush_tags(c);
 		client_place_spot(c, c->spot, 0);
 
 		// only activate first one

@@ -71,32 +71,11 @@ Shift-Mod4-x
 F1
 :	Launch urxvt
 
-Mod4-1
-:	Raise windows in tag 1.
+Mod4-s
+:	Snapshot current window positions and stacking order.
 
-Shift-Mod4-1
-:	Place current window in tag 1.
-
-Shift-Control-Mod4-1
-:	Remove current window from tag 1.
-
-Mod4-2
-:	Raise windows in tag 2.
-
-Shift-Mod4-2
-:	Place current window in tag 2.
-
-Shift-Control-Mod4-2
-:	Remove current window from tag 2.
-
-Mod4-3
-:	Raise windows in tag 3.
-
-Shift-Mod4-3
-:	Place current window in tag 3.
-
-Shift-Control-Mod4-3
-:	Remove current window from tag 3.
+Mod4-r
+:	Rollback to snapshot. Windows closed since the snapshot will not be reopened. Newer windows not in the snapshot will be lowered.
 
 # OPTIONS
 

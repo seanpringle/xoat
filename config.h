@@ -92,18 +92,9 @@ binding keys[] = {
 	// Launcher
 	{ .mod = Mod4Mask, .key = XK_x, .act = ACTION_COMMAND, .data = "dmenu_run" },
 
-	// Raise tag groups
-	{ .mod = Mod4Mask, .key = XK_1, .act = ACTION_RAISE_TAG, .num = TAG1 },
-	{ .mod = Mod4Mask, .key = XK_2, .act = ACTION_RAISE_TAG, .num = TAG2 },
-	{ .mod = Mod4Mask, .key = XK_3, .act = ACTION_RAISE_TAG, .num = TAG3 },
-
-	// Tag/untag the current window
-	{ .mod = ShiftMask|Mod4Mask, .key = XK_1, .act = ACTION_TAG, .num = TAG1 },
-	{ .mod = ShiftMask|Mod4Mask, .key = XK_2, .act = ACTION_TAG, .num = TAG2 },
-	{ .mod = ShiftMask|Mod4Mask, .key = XK_3, .act = ACTION_TAG, .num = TAG3 },
-	{ .mod = ShiftMask|ControlMask|Mod4Mask, .key = XK_1, .act = ACTION_UNTAG, .num = TAG1 },
-	{ .mod = ShiftMask|ControlMask|Mod4Mask, .key = XK_2, .act = ACTION_UNTAG, .num = TAG2 },
-	{ .mod = ShiftMask|ControlMask|Mod4Mask, .key = XK_3, .act = ACTION_UNTAG, .num = TAG3 },
+	// Snapshot state
+	{ .mod = Mod4Mask, .key = XK_s, .act = ACTION_SNAPSHOT },
+	{ .mod = Mod4Mask, .key = XK_r, .act = ACTION_ROLLBACK },
 
 	// Find or start apps by WM_CLASS (lower case match).
 	{ .mod = AnyModifier, .key = XK_F1, .act = ACTION_FIND_OR_START, .data = "urxvt"    },
