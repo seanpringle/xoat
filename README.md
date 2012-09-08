@@ -43,3 +43,31 @@ xoat
 	* FfM means mentally keeping track of the mouse or warping the pointer around.
 	* CtF is harder to get wrong and makes it easy to forget about the mouse for some tasks.
 * 2/3 is a nice fraction.
+
+### Stuff Removed
+
+Some elements that proved to be the wrong direction for xoat have been removed.
+
+* Tags have been replaced with the snapshot/rollback mechanism.
+	* Tags were a way to group and raise windows en-masse, but they were fiddly to use.
+	* Snapshot allows the freedom to mess windows up then quicky revert to a known state.
+* Some EWMH desktop atoms have been dumped as surplus to requirements.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
