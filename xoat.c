@@ -585,7 +585,8 @@ void action_rollback(void *data, int num, client *cli)
 	int i; client *c = NULL, *s, *a = NULL;
 	for (i = snapshot.depth-1; i > -1; i--)
 	{
-		if ((s = snapshot.clients[i]) && (c = window_build_client(s->window)) && c->visible && c->manage)
+		if ((s = snapshot.clients[i]) && (c = window_build_client(s->window))
+			&& !strcmp(s->class, c->class) && c->visible && c->manage)
 		{
 			c->monitor = s->monitor;
 			client_place_spot(c, s->spot, 1);
@@ -889,17 +890,11 @@ int main(int argc, char *argv[])
 	XSelectInput(display, root, StructureNotifyMask | SubstructureRedirectMask | SubstructureNotifyMask);
 
 	// ewmh support
-	unsigned long desktop = 0, desktops = 3, pid = getpid(), viewport[2] = { 0, 0 },
-		geometry[2] = { monitors[0].w, monitors[0].h };
-
+	unsigned long pid = getpid();
 	ewmh = XCreateSimpleWindow(display, root, 0, 0, 1, 1, 0, 0, 0);
 
 	window_set_atom_prop(root,     atoms[_NET_SUPPORTED],           atoms, ATOMS);
 	window_set_window_prop(root,   atoms[_NET_SUPPORTING_WM_CHECK], &ewmh,     1);
-	window_set_cardinal_prop(root, atoms[_NET_CURRENT_DESKTOP],     &desktop,  1);
-	window_set_cardinal_prop(root, atoms[_NET_NUMBER_OF_DESKTOPS],  &desktops, 1);
-	window_set_cardinal_prop(root, atoms[_NET_DESKTOP_GEOMETRY],    geometry,  2);
-	window_set_cardinal_prop(root, atoms[_NET_DESKTOP_VIEWPORT],    viewport,  2);
 	window_set_cardinal_prop(ewmh, atoms[_NET_WM_PID],              &pid,      1);
 
 	XChangeProperty(display, ewmh, atoms[_NET_WM_NAME], XA_STRING, 8, PropModeReplace, (const unsigned char*)"xoat", 4);
