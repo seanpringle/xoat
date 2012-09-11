@@ -697,7 +697,7 @@ void map_notify(XEvent *e)
 		client_raise_family(c);
 		client_update_border(c);
 		// if no current window, or new window has opened in the current spot, focus it
-		if (!(a = window_build_client(current)) || (a && a->spot == c->spot))
+		if (FOCUS_START == FOCUS_STEAL || !(a = window_build_client(current)) || (a && a->spot == c->spot))
 			client_set_focus(c);
 		client_free(a);
 		ewmh_client_list();

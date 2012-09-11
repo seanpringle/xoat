@@ -70,6 +70,11 @@ enum {
 	SPOT1_RIGHT
 };
 
+enum {
+	FOCUS_IGNORE=1,
+	FOCUS_STEAL,
+};
+
 typedef struct {
 	short x, y, w, h;
 } box;

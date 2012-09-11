@@ -51,6 +51,12 @@
 // If on multi-head, place windows on monitor holding current window.
 #define MONITOR_START MONITOR_CURRENT
 
+// Should new windows be automatically focused, or ignored until focused manually?
+// IGNORE means new windows only steal focus if they obscure the current window.
+// STEAL means new windows always steal focus.
+#define FOCUS_START FOCUS_IGNORE
+//#define FOCUS_START FOCUS_STEAL
+
 // If you use "AnyModifier" place those keys at the end of the array.
 binding keys[] = {
 
