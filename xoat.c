@@ -110,6 +110,12 @@ void window_set_cardinal_prop(Window w, Atom prop, unsigned long *values, int co
 	XChangeProperty(display, w, prop, XA_CARDINAL, 32, PropModeReplace, (unsigned char*)values, count);
 }
 
+int window_get_window_prop(Window w, Atom atom, Window *list, int count)
+{
+	Atom type; int items;
+	return window_get_prop(w, atom, &type, &items, list, count*sizeof(Window)) && type == XA_WINDOW ? items:0;
+}
+
 void window_set_window_prop(Window w, Atom prop, Window *values, int count)
 {
 	XChangeProperty(display, w, prop, XA_WINDOW, 32, PropModeReplace, (unsigned char*)values, count);
@@ -143,8 +149,9 @@ client* window_build_client(Window win)
 	if (XGetWindowAttributes(display, c->window, &c->attr))
 	{
 		c->visible = c->attr.map_state == IsViewable ? 1:0;
-		XGetTransientForHint(display, c->window, &c->transient_for);
+		XGetTransientForHint(display, c->window, &c->transient);
 		window_get_atom_prop(win, atoms[_NET_WM_WINDOW_TYPE], &c->type, 1);
+		window_get_window_prop(win, atoms[WM_CLIENT_LEADER], &c->leader, 1);
 
 		c->manage = !c->attr.override_redirect
 			&& c->type != atoms[_NET_WM_WINDOW_TYPE_DESKTOP]
@@ -286,17 +293,36 @@ void client_close(client *c)
 		XKillClient(display, c->window);
 }
 
-void client_place_spot(client *c, int spot, int force)
+void client_place_spot(client *c, int spot, int mon, int force)
 {
 	if (!c) return;
+	client *t;
 
-	if (c->transient_for && !force)
+	// try to center over our transient parent
+	if (!force && c->transient && (t = window_build_client(c->transient)))
 	{
-		client *t = window_build_client(c->transient_for);
 		spot = t->spot;
+		mon = t->monitor;
 		client_free(t);
 	}
-	c->spot = spot;
+	else
+	// try to center over top-most window in our group
+	if (!force && c->leader && c->type == atoms[_NET_WM_WINDOW_TYPE_DIALOG])
+	{
+		int i; stack wins;
+		query_visible_windows(&wins);
+		for (i = 0; i < wins.depth; i++)
+		{
+			if ((t = wins.clients[i]) && t->manage && t->window != c->window && t->leader == c->leader)
+			{
+				spot = t->spot;
+				mon = t->monitor;
+				break;
+			}
+		}
+	}
+	c->spot = spot; c->monitor = mon;
+
 	monitor *m = &monitors[c->monitor];
 	int x = m->spots[spot].x, y = m->spots[spot].y, w = m->spots[spot].w, h = m->spots[spot].h;
 
@@ -393,7 +419,7 @@ void client_stack_family(client *c, stack *all, stack *raise)
 	int i; client *o, *self = NULL;
 	for (i = 0; i < all->depth; i++)
 	{
-		if ((o = all->clients[i]) && o->manage && o->visible && o->transient_for == c->window)
+		if ((o = all->clients[i]) && o->manage && o->visible && o->transient == c->window)
 			client_stack_family(o, all, raise);
 		else
 		if (o && o->visible && o->window == c->window)
@@ -425,9 +451,9 @@ void client_raise_family(client *c)
 			if ((o = all.clients[i]) && client_has_state(o, atoms[_NET_WM_STATE_ABOVE]))
 				client_stack_family(o, &all, &raise);
 
-	while (c->transient_for)
+	while (c->transient)
 	{
-		client *t = window_build_client(c->transient_for);
+		client *t = window_build_client(c->transient);
 		if (t) c = family.clients[family.depth++] = t;
 	}
 
@@ -483,7 +509,7 @@ void action_move(void *data, int num, client *cli)
 {
 	if (!cli) return;
 	client_raise_family(cli);
-	client_place_spot(cli, num, 1);
+	client_place_spot(cli, num, cli->monitor, 1);
 }
 
 void action_focus(void *data, int num, client *cli)
@@ -528,7 +554,7 @@ void action_move_monitor(void *data, int num, client *cli)
 	if (!cli) return;
 	client_raise_family(cli);
 	cli->monitor = MAX(0, MIN(current_mon+num, nmonitors-1));
-	client_place_spot(cli, cli->spot, 1);
+	client_place_spot(cli, cli->spot, cli->monitor, 1);
 }
 
 void action_focus_monitor(void *data, int num, client *cli)
@@ -554,7 +580,7 @@ void action_fullscreen(void *data, int num, client *cli)
 		cli->spot = spot;
 
 	client_update_border(cli);
-	client_place_spot(cli, cli->spot, 1);
+	client_place_spot(cli, cli->spot, cli->monitor, 1);
 }
 
 void action_above(void *data, int num, client *cli)
@@ -588,8 +614,7 @@ void action_rollback(void *data, int num, client *cli)
 		if ((s = snapshot.clients[i]) && (c = window_build_client(s->window))
 			&& !strcmp(s->class, c->class) && c->visible && c->manage)
 		{
-			c->monitor = s->monitor;
-			client_place_spot(c, s->spot, 1);
+			client_place_spot(c, s->spot, s->monitor, 1);
 			client_raise_family(c);
 			if (s->spot == current_spot && s->monitor == current_mon)
 			{
@@ -638,10 +663,10 @@ void configure_request(XEvent *ev)
 {
 	XConfigureRequestEvent *e = &ev->xconfigurerequest;
 	client *c = window_build_client(e->window);
-	if (c && c->manage && c->visible && !c->transient_for)
+	if (c && c->manage && c->visible && !c->transient)
 	{
 		client_update_border(c);
-		client_place_spot(c, c->spot, 0);
+		client_place_spot(c, c->spot, c->monitor, 0);
 	}
 	else
 	if (c)
@@ -682,7 +707,7 @@ void map_request(XEvent *e)
 				if (c->attr.width <= m->spots[spot].w && c->attr.height <= m->spots[spot].h)
 					break;
 
-		client_place_spot(c, spot, 0);
+		client_place_spot(c, spot, c->monitor, 0);
 		client_update_border(c);
 	}
 	if (c) XMapWindow(display, c->window);
@@ -931,7 +956,7 @@ int main(int argc, char *argv[])
 
 		window_listen(c->window);
 		client_update_border(c);
-		client_place_spot(c, c->spot, 0);
+		client_place_spot(c, c->spot, c->monitor, 0);
 
 		// only activate first one
 		if (!current) client_activate(c);

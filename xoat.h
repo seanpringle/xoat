@@ -94,7 +94,7 @@ int nmonitors = 1;
 typedef struct {
 	Window window;
 	XWindowAttributes attr;
-	Window transient_for;
+	Window transient, leader;
 	Atom type, states[MAX_NET_WM_STATES+1];
 	short monitor, spot, visible, manage, input, urgent;
 	char *class;
@@ -151,6 +151,7 @@ wm_strut struts;
 	X(_NET_WM_STATE_ABOVE),\
 	X(_NET_WM_STATE_DEMANDS_ATTENTION),\
 	X(WM_DELETE_WINDOW),\
+	X(WM_CLIENT_LEADER),\
 	X(WM_TAKE_FOCUS),\
 	X(WM_PROTOCOLS)
 
