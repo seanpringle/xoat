@@ -110,7 +110,15 @@ typedef struct {
 
 short current_spot = 0, current_mon = 0;
 Window current = None;
-stack inplay, snapshot;
+stack windows, snapshot;
+
+#define for_windows(i,c)\
+	for ((i) = 0, query_windows(); (i) < windows.depth; (i)++)\
+		if (((c) = windows.clients[(i)]))
+
+#define for_windows_rev(i,c)\
+	for ((i) = windows.depth-1, query_windows(); (i) > -1; (i)--)\
+		if (((c) = windows.clients[(i)]))
 
 static int (*xerror)(Display *, XErrorEvent *);
 
@@ -190,3 +198,9 @@ typedef struct {
 	void *data;
 	int num;
 } binding;
+
+
+
+
+
+
