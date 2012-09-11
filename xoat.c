@@ -70,9 +70,9 @@ void query_windows()
 	unsigned int nwins; int i; Window w1, w2, *wins; client *c;
 	if (XQueryTree(display, root, &w1, &w2, &wins, &nwins) && wins)
 	{
-		for (i = nwins-1; i > -1; i--)
+		for (i = nwins-1; i > -1 && windows.depth < STACK; i--)
 		{
-			if ((c = window_build_client(wins[i])) && c->visible && windows.depth < STACK)
+			if ((c = window_build_client(wins[i])) && c->visible)
 			{
 				windows.clients[windows.depth] = c;
 				windows.windows[windows.depth++] = wins[i];
@@ -185,9 +185,10 @@ client* window_build_client(Window win)
 
 		monitor *m = &monitors[c->monitor];
 
-		for (c->spot = SPOT3; c->spot > SPOT1; c->spot--)
-			if (INTERSECT(m->spots[c->spot].x, m->spots[c->spot].y, m->spots[c->spot].w, m->spots[c->spot].h,
-				c->attr.x + c->attr.width/2, c->attr.y+c->attr.height/2, 1, 1)) break;
+		c->spot = SPOT1; for_spots_rev(i)
+			if (INTERSECT(m->spots[i].x, m->spots[i].y, m->spots[i].w, m->spots[i].h,
+				c->attr.x + c->attr.width/2, c->attr.y+c->attr.height/2, 1, 1))
+					{ c->spot = i; break; }
 
 		if (c->visible)
 		{
@@ -332,9 +333,6 @@ void client_place_spot(client *c, int spot, int mon, int force)
 
 	if (XGetWMNormalHints(display, c->window, &size, &sr))
 	{
-		int basew = size.flags & PBaseSize ? size.base_width : 0;
-		int baseh = size.flags & PBaseSize ? size.base_height: 0;
-
 		if (size.flags & PMinSize)
 		{
 			w = MAX(w, size.min_width);
@@ -347,10 +345,8 @@ void client_place_spot(client *c, int spot, int mon, int force)
 		}
 		if (size.flags & PResizeInc)
 		{
-			w -= basew; h -= baseh;
-			w -= w % size.width_inc;
-			h -= h % size.height_inc;
-			w += basew; h += baseh;
+			w -= (w - (size.flags & PBaseSize ? size.base_width : 0)) % size.width_inc;
+			h -= (h - (size.flags & PBaseSize ? size.base_height: 0)) % size.height_inc;
 		}
 		if (size.flags & PAspect)
 		{
@@ -537,7 +533,7 @@ void action_focus_monitor(void *data, int num, client *cli)
 {
 	int i, mon = MAX(0, MIN(current_mon+num, nmonitors-1));
 	if (spot_focus_top_window(current_spot, mon, None)) return;
-	for (i = SPOT1; i <= SPOT3 && !spot_focus_top_window(i, mon, None); i++);
+	for_spots(i) if (spot_focus_top_window(i, mon, None)) break;
 }
 
 void action_fullscreen(void *data, int num, client *cli)
@@ -673,13 +669,14 @@ void map_request(XEvent *e)
 		c->monitor = MIN(nmonitors-1, MAX(0, c->monitor));
 		monitor *m = &monitors[c->monitor];
 
-		int spot = SPOT_START == SPOT_CURRENT ? current_spot: SPOT_START;
+		int i, spot = SPOT_START == SPOT_CURRENT ? current_spot: SPOT_START;
 
 		if (SPOT_START == SPOT_SMART) // find spot of best fit
-			for (spot = SPOT3; spot > SPOT1; spot--)
-				if (c->attr.width <= m->spots[spot].w && c->attr.height <= m->spots[spot].h)
-					break;
-
+		{
+			spot = SPOT1; for_spots_rev(i)
+				if (c->attr.width <= m->spots[i].w && c->attr.height <= m->spots[i].h)
+					{ spot = i; break; }
+		}
 		client_place_spot(c, spot, c->monitor, 0);
 		client_update_border(c);
 	}
@@ -708,7 +705,7 @@ void unmap_notify(XEvent *e)
 	int i;
 	// if this window was focused, find something else
 	if (e->xunmap.window == current && !spot_focus_top_window(current_spot, current_mon, current))
-		for (i = SPOT1; i <= SPOT3 && !spot_focus_top_window(i, current_mon, current); i++);
+		for_spots(i) if (spot_focus_top_window(i, current_mon, current)) break;
 	ewmh_client_list();
 }
 
@@ -861,7 +858,7 @@ int main(int argc, char *argv[])
 		monitor *m = &monitors[i];
 		int width_spot1  = (double)m->w / 100 * MIN(90, MAX(10, SPOT1_WIDTH_PCT));
 		int height_spot2 = (double)m->h / 100 * MIN(90, MAX(10, SPOT2_HEIGHT_PCT));
-		for (j = SPOT1; j <= SPOT3; j++)
+		for_spots(j)
 		{
 			m->spots[j].x = SPOT1_ALIGN == SPOT1_LEFT ? m->x: m->x + m->w - width_spot1;
 			m->spots[j].y = m->y;

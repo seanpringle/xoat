@@ -120,6 +120,12 @@ stack windows, snapshot;
 	for ((i) = windows.depth-1, query_windows(); (i) > -1; (i)--)\
 		if (((c) = windows.clients[(i)]))
 
+#define for_spots(i)\
+	for ((i) = SPOT1; (i) <= SPOT3; (i)++)
+
+#define for_spots_rev(i)\
+	for ((i) = SPOT3; (i) >= SPOT1; (i)--)
+
 static int (*xerror)(Display *, XErrorEvent *);
 
 typedef struct {
