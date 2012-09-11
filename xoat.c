@@ -143,6 +143,7 @@ client* window_build_client(Window win)
 	if (XGetWindowAttributes(display, c->window, &c->attr))
 	{
 		c->visible = c->attr.map_state == IsViewable ? 1:0;
+		XGetTransientForHint(display, c->window, &c->transient_for);
 		window_get_atom_prop(win, atoms[_NET_WM_WINDOW_TYPE], &c->type, 1);
 
 		c->manage = !c->attr.override_redirect
@@ -165,7 +166,6 @@ client* window_build_client(Window win)
 
 		if (c->visible)
 		{
-			XGetTransientForHint(display, c->window, &c->transient_for);
 			window_get_atom_prop(c->window, atoms[_NET_WM_STATE], c->states, MAX_NET_WM_STATES);
 			c->urgent = client_has_state(c, atoms[_NET_WM_STATE_DEMANDS_ATTENTION]);
 
