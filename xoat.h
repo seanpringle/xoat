@@ -113,11 +113,11 @@ Window current = None;
 stack windows, snapshot;
 
 #define for_windows(i,c)\
-	for ((i) = 0, query_windows(); (i) < windows.depth; (i)++)\
+	for (query_windows(), (i) = 0; (i) < windows.depth; (i)++)\
 		if (((c) = windows.clients[(i)]))
 
 #define for_windows_rev(i,c)\
-	for ((i) = windows.depth-1, query_windows(); (i) > -1; (i)--)\
+	for (query_windows(), (i) = windows.depth-1; (i) > -1; (i)--)\
 		if (((c) = windows.clients[(i)]))
 
 #define for_spots(i)\
@@ -195,7 +195,6 @@ enum {
 
 typedef void (*handler)(XEvent*);
 typedef void (*action)(void*, int, client*);
-typedef void (*message)(client*);
 
 typedef struct {
 	unsigned int mod;

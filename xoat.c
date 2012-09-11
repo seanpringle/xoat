@@ -147,10 +147,8 @@ void ewmh_client_list()
 	memset(&wins, 0, sizeof(stack));
 
 	for_windows_rev(i, c) if (c->manage)
-	{
-		wins.clients[wins.depth] = c;
 		wins.windows[wins.depth++] = c->window;
-	}
+
 	window_set_window_prop(root, atoms[_NET_CLIENT_LIST_STACKING], wins.windows, wins.depth);
 	// hack for now, since we dont track window mapping history
 	window_set_window_prop(root, atoms[_NET_CLIENT_LIST], wins.windows, wins.depth);
@@ -741,11 +739,6 @@ void button_press(XEvent *ev)
 	XAllowEvents(display, ReplayPointer, CurrentTime);
 }
 
-message messages[ATOMS] = {
-	[_NET_ACTIVE_WINDOW] = client_activate,
-	[_NET_CLOSE_WINDOW]  = client_close,
-};
-
 void client_message(XEvent *ev)
 {
 	XClientMessageEvent *e = &ev->xclient;
@@ -760,8 +753,11 @@ void client_message(XEvent *ev)
 		execsh(self);
 	}
 	client *c = window_build_client(e->window);
-	if (c && c->manage && messages[e->message_type])
-		messages[e->message_type](c);
+	if (c && c->manage)
+	{
+		if (e->message_type == atoms[_NET_ACTIVE_WINDOW]) client_activate(c);
+		if (e->message_type == atoms[_NET_CLOSE_WINDOW])  client_close(c);
+	}
 	client_free(c);
 }
 
