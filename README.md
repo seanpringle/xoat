@@ -53,7 +53,11 @@ Some elements that proved to be the wrong direction for xoat have been removed.
 	* Snapshot allows the freedom to mess windows up then quicky revert to a known state.
 * Some EWMH desktop atoms have been dumped as surplus to requirements.
 
+### config.h
 
+All customization happens in config.h. See in-line comments there.
+
+**Note**: config.h is tracked! Use a local git branch to protect any customization.
 
 
 
