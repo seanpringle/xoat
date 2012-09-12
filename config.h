@@ -54,8 +54,8 @@
 // Should new windows be automatically focused, or ignored until focused manually?
 // IGNORE means new windows only steal focus if they obscure the current window.
 // STEAL means new windows always steal focus.
-#define FOCUS_START FOCUS_IGNORE
-//#define FOCUS_START FOCUS_STEAL
+//#define FOCUS_START FOCUS_IGNORE
+#define FOCUS_START FOCUS_STEAL
 
 // If you use "AnyModifier" place those keys at the end of the array.
 binding keys[] = {
@@ -106,4 +106,10 @@ binding keys[] = {
 	{ .mod = AnyModifier, .key = XK_F1, .act = ACTION_FIND_OR_START, .data = "urxvt"    },
 	{ .mod = AnyModifier, .key = XK_F2, .act = ACTION_FIND_OR_START, .data = "chromium" },
 	{ .mod = AnyModifier, .key = XK_F3, .act = ACTION_FIND_OR_START, .data = "pcmanfm"  },
+
+	{ .mod = AnyModifier, .key = XK_F5, .act = ACTION_FIND_OR_START, .data = "firefox"  },
+	{ .mod = AnyModifier, .key = XK_F6, .act = ACTION_FIND_OR_START, .data = "xchat"    },
+	{ .mod = AnyModifier, .key = XK_F7, .act = ACTION_FIND_OR_START, .data = "pidgin"   },
+
+	{ .mod = AnyModifier, .key = XK_Menu, .act = ACTION_COMMAND, .data = "simpleswitcher -dnow" },
 };
