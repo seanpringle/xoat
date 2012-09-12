@@ -111,5 +111,5 @@ binding keys[] = {
 	{ .mod = AnyModifier, .key = XK_F6, .act = ACTION_FIND_OR_START, .data = "xchat"    },
 	{ .mod = AnyModifier, .key = XK_F7, .act = ACTION_FIND_OR_START, .data = "pidgin"   },
 
-	{ .mod = AnyModifier, .key = XK_Menu, .act = ACTION_COMMAND, .data = "simpleswitcher -dnow" },
+	{ .mod = AnyModifier, .key = XK_Menu, .act = ACTION_COMMAND, .data = "xowl" },
 };
