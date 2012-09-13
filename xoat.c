@@ -513,8 +513,9 @@ void action_find_or_start(void *data, int num, client *cli)
 {
 	int i; client *c; char *class = data;
 
-	for_windows(i, c) if (c->manage && !strcasecmp(c->class, class))
-		{ client_activate(c); return; }
+	for_windows(i, c)
+		if (c->visible && c->manage && c->class && !strcasecmp(c->class, class))
+			{ client_activate(c); return; }
 
 	exec_cmd(class);
 }
@@ -579,7 +580,7 @@ void action_rollback(void *data, int num, client *cli)
 	for (i = snapshot.depth-1; i > -1; i--)
 	{
 		if ((s = snapshot.clients[i]) && (c = window_build_client(s->window))
-			&& !strcmp(s->class, c->class) && c->visible && c->manage)
+			&& c->class && !strcmp(s->class, c->class) && c->visible && c->manage)
 		{
 			client_place_spot(c, s->spot, s->monitor, 1);
 			client_raise_family(c);
