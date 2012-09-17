@@ -88,7 +88,7 @@ Atom atoms[ATOMS];
 
 #define MAX_STRUT 150
 #define MAX_MONITORS 3
-#define MAX_NET_WM_STATES 5
+#define MAX_ATOMLIST 10
 #define STACK 64
 
 enum { MONITOR_CURRENT=-1 };
@@ -108,7 +108,7 @@ typedef struct {
 	Window window;
 	XWindowAttributes attr;
 	Window transient, leader;
-	Atom type, states[MAX_NET_WM_STATES+1];
+	Atom type, states[MAX_ATOMLIST+1];
 	short monitor, spot, visible, manage, input, urgent;
 	char *class;
 } client;
@@ -269,7 +269,7 @@ void window_set_window_prop(Window w, Atom prop, Window *values, int count)
 int client_has_state(client *c, Atom state)
 {
 	int i;
-	for (i = 0; i < MAX_NET_WM_STATES && c->states[i]; i++)
+	for (i = 0; i < MAX_ATOMLIST && c->states[i]; i++)
 		if (c->states[i] == state) return 1;
 	return 0;
 }
@@ -285,12 +285,12 @@ void client_update_border(client *c)
 int client_toggle_state(client *c, Atom state)
 {
 	int i, j, rc = 0;
-	for (i = 0, j = 0; i < MAX_NET_WM_STATES && c->states[i]; i++, j++)
+	for (i = 0, j = 0; i < MAX_ATOMLIST && c->states[i]; i++, j++)
 	{
 		if (c->states[i] == state) i++;
 		c->states[j] = c->states[i];
 	}
-	if (i == j && j < MAX_NET_WM_STATES)
+	if (i == j && j < MAX_ATOMLIST)
 	{
 		c->states[j++] = state;
 		rc = 1;
@@ -335,7 +335,7 @@ client* window_build_client(Window win)
 
 		if (c->visible)
 		{
-			window_get_atom_prop(c->window, atoms[_NET_WM_STATE], c->states, MAX_NET_WM_STATES);
+			window_get_atom_prop(c->window, atoms[_NET_WM_STATE], c->states, MAX_ATOMLIST);
 			c->urgent = client_has_state(c, atoms[_NET_WM_STATE_DEMANDS_ATTENTION]);
 
 			XWMHints *hints = XGetWMHints(display, c->window);
@@ -421,15 +421,11 @@ int window_send_clientmessage(Window target, Window subject, Atom atom, unsigned
 
 int client_send_wm_protocol(client *c, Atom protocol)
 {
-	Atom *protocols = NULL;
-	int i, found = 0, num_pro = 0;
-	if (XGetWMProtocols(display, c->window, &protocols, &num_pro))
-		for (i = 0; i < num_pro && !found; i++)
-			if (protocols[i] == protocol) found = 1;
-	if (found)
-		window_send_clientmessage(c->window, c->window, atoms[WM_PROTOCOLS], protocol, NoEventMask);
-	if (protocols) XFree(protocols);
-	return found;
+	Atom protocols[MAX_ATOMLIST]; int i, n;
+	if ((n = window_get_atom_prop(c->window, atoms[WM_PROTOCOLS], protocols, MAX_ATOMLIST)))
+		for (i = 0; i < n; i++) if (protocols[i] == protocol)
+			return window_send_clientmessage(c->window, c->window, atoms[WM_PROTOCOLS], protocol, NoEventMask);
+	return 0;
 }
 
 void client_close(client *c)
@@ -484,16 +480,9 @@ void client_place_spot(client *c, int spot, int mon, int force)
 
 	if (XGetWMNormalHints(display, c->window, &size, &sr))
 	{
-		if (size.flags & PMinSize)
-		{
-			w = MAX(w, size.min_width);
-			h = MAX(h, size.min_height);
-		}
-		if (size.flags & PMaxSize)
-		{
-			w = MIN(w, size.max_width);
-			h = MIN(h, size.max_height);
-		}
+		w = MIN(MAX(w, size.flags & PMinSize ? size.min_width : 16), size.flags & PMaxSize ? size.max_width : m->w);
+		h = MIN(MAX(h, size.flags & PMinSize ? size.min_height: 16), size.flags & PMaxSize ? size.max_height: m->h);
+
 		if (size.flags & PResizeInc)
 		{
 			w -= (w - (size.flags & PBaseSize ? size.base_width : 0)) % size.width_inc;
