@@ -52,7 +52,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 	X(XOAT_SPOT),\
 	X(XOAT_EXIT),\
 	X(XOAT_RESTART),\
-	X(_MOTIF_WM_HINTS),\
 	X(_NET_SUPPORTED),\
 	X(_NET_ACTIVE_WINDOW),\
 	X(_NET_CLOSE_WINDOW),\
@@ -96,32 +95,6 @@ enum { MONITOR_CURRENT=-1 };
 enum { SPOT1=1, SPOT2, SPOT3, SPOT_CURRENT, SPOT_SMART, SPOT1_LEFT, SPOT1_RIGHT };
 enum { FOCUS_IGNORE=1, FOCUS_STEAL, };
 
-enum {
-	ACTION_NONE,
-	ACTION_MOVE,
-	ACTION_FOCUS,
-	ACTION_CYCLE,
-	ACTION_CLOSE,
-	ACTION_OTHER,
-	ACTION_COMMAND,
-	ACTION_FIND_OR_START,
-	ACTION_MOVE_MONITOR,
-	ACTION_FOCUS_MONITOR,
-	ACTION_FULLSCREEN_TOGGLE,
-	ACTION_ABOVE_TOGGLE,
-	ACTION_SNAPSHOT,
-	ACTION_ROLLBACK,
-	ACTIONS
-};
-
-typedef struct {
-	unsigned int mod;
-	KeySym key;
-	short act;
-	void *data;
-	int num;
-} binding;
-
 typedef struct {
 	short x, y, w, h;
 } box;
@@ -151,6 +124,28 @@ typedef struct {
 	client *clients[STACK];
 	Window windows[STACK];
 } stack;
+
+typedef struct {
+	unsigned int mod;
+	KeySym key;
+	void (*act)(void*, int, client*);
+	void *data;
+	int num;
+} binding;
+
+void action_move(void*, int, client*);
+void action_focus(void*, int, client*);
+void action_close(void*, int, client*);
+void action_cycle(void*, int, client*);
+void action_other(void*, int, client*);
+void action_command(void*, int, client*);
+void action_find_or_start(void*, int, client*);
+void action_move_monitor(void*, int, client*);
+void action_focus_monitor(void*, int, client*);
+void action_fullscreen(void*, int, client*);
+void action_above(void*, int, client*);
+void action_snapshot(void*, int, client*);
+void action_rollback(void*, int, client*);
 
 #include "config.h"
 
@@ -749,24 +744,6 @@ void action_rollback(void *data, int num, client *cli)
 	}
 }
 
-// key actions
-void (*actions[ACTIONS])(void*, int, client*) = {
-	[ACTION_NONE]              = NULL,
-	[ACTION_MOVE]              = action_move,
-	[ACTION_FOCUS]             = action_focus,
-	[ACTION_CYCLE]             = action_cycle,
-	[ACTION_CLOSE]             = action_close,
-	[ACTION_OTHER]             = action_other,
-	[ACTION_COMMAND]           = action_command,
-	[ACTION_FIND_OR_START]     = action_find_or_start,
-	[ACTION_MOVE_MONITOR]      = action_move_monitor,
-	[ACTION_FOCUS_MONITOR]     = action_focus_monitor,
-	[ACTION_FULLSCREEN_TOGGLE] = action_fullscreen,
-	[ACTION_ABOVE_TOGGLE]      = action_above,
-	[ACTION_SNAPSHOT]          = action_snapshot,
-	[ACTION_ROLLBACK]          = action_rollback,
-};
-
 // ------- event handlers --------
 
 void create_notify(XEvent *e)
@@ -874,7 +851,7 @@ void key_press(XEvent *ev)
 	if (bind && bind->act)
 	{
 		client *cli = window_build_client(current);
-		actions[bind->act](bind->data, bind->num, cli);
+		bind->act(bind->data, bind->num, cli);
 		client_free(cli);
 	}
 }
