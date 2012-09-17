@@ -25,8 +25,162 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
 #define _GNU_SOURCE
-#include "xoat.h"
-#include "proto.h"
+
+#include <X11/X.h>
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
+#include <X11/Xatom.h>
+#include <X11/Xproto.h>
+#include <X11/keysym.h>
+#include <X11/XKBlib.h>
+#include <X11/extensions/Xinerama.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdarg.h>
+#include <unistd.h>
+#include <ctype.h>
+#include <err.h>
+#include <signal.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+
+#define ATOM_ENUM(x) x
+#define ATOM_CHAR(x) #x
+
+#define GENERAL_ATOMS(X) \
+	X(XOAT_SPOT),\
+	X(XOAT_EXIT),\
+	X(XOAT_RESTART),\
+	X(_MOTIF_WM_HINTS),\
+	X(_NET_SUPPORTED),\
+	X(_NET_ACTIVE_WINDOW),\
+	X(_NET_CLOSE_WINDOW),\
+	X(_NET_CLIENT_LIST_STACKING),\
+	X(_NET_CLIENT_LIST),\
+	X(_NET_SUPPORTING_WM_CHECK),\
+	X(_NET_WM_NAME),\
+	X(_NET_WM_PID),\
+	X(_NET_WM_STRUT),\
+	X(_NET_WM_STRUT_PARTIAL),\
+	X(_NET_WM_WINDOW_TYPE),\
+	X(_NET_WM_WINDOW_TYPE_DESKTOP),\
+	X(_NET_WM_WINDOW_TYPE_DOCK),\
+	X(_NET_WM_WINDOW_TYPE_SPLASH),\
+	X(_NET_WM_WINDOW_TYPE_NOTIFICATION),\
+	X(_NET_WM_WINDOW_TYPE_DIALOG),\
+	X(_NET_WM_STATE),\
+	X(_NET_WM_STATE_FULLSCREEN),\
+	X(_NET_WM_STATE_ABOVE),\
+	X(_NET_WM_STATE_DEMANDS_ATTENTION),\
+	X(WM_DELETE_WINDOW),\
+	X(WM_CLIENT_LEADER),\
+	X(WM_TAKE_FOCUS),\
+	X(WM_PROTOCOLS)
+
+enum { GENERAL_ATOMS(ATOM_ENUM), ATOMS };
+const char *atom_names[] = { GENERAL_ATOMS(ATOM_CHAR) };
+Atom atoms[ATOMS];
+
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+#define OVERLAP(a,b,c,d) (((a)==(c) && (b)==(d)) || MIN((a)+(b), (c)+(d)) - MAX((a), (c)) > 0)
+#define INTERSECT(x,y,w,h,x1,y1,w1,h1) (OVERLAP((x),(w),(x1),(w1)) && OVERLAP((y),(h),(y1),(h1)))
+
+#define MAX_STRUT 150
+#define MAX_MONITORS 3
+#define MAX_NET_WM_STATES 5
+#define STACK 64
+
+enum { MONITOR_CURRENT=-1 };
+enum { SPOT1=1, SPOT2, SPOT3, SPOT_CURRENT, SPOT_SMART, SPOT1_LEFT, SPOT1_RIGHT };
+enum { FOCUS_IGNORE=1, FOCUS_STEAL, };
+
+enum {
+	ACTION_NONE,
+	ACTION_MOVE,
+	ACTION_FOCUS,
+	ACTION_CYCLE,
+	ACTION_CLOSE,
+	ACTION_OTHER,
+	ACTION_COMMAND,
+	ACTION_FIND_OR_START,
+	ACTION_MOVE_MONITOR,
+	ACTION_FOCUS_MONITOR,
+	ACTION_FULLSCREEN_TOGGLE,
+	ACTION_ABOVE_TOGGLE,
+	ACTION_SNAPSHOT,
+	ACTION_ROLLBACK,
+	ACTIONS
+};
+
+typedef struct {
+	unsigned int mod;
+	KeySym key;
+	short act;
+	void *data;
+	int num;
+} binding;
+
+typedef struct {
+	short x, y, w, h;
+} box;
+
+typedef struct {
+	short x, y, w, h;
+	box spots[SPOT3+1];
+} monitor;
+
+typedef struct {
+	Window window;
+	XWindowAttributes attr;
+	Window transient, leader;
+	Atom type, states[MAX_NET_WM_STATES+1];
+	short monitor, spot, visible, manage, input, urgent;
+	char *class;
+} client;
+
+typedef struct {
+	long left, right, top, bottom,
+		left_start_y, left_end_y, right_start_y, right_end_y,
+		top_start_x, top_end_x, bottom_start_x, bottom_end_x;
+} wm_strut;
+
+typedef struct {
+	short depth;
+	client *clients[STACK];
+	Window windows[STACK];
+} stack;
+
+Display *display;
+Time latest;
+char *self;
+monitor monitors[MAX_MONITORS];
+int nmonitors = 1;
+short current_spot = 0, current_mon = 0;
+Window root, ewmh, current = None;
+stack windows, snapshot;
+wm_strut struts;
+static int (*xerror)(Display *, XErrorEvent *);
+unsigned int NumlockMask = 0;
+
+#define for_windows(i,c)\
+	for (query_windows(), (i) = 0; (i) < windows.depth; (i)++)\
+		if (((c) = windows.clients[(i)]))
+
+#define for_windows_rev(i,c)\
+	for (query_windows(), (i) = windows.depth-1; (i) > -1; (i)--)\
+		if (((c) = windows.clients[(i)]))
+
+#define for_spots(i)\
+	for ((i) = SPOT1; (i) <= SPOT3; (i)++)
+
+#define for_spots_rev(i)\
+	for ((i) = SPOT3; (i) >= SPOT1; (i)--)
+
+typedef void (*handler)(XEvent*);
+typedef void (*action)(void*, int, client*);
+
 #include "config.h"
 
 void catch_exit(int sig)
@@ -61,26 +215,6 @@ int oops(Display *d, XErrorEvent *ee)
 		) return 0;
 	fprintf(stderr, "error: request code=%d, error code=%d\n", ee->request_code, ee->error_code);
 	return xerror(display, ee);
-}
-
-// build windows cache
-void query_windows()
-{
-	if (windows.depth) return;
-	unsigned int nwins; int i; Window w1, w2, *wins; client *c;
-	if (XQueryTree(display, root, &w1, &w2, &wins, &nwins) && wins)
-	{
-		for (i = nwins-1; i > -1 && windows.depth < STACK; i--)
-		{
-			if ((c = window_build_client(wins[i])) && c->visible)
-			{
-				windows.clients[windows.depth] = c;
-				windows.windows[windows.depth++] = wins[i];
-			}
-			else client_free(c);
-		}
-	}
-	if (wins) XFree(wins);
 }
 
 unsigned int color_name_to_pixel(const char *name)
@@ -141,17 +275,37 @@ void window_set_window_prop(Window w, Atom prop, Window *values, int count)
 	XChangeProperty(display, w, prop, XA_WINDOW, 32, PropModeReplace, (unsigned char*)values, count);
 }
 
-void ewmh_client_list()
+int client_has_state(client *c, Atom state)
 {
-	int i; client *c; stack wins;
-	memset(&wins, 0, sizeof(stack));
+	int i;
+	for (i = 0; i < MAX_NET_WM_STATES && c->states[i]; i++)
+		if (c->states[i] == state) return 1;
+	return 0;
+}
 
-	for_windows_rev(i, c) if (c->manage)
-		wins.windows[wins.depth++] = c->window;
+void client_update_border(client *c)
+{
+	XSetWindowBorder(display, c->window,
+		color_name_to_pixel(c->window == current ? BORDER_FOCUS: (c->urgent ? BORDER_URGENT:
+			(client_has_state(c, atoms[_NET_WM_STATE_ABOVE]) ? BORDER_ABOVE: BORDER_BLUR))));
+	XSetWindowBorderWidth(display, c->window, client_has_state(c, atoms[_NET_WM_STATE_FULLSCREEN]) ? 0: BORDER);
+}
 
-	window_set_window_prop(root, atoms[_NET_CLIENT_LIST_STACKING], wins.windows, wins.depth);
-	// hack for now, since we dont track window mapping history
-	window_set_window_prop(root, atoms[_NET_CLIENT_LIST], wins.windows, wins.depth);
+int client_toggle_state(client *c, Atom state)
+{
+	int i, j, rc = 0;
+	for (i = 0, j = 0; i < MAX_NET_WM_STATES && c->states[i]; i++, j++)
+	{
+		if (c->states[i] == state) i++;
+		c->states[j] = c->states[i];
+	}
+	if (i == j && j < MAX_NET_WM_STATES)
+	{
+		c->states[j++] = state;
+		rc = 1;
+	}
+	window_set_atom_prop(c->window, atoms[_NET_WM_STATE], c->states, j);
+	return rc;
 }
 
 client* window_build_client(Window win)
@@ -226,29 +380,37 @@ void stack_free(stack *s)
 		client_free(s->clients[--s->depth]);
 }
 
-int client_has_state(client *c, Atom state)
+// build windows cache
+void query_windows()
 {
-	int i;
-	for (i = 0; i < MAX_NET_WM_STATES && c->states[i]; i++)
-		if (c->states[i] == state) return 1;
-	return 0;
+	if (windows.depth) return;
+	unsigned int nwins; int i; Window w1, w2, *wins; client *c;
+	if (XQueryTree(display, root, &w1, &w2, &wins, &nwins) && wins)
+	{
+		for (i = nwins-1; i > -1 && windows.depth < STACK; i--)
+		{
+			if ((c = window_build_client(wins[i])) && c->visible)
+			{
+				windows.clients[windows.depth] = c;
+				windows.windows[windows.depth++] = wins[i];
+			}
+			else client_free(c);
+		}
+	}
+	if (wins) XFree(wins);
 }
 
-int client_toggle_state(client *c, Atom state)
+void ewmh_client_list()
 {
-	int i, j, rc = 0;
-	for (i = 0, j = 0; i < MAX_NET_WM_STATES && c->states[i]; i++, j++)
-	{
-		if (c->states[i] == state) i++;
-		c->states[j] = c->states[i];
-	}
-	if (i == j && j < MAX_NET_WM_STATES)
-	{
-		c->states[j++] = state;
-		rc = 1;
-	}
-	window_set_atom_prop(c->window, atoms[_NET_WM_STATE], c->states, j);
-	return rc;
+	int i; client *c; stack wins;
+	memset(&wins, 0, sizeof(stack));
+
+	for_windows_rev(i, c) if (c->manage)
+		wins.windows[wins.depth++] = c->window;
+
+	window_set_window_prop(root, atoms[_NET_CLIENT_LIST_STACKING], wins.windows, wins.depth);
+	// hack for now, since we dont track window mapping history
+	window_set_window_prop(root, atoms[_NET_CLIENT_LIST], wins.windows, wins.depth);
 }
 
 int window_send_clientmessage(Window target, Window subject, Atom atom, unsigned long protocol, unsigned long mask)
@@ -366,32 +528,6 @@ void client_place_spot(client *c, int spot, int mon, int force)
 	XMoveResizeWindow(display, c->window, x, y, w, h);
 }
 
-void client_spot_cycle(client *c)
-{
-	if (!c) return;
-
-	spot_focus_top_window(c->spot, c->monitor, c->window);
-	stack lower; memset(&lower, 0, sizeof(stack));
-	client_stack_family(c, &lower);
-	XLowerWindow(display, lower.windows[0]);
-	XRestackWindows(display, lower.windows, lower.depth);
-}
-
-Window spot_focus_top_window(int spot, int mon, Window except)
-{
-	int i; client *c;
-	for_windows(i, c)
-	{
-		if (c->window != except && c->manage && c->spot == spot && c->monitor == mon)
-		{
-			client_raise_family(c);
-			client_set_focus(c);
-			return c->window;
-		}
-	}
-	return None;
-}
-
 void client_stack_family(client *c, stack *raise)
 {
 	int i; client *o, *self = NULL;
@@ -462,17 +598,35 @@ void client_activate(client *c)
 	client_set_focus(c);
 }
 
+Window spot_focus_top_window(int spot, int mon, Window except)
+{
+	int i; client *c;
+	for_windows(i, c)
+	{
+		if (c->window != except && c->manage && c->spot == spot && c->monitor == mon)
+		{
+			client_raise_family(c);
+			client_set_focus(c);
+			return c->window;
+		}
+	}
+	return None;
+}
+
+void client_spot_cycle(client *c)
+{
+	if (!c) return;
+
+	spot_focus_top_window(c->spot, c->monitor, c->window);
+	stack lower; memset(&lower, 0, sizeof(stack));
+	client_stack_family(c, &lower);
+	XLowerWindow(display, lower.windows[0]);
+	XRestackWindows(display, lower.windows, lower.depth);
+}
+
 void window_listen(Window win)
 {
 	XSelectInput(display, win, EnterWindowMask | LeaveWindowMask | FocusChangeMask | PropertyChangeMask);
-}
-
-void client_update_border(client *c)
-{
-	XSetWindowBorder(display, c->window,
-		color_name_to_pixel(c->window == current ? BORDER_FOCUS: (c->urgent ? BORDER_URGENT:
-			(client_has_state(c, atoms[_NET_WM_STATE_ABOVE]) ? BORDER_ABOVE: BORDER_BLUR))));
-	XSetWindowBorderWidth(display, c->window, client_has_state(c, atoms[_NET_WM_STATE_FULLSCREEN]) ? 0: BORDER);
 }
 
 // ------- key actions -------
