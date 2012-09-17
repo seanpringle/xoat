@@ -61,50 +61,50 @@
 binding keys[] = {
 
 	// Focus the top-most window in a spot.
-	{ .mod = Mod4Mask, .key = XK_Left,  .act = ACTION_FOCUS, .num = SPOT1 },
-	{ .mod = Mod4Mask, .key = XK_Up,    .act = ACTION_FOCUS, .num = SPOT2 },
-	{ .mod = Mod4Mask, .key = XK_Right, .act = ACTION_FOCUS, .num = SPOT2 },
-	{ .mod = Mod4Mask, .key = XK_Down,  .act = ACTION_FOCUS, .num = SPOT3 },
+	{ .mod = Mod4Mask, .key = XK_Left,  .act = action_focus, .num = SPOT1 },
+	{ .mod = Mod4Mask, .key = XK_Up,    .act = action_focus, .num = SPOT2 },
+	{ .mod = Mod4Mask, .key = XK_Right, .act = action_focus, .num = SPOT2 },
+	{ .mod = Mod4Mask, .key = XK_Down,  .act = action_focus, .num = SPOT3 },
 
 	// Move the current window to another spot.
-	{ .mod = ShiftMask|Mod4Mask, .key = XK_Left,  .act = ACTION_MOVE, .num = SPOT1 },
-	{ .mod = ShiftMask|Mod4Mask, .key = XK_Up,    .act = ACTION_MOVE, .num = SPOT2 },
-	{ .mod = ShiftMask|Mod4Mask, .key = XK_Right, .act = ACTION_MOVE, .num = SPOT2 },
-	{ .mod = ShiftMask|Mod4Mask, .key = XK_Down,  .act = ACTION_MOVE, .num = SPOT3 },
+	{ .mod = ShiftMask|Mod4Mask, .key = XK_Left,  .act = action_move, .num = SPOT1 },
+	{ .mod = ShiftMask|Mod4Mask, .key = XK_Up,    .act = action_move, .num = SPOT2 },
+	{ .mod = ShiftMask|Mod4Mask, .key = XK_Right, .act = action_move, .num = SPOT2 },
+	{ .mod = ShiftMask|Mod4Mask, .key = XK_Down,  .act = action_move, .num = SPOT3 },
 
 	// Flip between the top two windows in the current spot.
-	{ .mod = Mod4Mask, .key = XK_Tab,    .act = ACTION_OTHER },
+	{ .mod = Mod4Mask, .key = XK_Tab,    .act = action_other },
 
 	// Cycle through all windows in the current spot.
-	{ .mod = Mod4Mask, .key = XK_grave,  .act = ACTION_CYCLE },
+	{ .mod = Mod4Mask, .key = XK_grave,  .act = action_cycle },
 
 	// Gracefully close the current window.
-	{ .mod = Mod4Mask, .key = XK_Escape, .act = ACTION_CLOSE },
+	{ .mod = Mod4Mask, .key = XK_Escape, .act = action_close },
 
 	// Toggle current window full screen.
-	{ .mod = Mod4Mask, .key = XK_f, .act = ACTION_FULLSCREEN_TOGGLE },
+	{ .mod = Mod4Mask, .key = XK_f, .act = action_fullscreen },
 
 	// Toggle current window above.
-	{ .mod = Mod4Mask, .key = XK_a, .act = ACTION_ABOVE_TOGGLE },
+	{ .mod = Mod4Mask, .key = XK_a, .act = action_above },
 
 	// Switch focus between monitors.
-	{ .mod = Mod4Mask, .key = XK_Next,  .act = ACTION_FOCUS_MONITOR, .num = +1 },
-	{ .mod = Mod4Mask, .key = XK_Prior, .act = ACTION_FOCUS_MONITOR, .num = -1 },
+	{ .mod = Mod4Mask, .key = XK_Next,  .act = action_focus_monitor, .num = +1 },
+	{ .mod = Mod4Mask, .key = XK_Prior, .act = action_focus_monitor, .num = -1 },
 
 	// Move windows between monitors.
-	{ .mod = ShiftMask|Mod4Mask, .key = XK_Next,  .act = ACTION_MOVE_MONITOR, .num = +1 },
-	{ .mod = ShiftMask|Mod4Mask, .key = XK_Prior, .act = ACTION_MOVE_MONITOR, .num = -1 },
+	{ .mod = ShiftMask|Mod4Mask, .key = XK_Next,  .act = action_move_monitor, .num = +1 },
+	{ .mod = ShiftMask|Mod4Mask, .key = XK_Prior, .act = action_move_monitor, .num = -1 },
 
 	// Launcher
-	{ .mod = Mod4Mask, .key = XK_x, .act = ACTION_COMMAND, .data = "dmenu_run" },
+	{ .mod = Mod4Mask, .key = XK_x, .act = action_command, .data = "dmenu_run" },
 
 	// Snapshot state
-	{ .mod = Mod4Mask, .key = XK_s, .act = ACTION_SNAPSHOT },
-	{ .mod = Mod4Mask, .key = XK_r, .act = ACTION_ROLLBACK },
+	{ .mod = Mod4Mask, .key = XK_s, .act = action_snapshot },
+	{ .mod = Mod4Mask, .key = XK_r, .act = action_rollback },
 
 	// Find or start apps by WM_CLASS (lower case match).
 	// Only works for apps that use some form of their binary name as their class...
-	{ .mod = AnyModifier, .key = XK_F1, .act = ACTION_FIND_OR_START, .data = "urxvt"    },
-	{ .mod = AnyModifier, .key = XK_F2, .act = ACTION_FIND_OR_START, .data = "chromium" },
-	{ .mod = AnyModifier, .key = XK_F3, .act = ACTION_FIND_OR_START, .data = "pcmanfm"  },
+	{ .mod = AnyModifier, .key = XK_F1, .act = action_find_or_start, .data = "urxvt"    },
+	{ .mod = AnyModifier, .key = XK_F2, .act = action_find_or_start, .data = "chromium" },
+	{ .mod = AnyModifier, .key = XK_F3, .act = action_find_or_start, .data = "pcmanfm"  },
 };
