@@ -104,9 +104,10 @@ binding keys[] = {
 
 	// Find or start apps by WM_CLASS (lower case match).
 	// Only works for apps that use some form of their binary name as their class...
-	{ .mod = AnyModifier, .key = XK_F1, .act = ACTION_FIND_OR_START, .data = "urxvt"    },
+	{ .mod = AnyModifier, .key = XK_F1, .act = ACTION_FIND_OR_START, .data = "konsole"  },
 	{ .mod = AnyModifier, .key = XK_F2, .act = ACTION_FIND_OR_START, .data = "chromium" },
 	{ .mod = AnyModifier, .key = XK_F3, .act = ACTION_FIND_OR_START, .data = "pcmanfm"  },
+	{ .mod = AnyModifier, .key = XK_F4, .act = ACTION_FIND_OR_START, .data = "kate"     },
 
 	{ .mod = AnyModifier, .key = XK_F5, .act = ACTION_FIND_OR_START, .data = "firefox"  },
 	{ .mod = AnyModifier, .key = XK_F6, .act = ACTION_FIND_OR_START, .data = "xchat"    },
