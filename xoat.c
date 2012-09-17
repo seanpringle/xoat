@@ -152,17 +152,18 @@ typedef struct {
 	Window windows[STACK];
 } stack;
 
+#include "config.h"
+
 Display *display;
 Time latest;
 char *self;
+unsigned int NumlockMask;
 monitor monitors[MAX_MONITORS];
 int nmonitors = 1;
-short current_spot = 0, current_mon = 0;
+short current_spot, current_mon;
 Window root, ewmh, current = None;
 stack windows, snapshot;
-wm_strut struts;
 static int (*xerror)(Display *, XErrorEvent *);
-unsigned int NumlockMask = 0;
 
 #define for_windows(i,c)\
 	for (query_windows(), (i) = 0; (i) < windows.depth; (i)++)\
@@ -177,11 +178,6 @@ unsigned int NumlockMask = 0;
 
 #define for_spots_rev(i)\
 	for ((i) = SPOT3; (i) >= SPOT1; (i)--)
-
-typedef void (*handler)(XEvent*);
-typedef void (*action)(void*, int, client*);
-
-#include "config.h"
 
 void catch_exit(int sig)
 {
@@ -754,7 +750,7 @@ void action_rollback(void *data, int num, client *cli)
 }
 
 // key actions
-action actions[ACTIONS] = {
+void (*actions[ACTIONS])(void*, int, client*) = {
 	[ACTION_NONE]              = NULL,
 	[ACTION_MOVE]              = action_move,
 	[ACTION_FOCUS]             = action_focus,
@@ -924,7 +920,7 @@ void any_event(XEvent *e)
 	client_free(c);
 }
 
-handler handlers[LASTEvent] = {
+void (*handlers[LASTEvent])(XEvent*) = {
 	[CreateNotify]     = create_notify,
 	[ConfigureRequest] = configure_request,
 	[ConfigureNotify]  = configure_notify,
@@ -942,6 +938,7 @@ handler handlers[LASTEvent] = {
 int main(int argc, char *argv[])
 {
 	int i, j; client *c; XEvent ev;
+	wm_strut struts; memset(&struts, 0, sizeof(wm_strut));
 
 	if (!(display = XOpenDisplay(0))) return 1;
 
