@@ -1,8 +1,8 @@
 // xoat config.
 
-#define BORDER 2
+#define BORDER 1
 #define BORDER_BLUR "Dark Gray"
-#define BORDER_FOCUS "Royal Blue"
+#define BORDER_FOCUS "Orange"
 #define BORDER_URGENT "Red"
 #define BORDER_ABOVE "Dark Green"
 
@@ -105,13 +105,10 @@ binding keys[] = {
 	// Find or start apps by WM_CLASS (lower case match).
 	// Only works for apps that use some form of their binary name as their class...
 	{ .mod = AnyModifier, .key = XK_F1, .act = action_find_or_start, .data = "konsole"  },
-	{ .mod = AnyModifier, .key = XK_F2, .act = action_find_or_start, .data = "chromium" },
+	{ .mod = AnyModifier, .key = XK_F2, .act = action_find_or_start, .data = "uzbl-tabbed" },
 	{ .mod = AnyModifier, .key = XK_F3, .act = action_find_or_start, .data = "pcmanfm"  },
 	{ .mod = AnyModifier, .key = XK_F4, .act = action_find_or_start, .data = "kate"     },
-
-	{ .mod = AnyModifier, .key = XK_F5, .act = action_find_or_start, .data = "firefox"  },
-	{ .mod = AnyModifier, .key = XK_F6, .act = action_find_or_start, .data = "xchat"    },
-	{ .mod = AnyModifier, .key = XK_F7, .act = action_find_or_start, .data = "pidgin"   },
+	{ .mod = AnyModifier, .key = XK_F5, .act = action_find_or_start, .data = "xchat"    },
 
 	{ .mod = AnyModifier, .key = XK_Menu, .act = action_command, .data = "xowl" },
 };
