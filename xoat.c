@@ -85,6 +85,7 @@ Atom atoms[ATOMS];
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 #define OVERLAP(a,b,c,d) (((a)==(c) && (b)==(d)) || MIN((a)+(b), (c)+(d)) - MAX((a), (c)) > 0)
 #define INTERSECT(x,y,w,h,x1,y1,w1,h1) (OVERLAP((x),(w),(x1),(w1)) && OVERLAP((y),(h),(y1),(h1)))
+#define execsh(cmd) execlp("/bin/sh", "sh", "-c", (cmd), NULL)
 
 #define MAX_STRUT 150
 #define MAX_MONITORS 3
@@ -179,11 +180,6 @@ void catch_exit(int sig)
 	while (0 < waitpid(-1, NULL, WNOHANG));
 }
 
-int execsh(char *cmd)
-{
-	return execlp("/bin/sh", "sh", "-c", cmd, NULL);
-}
-
 void exec_cmd(char *cmd)
 {
 	if (!cmd || !cmd[0]) return;
@@ -216,11 +212,8 @@ unsigned int color_name_to_pixel(const char *name)
 
 int window_get_prop(Window w, Atom prop, Atom *type, int *items, void *buffer, int bytes)
 {
-	Atom _type; if (!type) type = &_type;
-	int _items; if (!items) items = &_items;
-	int format; unsigned long nitems, nbytes; unsigned char *ret = NULL;
 	memset(buffer, 0, bytes);
-
+	int format; unsigned long nitems, nbytes; unsigned char *ret = NULL;
 	if (XGetWindowProperty(display, w, prop, 0, bytes/4, False, AnyPropertyType, type,
 		&format, &nitems, &nbytes, &ret) == Success && ret && *type != None && format)
 	{
@@ -301,7 +294,7 @@ int client_toggle_state(client *c, Atom state)
 
 client* window_build_client(Window win)
 {
-	int i;
+	int i; XClassHint chint; XWMHints *hints;
 	if (win == None) return NULL;
 
 	client *c = calloc(1, sizeof(client));
@@ -338,14 +331,12 @@ client* window_build_client(Window win)
 			window_get_atom_prop(c->window, atoms[_NET_WM_STATE], c->states, MAX_ATOMLIST);
 			c->urgent = client_has_state(c, atoms[_NET_WM_STATE_DEMANDS_ATTENTION]);
 
-			XWMHints *hints = XGetWMHints(display, c->window);
-			if (hints)
+			if ((hints = XGetWMHints(display, c->window)))
 			{
 				c->input  = hints->flags & InputHint && hints->input ? 1:0;
 				c->urgent = c->urgent || hints->flags & XUrgencyHint ? 1:0;
 				XFree(hints);
 			}
-			XClassHint chint;
 			if (XGetClassHint(display, c->window, &chint))
 			{
 				c->class = strdup(chint.res_class);
@@ -374,21 +365,19 @@ void stack_free(stack *s)
 // build windows cache
 void query_windows()
 {
-	if (windows.depth) return;
 	unsigned int nwins; int i; Window w1, w2, *wins; client *c;
-	if (XQueryTree(display, root, &w1, &w2, &wins, &nwins) && wins)
+	if (windows.depth || !(XQueryTree(display, root, &w1, &w2, &wins, &nwins) && wins))
+		return;
+	for (i = nwins-1; i > -1 && windows.depth < STACK; i--)
 	{
-		for (i = nwins-1; i > -1 && windows.depth < STACK; i--)
+		if ((c = window_build_client(wins[i])) && c->visible)
 		{
-			if ((c = window_build_client(wins[i])) && c->visible)
-			{
-				windows.clients[windows.depth] = c;
-				windows.windows[windows.depth++] = wins[i];
-			}
-			else client_free(c);
+			windows.clients[windows.depth] = c;
+			windows.windows[windows.depth++] = wins[i];
 		}
+		else client_free(c);
 	}
-	if (wins) XFree(wins);
+	XFree(wins);
 }
 
 void ewmh_client_list()
@@ -529,7 +518,6 @@ void client_stack_family(client *c, stack *raise)
 void client_raise_family(client *c)
 {
 	if (!c) return;
-
 	int i; client *o; stack raise, family;
 	memset(&raise,  0, sizeof(stack));
 	memset(&family, 0, sizeof(stack));
@@ -554,7 +542,6 @@ void client_raise_family(client *c)
 void client_set_focus(client *c)
 {
 	if (!c || !c->visible || c->window == current) return;
-
 	Window old   = current;
 	current      = c->window;
 	current_spot = c->spot;
@@ -596,7 +583,6 @@ Window spot_focus_top_window(int spot, int mon, Window except)
 void client_spot_cycle(client *c)
 {
 	if (!c) return;
-
 	spot_focus_top_window(c->spot, c->monitor, c->window);
 	stack lower; memset(&lower, 0, sizeof(stack));
 	client_stack_family(c, &lower);
