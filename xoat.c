@@ -422,7 +422,7 @@ int client_send_wm_protocol(client *c, Atom protocol)
 
 void client_close(client *c)
 {
-	if (!client_send_wm_protocol(c, atoms[WM_DELETE_WINDOW]))
+	if (c && !client_send_wm_protocol(c, atoms[WM_DELETE_WINDOW]))
 		XKillClient(display, c->window);
 }
 
@@ -590,24 +590,14 @@ int spot_choose_by_direction(int spot, int mon, int dir)
 	{
 		if (dir == LEFT)  return SPOT3;
 		if (dir == RIGHT) return SPOT2;
-		if (SPOT1_ALIGN == SPOT1_LEFT)
-		{
-			if (dir == UP)   return SPOT1;
-			if (dir == DOWN) return SPOT2;
-		}
-		if (dir == UP)   return SPOT2;
-		if (dir == DOWN) return SPOT1;
+		if (dir == UP)    return SPOT1_ALIGN == SPOT1_LEFT ? SPOT1: SPOT2;
+		if (dir == DOWN)  return SPOT1_ALIGN == SPOT1_LEFT ? SPOT2: SPOT1;
 		return spot;
 	}
 	if (dir == UP)    return SPOT2;
 	if (dir == DOWN)  return SPOT3;
-	if (SPOT1_ALIGN == SPOT1_LEFT)
-	{
-		if (dir == LEFT)  return SPOT1;
-		if (dir == RIGHT) return SPOT2;
-	}
-	if (dir == LEFT)  return SPOT2;
-	if (dir == RIGHT) return SPOT1;
+	if (dir == LEFT)  return SPOT1_ALIGN == SPOT1_LEFT ? SPOT1: SPOT2;
+	if (dir == RIGHT) return SPOT1_ALIGN == SPOT1_LEFT ? SPOT2: SPOT1;
 	return spot;
 }
 
@@ -704,12 +694,10 @@ void action_fullscreen(void *data, int num, client *cli)
 	if (!cli) return;
 	unsigned long spot = cli->spot;
 	client_raise_family(cli);
+	cli->spot = SPOT1;
 
 	if (client_toggle_state(cli, atoms[_NET_WM_STATE_FULLSCREEN]))
-	{
 		window_set_cardinal_prop(cli->window, atoms[XOAT_SPOT], &spot, 1);
-		cli->spot = SPOT1;
-	}
 	else
 	if (window_get_cardinal_prop(cli->window, atoms[XOAT_SPOT], &spot, 1))
 		cli->spot = spot;
@@ -856,8 +844,7 @@ void unmap_notify(XEvent *e)
 
 void key_press(XEvent *ev)
 {
-	XKeyEvent *e = &ev->xkey;
-	latest = e->time;
+	XKeyEvent *e = &ev->xkey; latest = e->time;
 	KeySym key = XkbKeycodeToKeysym(display, e->keycode, 0, 0);
 	unsigned int state = e->state & ~(LockMask|NumlockMask);
 	while (XCheckTypedEvent(display, KeyPress, ev));
@@ -877,8 +864,7 @@ void key_press(XEvent *ev)
 
 void button_press(XEvent *ev)
 {
-	XButtonEvent *e = &ev->xbutton;
-	latest = e->time;
+	XButtonEvent *e = &ev->xbutton; latest = e->time;
 	client *c = window_build_client(e->subwindow);
 	if (c && c->manage)
 		client_activate(c);
