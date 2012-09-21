@@ -1,6 +1,6 @@
 // xoat config.
 
-#define BORDER 1
+#define BORDER 2
 #define BORDER_BLUR "Dark Gray"
 #define BORDER_FOCUS "Orange"
 #define BORDER_URGENT "Red"
@@ -22,8 +22,8 @@
 
 // The layout can be flipped so SPOT1 is on the right.
 // If you do this, review the directional move/focus key bindings too.
-//#define SPOT1_ALIGN SPOT1_RIGHT
-#define SPOT1_ALIGN SPOT1_LEFT
+//#define SPOT1_ALIGN SPOT1_LEFT
+#define SPOT1_ALIGN SPOT1_RIGHT
 
 // Width of SPOT1 as percentage of screen width.
 #define SPOT1_WIDTH_PCT 67
@@ -61,16 +61,16 @@
 binding keys[] = {
 
 	// Focus the top-most window in a spot.
-	{ .mod = Mod4Mask, .key = XK_Left,  .act = action_focus, .num = SPOT1 },
-	{ .mod = Mod4Mask, .key = XK_Up,    .act = action_focus, .num = SPOT2 },
-	{ .mod = Mod4Mask, .key = XK_Right, .act = action_focus, .num = SPOT2 },
-	{ .mod = Mod4Mask, .key = XK_Down,  .act = action_focus, .num = SPOT3 },
+	{ .mod = Mod4Mask, .key = XK_Left,  .act = action_focus_direction, .num = LEFT  },
+	{ .mod = Mod4Mask, .key = XK_Up,    .act = action_focus_direction, .num = UP    },
+	{ .mod = Mod4Mask, .key = XK_Right, .act = action_focus_direction, .num = RIGHT },
+	{ .mod = Mod4Mask, .key = XK_Down,  .act = action_focus_direction, .num = DOWN  },
 
 	// Move the current window to another spot.
-	{ .mod = ShiftMask|Mod4Mask, .key = XK_Left,  .act = action_move, .num = SPOT1 },
-	{ .mod = ShiftMask|Mod4Mask, .key = XK_Up,    .act = action_move, .num = SPOT2 },
-	{ .mod = ShiftMask|Mod4Mask, .key = XK_Right, .act = action_move, .num = SPOT2 },
-	{ .mod = ShiftMask|Mod4Mask, .key = XK_Down,  .act = action_move, .num = SPOT3 },
+	{ .mod = ShiftMask|Mod4Mask, .key = XK_Left,  .act = action_move_direction, .num = LEFT  },
+	{ .mod = ShiftMask|Mod4Mask, .key = XK_Up,    .act = action_move_direction, .num = UP    },
+	{ .mod = ShiftMask|Mod4Mask, .key = XK_Right, .act = action_move_direction, .num = RIGHT },
+	{ .mod = ShiftMask|Mod4Mask, .key = XK_Down,  .act = action_move_direction, .num = DOWN  },
 
 	// Flip between the top two windows in the current spot.
 	{ .mod = Mod4Mask, .key = XK_Tab,    .act = action_other },
