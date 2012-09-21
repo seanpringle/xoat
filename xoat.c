@@ -586,8 +586,7 @@ Window spot_focus_top_window(int spot, int mon, Window except)
 int spot_choose_by_direction(int spot, int mon, int dir)
 {
 	monitor *m = &monitors[mon];
-	int rotate = m->w < m->h ? 1:0;
-	if (rotate)
+	if (m->w < m->h) // rotated?
 	{
 		if (dir == LEFT)  return SPOT3;
 		if (dir == RIGHT) return SPOT2;
