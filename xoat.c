@@ -117,8 +117,8 @@ typedef struct {
 
 typedef struct {
 	long left, right, top, bottom,
-		left_start_y, left_end_y, right_start_y, right_end_y,
-		top_start_x, top_end_x, bottom_start_x, bottom_end_x;
+		ly1, ly2, ry1, ry3,
+		tx1, tx2, bx1, bx2;
 } wm_strut;
 
 typedef struct {
@@ -927,6 +927,8 @@ int main(int argc, char *argv[])
 	self   = argv[0];
 	root   = DefaultRootWindow(display);
 	xerror = XSetErrorHandler(oops);
+	int screen_w = WidthOfScreen(DefaultScreenOfDisplay(display));
+	int screen_h = HeightOfScreen(DefaultScreenOfDisplay(display));
 
 	for (i = 0; i < ATOMS; i++) atoms[i] = XInternAtom(display, atom_names[i], False);
 
@@ -943,22 +945,8 @@ int main(int argc, char *argv[])
 	}
 
 	// default non-multi-head setup
-	monitors[0].w = WidthOfScreen(DefaultScreenOfDisplay(display));
-	monitors[0].h = HeightOfScreen(DefaultScreenOfDisplay(display));
-
-	// detect panel struts
-	for_windows(i, c)
-	{
-		wm_strut strut; memset(&strut, 0, sizeof(wm_strut));
-		if (window_get_cardinal_prop(c->window, atoms[_NET_WM_STRUT_PARTIAL], (unsigned long*)&strut, 12)
-			|| window_get_cardinal_prop(c->window, atoms[_NET_WM_STRUT], (unsigned long*)&strut, 4))
-		{
-			struts.left   = MIN(MAX_STRUT, MAX(struts.left,   strut.left));
-			struts.right  = MIN(MAX_STRUT, MAX(struts.right,  strut.right));
-			struts.top    = MIN(MAX_STRUT, MAX(struts.top,    strut.top));
-			struts.bottom = MIN(MAX_STRUT, MAX(struts.bottom, strut.bottom));
-		}
-	}
+	monitors[0].w = screen_w;
+	monitors[0].h = screen_h;
 
 	// support multi-head.
 	XineramaScreenInfo *info;
@@ -975,12 +963,48 @@ int main(int argc, char *argv[])
 		XFree(info);
 	}
 
-	// left struts affect first monitor
-	monitors[0].x += struts.left;
-	monitors[0].w -= struts.left;
+	// detect and adjust for panel struts
+	for_windows(i, c)
+	{
+		wm_strut strut; memset(&strut, 0, sizeof(wm_strut));
+		int v2 = window_get_cardinal_prop(c->window, atoms[_NET_WM_STRUT_PARTIAL], (unsigned long*)&strut, 12);
+		int v1 = v2 ? 0: window_get_cardinal_prop(c->window, atoms[_NET_WM_STRUT], (unsigned long*)&strut, 4);
+		if (!c->visible || (!v1 && !v2)) continue;
 
-	// right struts affect last monitor
-	monitors[nmonitors-1].w -= struts.right;
+		for (j = 0; j < nmonitors; j++)
+		{
+			monitor *m = &monitors[j];
+			if (v1)
+			{
+				strut.ly1 = m->y; strut.ly2 = m->y + m->h;
+				strut.ry1 = m->y; strut.ry3 = m->y + m->h;
+				strut.tx1 = m->x; strut.tx2 = m->x + m->w;
+				strut.bx1 = m->x; strut.bx2 = m->x + m->w;
+			}
+			if (strut.left > 0 && !m->x
+				&& INTERSECT(0, strut.ly1, strut.left, strut.ly2 - strut.ly1, m->x, m->y, m->w, m->h))
+			{
+				m->x += strut.left;
+				m->w -= strut.left;
+			}
+			if (strut.right > 0 && m->x + m->w == screen_w
+				&& INTERSECT(screen_w - strut.right, strut.ry1, strut.right, strut.ry3 - strut.ry1, m->x, m->y, m->w, m->h))
+			{
+				m->w -= strut.right;
+			}
+			if (strut.top > 0 && !m->y
+				&& INTERSECT(strut.tx1, 0, strut.tx2 - strut.tx1, strut.top, m->x, m->y, m->w, m->h))
+			{
+				m->y += strut.top;
+				m->h -= strut.top;
+			}
+			if (strut.bottom > 0 && m->y + m->h == screen_h
+				&& INTERSECT(strut.bx1, screen_h - strut.bottom, strut.bx2 - strut.bx1, strut.bottom, m->x, m->y, m->w, m->h))
+			{
+				m->h -= strut.bottom;
+			}
+		}
+	}
 
 	// calculate spot boxes
 	for (i = 0; i < nmonitors; i++)
