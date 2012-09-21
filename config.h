@@ -57,20 +57,37 @@
 #define FOCUS_START FOCUS_IGNORE
 //#define FOCUS_START FOCUS_STEAL
 
+// Available actions...
+// action_move             .num = SPOT1/2/3
+// action_focus            .num = SPOT1/2/3
+// action_move_direction   .num = UP/DOWN/LEFT/RIGHT
+// action_focus_direction  .num = UP/DOWN/LEFT/RIGHT
+// action_close
+// action_cycle
+// action_other
+// action_command
+// action_find_or_start
+// action_move_monitor
+// action_focus_monitor
+// action_fullscreen
+// action_above
+// action_snapshot
+// action_rollback
+
 // If you use "AnyModifier" place those keys at the end of the array.
 binding keys[] = {
 
-	// Focus the top-most window in a spot.
-	{ .mod = Mod4Mask, .key = XK_Left,  .act = action_focus, .num = SPOT1 },
-	{ .mod = Mod4Mask, .key = XK_Up,    .act = action_focus, .num = SPOT2 },
-	{ .mod = Mod4Mask, .key = XK_Right, .act = action_focus, .num = SPOT2 },
-	{ .mod = Mod4Mask, .key = XK_Down,  .act = action_focus, .num = SPOT3 },
+	// Change focus to a spot by direction.
+	{ .mod = Mod4Mask, .key = XK_Left,  .act = action_focus_direction, .num = LEFT  },
+	{ .mod = Mod4Mask, .key = XK_Up,    .act = action_focus_direction, .num = UP    },
+	{ .mod = Mod4Mask, .key = XK_Right, .act = action_focus_direction, .num = RIGHT },
+	{ .mod = Mod4Mask, .key = XK_Down,  .act = action_focus_direction, .num = DOWN  },
 
-	// Move the current window to another spot.
-	{ .mod = ShiftMask|Mod4Mask, .key = XK_Left,  .act = action_move, .num = SPOT1 },
-	{ .mod = ShiftMask|Mod4Mask, .key = XK_Up,    .act = action_move, .num = SPOT2 },
-	{ .mod = ShiftMask|Mod4Mask, .key = XK_Right, .act = action_move, .num = SPOT2 },
-	{ .mod = ShiftMask|Mod4Mask, .key = XK_Down,  .act = action_move, .num = SPOT3 },
+	// Move the current window to another spot by direction.
+	{ .mod = ShiftMask|Mod4Mask, .key = XK_Left,  .act = action_move_direction, .num = LEFT  },
+	{ .mod = ShiftMask|Mod4Mask, .key = XK_Up,    .act = action_move_direction, .num = UP    },
+	{ .mod = ShiftMask|Mod4Mask, .key = XK_Right, .act = action_move_direction, .num = RIGHT },
+	{ .mod = ShiftMask|Mod4Mask, .key = XK_Down,  .act = action_move_direction, .num = DOWN  },
 
 	// Flip between the top two windows in the current spot.
 	{ .mod = Mod4Mask, .key = XK_Tab,    .act = action_other },
