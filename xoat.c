@@ -95,6 +95,7 @@ Atom atoms[ATOMS];
 enum { MONITOR_CURRENT=-1 };
 enum { SPOT1=1, SPOT2, SPOT3, SPOT_CURRENT, SPOT_SMART, SPOT1_LEFT, SPOT1_RIGHT };
 enum { FOCUS_IGNORE=1, FOCUS_STEAL, };
+enum { LEFT=1, RIGHT, UP, DOWN };
 
 typedef struct {
 	short x, y, w, h;
@@ -136,6 +137,8 @@ typedef struct {
 
 void action_move(void*, int, client*);
 void action_focus(void*, int, client*);
+void action_move_direction(void*, int, client*);
+void action_focus_direction(void*, int, client*);
 void action_close(void*, int, client*);
 void action_cycle(void*, int, client*);
 void action_other(void*, int, client*);
@@ -580,6 +583,35 @@ Window spot_focus_top_window(int spot, int mon, Window except)
 	return None;
 }
 
+int spot_choose_by_direction(int spot, int mon, int dir)
+{
+	monitor *m = &monitors[mon];
+	int rotate = m->w < m->h ? 1:0;
+	if (rotate)
+	{
+		if (dir == LEFT)  return SPOT3;
+		if (dir == RIGHT) return SPOT2;
+		if (SPOT1_ALIGN == SPOT1_LEFT)
+		{
+			if (dir == UP)   return SPOT1;
+			if (dir == DOWN) return SPOT2;
+		}
+		if (dir == UP)   return SPOT2;
+		if (dir == DOWN) return SPOT1;
+		return spot;
+	}
+	if (dir == UP)    return SPOT2;
+	if (dir == DOWN)  return SPOT3;
+	if (SPOT1_ALIGN == SPOT1_LEFT)
+	{
+		if (dir == LEFT)  return SPOT1;
+		if (dir == RIGHT) return SPOT2;
+	}
+	if (dir == LEFT)  return SPOT2;
+	if (dir == RIGHT) return SPOT1;
+	return spot;
+}
+
 void client_spot_cycle(client *c)
 {
 	if (!c) return;
@@ -604,9 +636,21 @@ void action_move(void *data, int num, client *cli)
 	client_place_spot(cli, num, cli->monitor, 1);
 }
 
+void action_move_direction(void *data, int num, client *cli)
+{
+	if (!cli) return;
+	client_raise_family(cli);
+	client_place_spot(cli, spot_choose_by_direction(cli->spot, cli->monitor, num), cli->monitor, 1);
+}
+
 void action_focus(void *data, int num, client *cli)
 {
 	spot_focus_top_window(num, current_mon, None);
+}
+
+void action_focus_direction(void *data, int num, client *cli)
+{
+	spot_focus_top_window(spot_choose_by_direction(current_spot, current_mon, num), current_mon, None);
 }
 
 void action_close(void *data, int num, client *cli)
@@ -646,6 +690,7 @@ void action_move_monitor(void *data, int num, client *cli)
 	client_raise_family(cli);
 	cli->monitor = MAX(0, MIN(current_mon+num, nmonitors-1));
 	client_place_spot(cli, cli->spot, cli->monitor, 1);
+	current_mon = cli->monitor;
 }
 
 void action_focus_monitor(void *data, int num, client *cli)
@@ -956,23 +1001,47 @@ int main(int argc, char *argv[])
 	for (i = 0; i < nmonitors; i++)
 	{
 		monitor *m = &monitors[i];
-		int width_spot1  = (double)m->w / 100 * MIN(90, MAX(10, SPOT1_WIDTH_PCT));
-		int height_spot2 = (double)m->h / 100 * MIN(90, MAX(10, SPOT2_HEIGHT_PCT));
+		int x = m->x, y = m->y, w = m->w, h = m->h;
+		// monitor rotated?
+		if (m->w < m->h)
+		{
+			int height_spot1 = (double)h / 100 * MIN(90, MAX(10, SPOT1_WIDTH_PCT));
+			int width_spot2  = (double)w / 100 * MIN(90, MAX(10, SPOT2_HEIGHT_PCT));
+			for_spots(j)
+			{
+				m->spots[j].x = x;
+				m->spots[j].y = SPOT1_ALIGN == SPOT1_LEFT ? y: y + h - height_spot1;
+				m->spots[j].w = w;
+				m->spots[j].h = height_spot1;
+				if (j == SPOT1) continue;
+
+				m->spots[j].y = SPOT1_ALIGN == SPOT1_LEFT ? y + height_spot1: y;
+				m->spots[j].h = h - height_spot1;
+				m->spots[j].w = w - width_spot2;
+				if (j == SPOT3) continue;
+
+				m->spots[j].x = x + w - width_spot2;
+				m->spots[j].w = width_spot2;
+			}
+			continue;
+		}
+		int width_spot1  = (double)w / 100 * MIN(90, MAX(10, SPOT1_WIDTH_PCT));
+		int height_spot2 = (double)h / 100 * MIN(90, MAX(10, SPOT2_HEIGHT_PCT));
 		for_spots(j)
 		{
-			m->spots[j].x = SPOT1_ALIGN == SPOT1_LEFT ? m->x: m->x + m->w - width_spot1;
-			m->spots[j].y = m->y;
+			m->spots[j].x = SPOT1_ALIGN == SPOT1_LEFT ? x: x + w - width_spot1;
+			m->spots[j].y = y;
 			m->spots[j].w = width_spot1;
-			m->spots[j].h = m->h;
+			m->spots[j].h = h;
 			if (j == SPOT1) continue;
 
-			m->spots[j].x = SPOT1_ALIGN == SPOT1_LEFT ? m->x + width_spot1: m->x;
-			m->spots[j].w = m->w - width_spot1;
+			m->spots[j].x = SPOT1_ALIGN == SPOT1_LEFT ? x + width_spot1: x;
+			m->spots[j].w = w - width_spot1;
 			m->spots[j].h = height_spot2;
 			if (j == SPOT2) continue;
 
-			m->spots[j].y = m->y + height_spot2;
-			m->spots[j].h = m->h - height_spot2;
+			m->spots[j].y = y + height_spot2;
+			m->spots[j].h = h - height_spot2;
 		}
 	}
 
