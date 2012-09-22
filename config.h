@@ -22,8 +22,8 @@
 
 // The layout can be flipped so SPOT1 is on the right.
 // If you do this, review the directional move/focus key bindings too.
-#define SPOT1_ALIGN SPOT1_LEFT
-//#define SPOT1_ALIGN SPOT1_RIGHT
+//#define SPOT1_ALIGN SPOT1_LEFT
+#define SPOT1_ALIGN SPOT1_RIGHT
 
 // Width of SPOT1 as percentage of screen width.
 #define SPOT1_WIDTH_PCT 67
