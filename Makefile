@@ -1,4 +1,4 @@
-CFLAGS?=-Wall -Os
+CFLAGS?=-Wall -Os -std=c99
 LDADD?=`pkg-config --cflags --libs x11 xinerama`
 
 normal:
