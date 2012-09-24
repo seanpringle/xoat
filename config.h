@@ -2,9 +2,15 @@
 
 #define BORDER 2
 #define BORDER_BLUR "Dark Gray"
-#define BORDER_FOCUS "Orange"
+#define BORDER_FOCUS "Royal Blue"
 #define BORDER_URGENT "Red"
 #define BORDER_ABOVE "Dark Green"
+
+// Title bar xft font
+#define TITLE "sans-10"
+#define TITLE_BLUR "Black"
+#define TITLE_FOCUS "White"
+#define TITLE_ELLIPSIS 30
 
 // There are three static tiles called SPOT1, SPOT2, and SPOT3.
 // Want more tiles? Different layouts? Floating? Go away ;)
@@ -90,10 +96,21 @@ binding keys[] = {
 	{ .mod = ShiftMask|Mod4Mask, .key = XK_Down,  .act = action_move_direction, .num = DOWN  },
 
 	// Flip between the top two windows in the current spot.
-	{ .mod = Mod4Mask, .key = XK_Tab,    .act = action_other },
+	{ .mod = Mod4Mask, .key = XK_Tab, .act = action_raise_nth, .num = 1 },
 
 	// Cycle through all windows in the current spot.
 	{ .mod = Mod4Mask, .key = XK_grave,  .act = action_cycle },
+
+	// Raise nth window in the current spot.
+	{ .mod = Mod4Mask, .key = XK_1, .act = action_raise_nth, .num = 1 },
+	{ .mod = Mod4Mask, .key = XK_2, .act = action_raise_nth, .num = 2 },
+	{ .mod = Mod4Mask, .key = XK_3, .act = action_raise_nth, .num = 3 },
+	{ .mod = Mod4Mask, .key = XK_4, .act = action_raise_nth, .num = 4 },
+	{ .mod = Mod4Mask, .key = XK_5, .act = action_raise_nth, .num = 5 },
+	{ .mod = Mod4Mask, .key = XK_6, .act = action_raise_nth, .num = 6 },
+	{ .mod = Mod4Mask, .key = XK_7, .act = action_raise_nth, .num = 7 },
+	{ .mod = Mod4Mask, .key = XK_8, .act = action_raise_nth, .num = 8 },
+	{ .mod = Mod4Mask, .key = XK_9, .act = action_raise_nth, .num = 9 },
 
 	// Gracefully close the current window.
 	{ .mod = Mod4Mask, .key = XK_Escape, .act = action_close },
