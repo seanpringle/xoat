@@ -2,14 +2,14 @@
 
 #define BORDER 2
 #define BORDER_BLUR "Dark Gray"
-#define BORDER_FOCUS "Orange"
+#define BORDER_FOCUS "Royal Blue"
 #define BORDER_URGENT "Red"
 #define BORDER_ABOVE "Dark Green"
 
 // Title bar xft font
 #define TITLE "sans-10"
 #define TITLE_BLUR "Black"
-#define TITLE_FOCUS "Black"
+#define TITLE_FOCUS "White"
 #define TITLE_ELLIPSIS 30
 
 // There are three static tiles called SPOT1, SPOT2, and SPOT3.
