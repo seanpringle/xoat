@@ -1,5 +1,5 @@
 CFLAGS?=-Wall -Os -std=c99
-LDADD?=`pkg-config --cflags --libs x11 xinerama`
+LDADD?=`pkg-config --cflags --libs x11 xinerama xft`
 
 normal:
 	$(CC) -o xoat xoat.c $(CFLAGS) $(LDADD) $(LDFLAGS)
