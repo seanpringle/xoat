@@ -7,7 +7,7 @@
 #define BORDER_ABOVE "Dark Green"
 
 // Title bar xft font
-#define TITLE "sans-10"
+#define TITLE "sans:bold:size=10"
 #define TITLE_BLUR "Black"
 #define TITLE_FOCUS "White"
 #define TITLE_ELLIPSIS 30
