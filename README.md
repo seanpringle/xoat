@@ -5,7 +5,7 @@ xoat
 
 * Designed for wide screens, including multi-head support.
 * Static tiling; you get just three fixed tiles and windows never move automatically.
-* Bare minimum EWMH to support panels and [simpleswitcher](https://github.com/seanpringle/simpleswitcher)
+* Bare minimum EWMH to support panels and [simpleswitcher](https://github.com/seanpringle/simpleswitcher).
 * A few keyboard controls for moving, focusing, cycling, closing, and finding windows.
 * Transient windows and dialogs are centered on parent, not tiled.
 * Splash screens and notification popups are displayed as requested, not tiled.
@@ -13,15 +13,24 @@ xoat
 
 ### The Layout
 
-	--------------------------------
-	|                    |         |
-	|                    |         |
-	|                    |    2    |
-	|          1         |         |
-	|                    |---------|
-	|                    |         |
-	|                    |    3    |
-	--------------------------------
+     --------------------------------     -------------------
+     |                    |         |     |                 |
+     |                    |         |     |                 |
+     |                    |    2    |     |                 |
+     |          1         |         |     |        1        |
+     |                    |---------|     |                 |
+     |                    |         |     |                 |
+     |                    |    3    |     |                 |
+     --------------------------------     |                 |
+                                          |-----------------|
+                                          |      |          |
+                                          |      |          |
+                                          |   3  |     2    |
+                                          |      |          |
+                                          -------------------
+
+* Layout can be flipped horizontally to place tile 1 on the right.
+* Layout rotates along with Xrandr rotated monitors.
 
 ### Philosophy
 
@@ -37,6 +46,7 @@ xoat
 		2. Medium monitoring-something apps
 		3. Small background-chat-music apps
 		4. Apps people should not use ;-)
+	* Want more tiles? Buy more monitors.
 * Keyboard controls generally preferred over the mouse, when practical.
 	* Faster. Muscle memory.
 * Click-to-focus model preferred over focus-follows-mouse.
@@ -44,20 +54,9 @@ xoat
 	* CtF is harder to get wrong and makes it easy to forget about the mouse for some tasks.
 * 2/3 is a nice fraction.
 
-### Stuff Removed
-
-Some elements that proved to be the wrong direction for xoat have been removed.
-
-* Tags have been replaced with the snapshot/rollback mechanism.
-	* Tags were a way to group and raise windows en-masse, but they were fiddly to use.
-	* Snapshot allows the freedom to mess windows up then quicky revert to a known state.
-* Some EWMH desktop atoms have been dumped as surplus to requirements.
-
 ### config.h
 
-All customization happens in config.h. See in-line comments there.
-
-**Note**: config.h is tracked! Use a local git branch to protect any customization.
+All customization happens in config.h. See in-line comments there. It's tracked, so use a local git branch or a merge tool to protect any customization.
 
 
 
