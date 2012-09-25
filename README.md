@@ -19,6 +19,8 @@ xoat
 * Can be flipped horizontally.
 * Xrandr rotated monitor also rotates layout (always 90 degrees, right).
 
+...
+
 	---------------------------------     ---------------------------------
 	|                     |         |     |         |                     |
 	|                     |         |     |         |                     |
