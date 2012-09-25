@@ -63,8 +63,8 @@ client* window_build_client(Window win)
 	{
 		c->visible = c->attr.map_state == IsViewable ? 1:0;
 		XGetTransientForHint(display, c->window, &c->transient);
-		GETPROP_ATOM(win, atoms[_NET_WM_WINDOW_TYPE], &c->type, 1);
-		GETPROP_WIND(win, atoms[WM_CLIENT_LEADER], &c->leader, 1);
+		if (!GETPROP_ATOM(win, atoms[_NET_WM_WINDOW_TYPE], &c->type, 1)) c->type = 0;
+		if (!GETPROP_WIND(win, atoms[WM_CLIENT_LEADER], &c->leader,  1)) c->leader = None;
 
 		c->manage = !c->attr.override_redirect
 			&& c->type != atoms[_NET_WM_WINDOW_TYPE_DESKTOP]
@@ -91,7 +91,8 @@ client* window_build_client(Window win)
 
 		if (c->visible)
 		{
-			GETPROP_ATOM(c->window, atoms[_NET_WM_STATE], c->states, ATOMLIST);
+			if (!GETPROP_ATOM(c->window, atoms[_NET_WM_STATE], c->states, ATOMLIST))
+				memset(c->states, 0, sizeof(Atom) * ATOMLIST);
 			c->urgent = client_has_state(c, atoms[_NET_WM_STATE_DEMANDS_ATTENTION]);
 			c->full   = client_has_state(c, atoms[_NET_WM_STATE_FULLSCREEN]);
 			c->above  = client_has_state(c, atoms[_NET_WM_STATE_ABOVE]);
