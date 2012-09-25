@@ -105,8 +105,8 @@ void action_focus_monitor(void *data, int num, client *cli)
 void action_fullscreen(void *data, int num, client *cli)
 {
 	if (!cli) return;
-	if (cli->full) GETPROP_LONG(cli->window, atoms[XOAT_SPOT], &cli->spot, 1);
-	          else SETPROP_LONG(cli->window, atoms[XOAT_SPOT], &cli->spot, 1);
+	if (cli->full && GETPROP_LONG(cli->window, atoms[XOAT_SPOT], &cli->spot, 1));
+	else SETPROP_LONG(cli->window, atoms[XOAT_SPOT], &cli->spot, 1);
 	client_toggle_state(cli, atoms[_NET_WM_STATE_FULLSCREEN]);
 	client_place_spot(cli, cli->full ? SPOT1: cli->spot, cli->monitor, 1);
 	client_update_border(cli);
