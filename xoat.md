@@ -44,6 +44,9 @@ Mod4-Tab
 Mod4-` (grave)
 :	Cycle all windows in a tile.
 
+Mod4-[1-9]
+:	Raise nth window in a tile.
+
 Mod4-Escape
 :	Close a window.
 
