@@ -146,6 +146,7 @@ void action_rollback(void *data, int num, client *cli)
 			}
 		}
 		client_free(c);
+		c = NULL;
 	}
 	if (a)
 	{

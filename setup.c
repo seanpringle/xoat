@@ -25,16 +25,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
 typedef struct {
-	long left, right, top, bottom,
-		ly1, ly2, ry1, ry3,
-		tx1, tx2, bx1, bx2;
+	// _NET_WM_STRUT_PARTIAL
+	long left, right, top, bottom, ly1, ly2, ry1, ry3, tx1, tx2, bx1, bx2;
 } wm_strut;
 
 void setup()
 {
 	int i, j; client *c; monitor *m;
-	wm_strut struts; memset(&struts, 0, sizeof(wm_strut));
-
 	int screen_w = WidthOfScreen(DefaultScreenOfDisplay(display));
 	int screen_h = HeightOfScreen(DefaultScreenOfDisplay(display));
 
@@ -67,6 +64,7 @@ void setup()
 
 		for_monitors(j, m)
 		{
+			// convert _NET_WM_STRUT to _PARTIAL
 			if (v1)
 			{
 				strut.ly1 = m->y; strut.ly2 = m->y + m->h;
@@ -126,6 +124,7 @@ void setup()
 			}
 			continue;
 		}
+		// normal wide screen
 		int width_spot1  = (double)w / 100 * MIN(90, MAX(10, SPOT1_WIDTH_PCT));
 		int height_spot2 = (double)h / 100 * MIN(90, MAX(10, SPOT2_HEIGHT_PCT));
 		for_spots(j)
@@ -161,10 +160,9 @@ void setup()
 
 	// figure out NumlockMask
 	XModifierKeymap *modmap = XGetModifierMapping(display);
-	for (i = 0; i < 8; i++)
-		for (j = 0; j < (int)modmap->max_keypermod; j++)
-			if (modmap->modifiermap[i*modmap->max_keypermod+j] == XKeysymToKeycode(display, XK_Num_Lock))
-				{ NumlockMask = (1<<i); break; }
+	for (i = 0; i < 8; i++) for (j = 0; j < (int)modmap->max_keypermod; j++)
+		if (modmap->modifiermap[i*modmap->max_keypermod+j] == XKeysymToKeycode(display, XK_Num_Lock))
+			{ NumlockMask = (1<<i); break; }
 	XFreeModifiermap(modmap);
 
 	// process config.h key bindings
