@@ -4,7 +4,8 @@ xoat
 *X Obstinate Asymmetric Tiler*
 
 * Designed for wide screens, including multi-head support.
-* Static tiling; you get just three fixed tiles and windows never move automatically.
+* Static tiling; you choose three fixed tiles at build-time.
+* Windows never move between tiles or monitors automatically.
 * Bare minimum EWMH to support panels and [simpleswitcher](https://github.com/seanpringle/simpleswitcher).
 * A few keyboard controls for moving, focusing, cycling, closing, and finding windows.
 * Transient windows and dialogs are centered on parent, not tiled.
@@ -13,23 +14,36 @@ xoat
 
 ### The Layout
 
-     ---------------------------------     ---------------------
-     |                     |         |     |                   |
-     |                     |         |     |                   |
-     |                     |    2    |     |                   |
-     |          1          |         |     |         1         |
-     |                     |---------|     |                   |
-     |                     |         |     |                   |
-     |                     |    3    |     |                   |
-     ---------------------------------     |                   |
-                                           |-------------------|
-                                           |       |           |
-                                           |   3   |     2     |
-                                           |       |           |
-                                           ---------------------
+* Layout is chosen at build time.
+* Tile proportions can be adjusted.
+* Can be flipped horizontally.
 
-* Layout can be flipped horizontally to place tile 1 on the right.
-* Layout rotates along with Xrandr rotated monitors.
+     ---------------------------------     ---------------------------------
+     |                     |         |     |         |                     |
+     |                     |         |     |         |                     |
+     |                     |    2    |     |    2    |                     |
+     |          1          |         |     |         |           1         |
+     |                     |---------|     |---------|                     |
+     |                     |         |     |         |                     |
+     |                     |    3    |     |    3    |                     |
+     ---------------------------------     ---------------------------------
+
+* Xrandr rotated monitor also rotates layout (always 90 degrees, right).
+
+     ---------------------     ---------------------
+     |                   |     |       |           |
+     |                   |     |   3   |     2     |
+     |                   |     |       |           |
+     |         1         |     |-------------------|
+     |                   |     |                   |
+     |                   |     |                   |
+     |                   |     |                   |
+     |                   |     |                   |
+     |-------------------|     |         1         |
+     |       |           |     |                   |
+     |   3   |     2     |     |                   |
+     |       |           |     |                   |
+     ---------------------     ---------------------
 
 ### Philosophy
 
@@ -45,7 +59,7 @@ xoat
 		2. Medium monitoring-something apps
 		3. Small background-chat-music apps
 		4. Apps people should not use ;-)
-	* Want more tiles? Buy more monitors.
+	* Want more tiles? Buy more monitors!
 * Keyboard controls generally preferred over the mouse, when practical.
 	* Faster. Muscle memory.
 * Click-to-focus model preferred over focus-follows-mouse.
