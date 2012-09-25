@@ -29,8 +29,8 @@
 
 // The layout can be flipped so SPOT1 is on the right.
 // If you do this, review the directional move/focus key bindings too.
-//#define SPOT1_ALIGN SPOT1_LEFT
-#define SPOT1_ALIGN SPOT1_RIGHT
+#define SPOT1_ALIGN SPOT1_LEFT
+//#define SPOT1_ALIGN SPOT1_RIGHT
 
 // Width of SPOT1 as percentage of screen width.
 #define SPOT1_WIDTH_PCT 67
@@ -139,8 +139,5 @@ binding keys[] = {
 
 	// Find or start apps by WM_CLASS (lower case match).
 	// Only works for apps that use some form of their binary name as their class...
-	{ .mod = AnyModifier, .key = XK_F1, .act = action_find_or_start, .data = "konsole"  },
-	{ .mod = AnyModifier, .key = XK_F2, .act = action_find_or_start, .data = "uzbl-tabbed" },
-	{ .mod = AnyModifier, .key = XK_F3, .act = action_find_or_start, .data = "pcmanfm"  },
-	{ .mod = AnyModifier, .key = XK_F4, .act = action_find_or_start, .data = "kate" },
+	{ .mod = AnyModifier, .key = XK_F1, .act = action_find_or_start, .data = "xterm" },
 };
