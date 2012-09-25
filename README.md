@@ -17,6 +17,7 @@ xoat
 * Layout is chosen at build time.
 * Tile proportions can be adjusted.
 * Can be flipped horizontally.
+* Xrandr rotated monitor also rotates layout (always 90 degrees, right).
 
 	---------------------------------     ---------------------------------
 	|                     |         |     |         |                     |
@@ -27,8 +28,6 @@ xoat
 	|                     |         |     |         |                     |
 	|                     |    3    |     |    3    |                     |
 	---------------------------------     ---------------------------------
-
-* Xrandr rotated monitor also rotates layout (always 90 degrees, right).
 
 	---------------------     ---------------------
 	|                   |     |       |           |
