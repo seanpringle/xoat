@@ -5,6 +5,7 @@
 #define BORDER_FOCUS "Royal Blue"
 #define BORDER_URGENT "Red"
 #define BORDER_ABOVE "Dark Green"
+#define GAP 2
 
 // Title bar xft font
 #define TITLE "sans:bold:size=10"
