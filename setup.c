@@ -55,6 +55,9 @@ void setup()
 	}
 
 	// detect and adjust for panel struts
+	monitor padded[MONITORS];
+	memmove(padded, monitors, sizeof(monitor) * MONITORS);
+
 	for_windows(i, c)
 	{
 		wm_strut strut; memset(&strut, 0, sizeof(wm_strut));
@@ -64,6 +67,7 @@ void setup()
 
 		for_monitors(j, m)
 		{
+			monitor *p = &padded[j];
 			// convert _NET_WM_STRUT to _PARTIAL
 			if (v1)
 			{
@@ -72,30 +76,37 @@ void setup()
 				strut.tx1 = m->x; strut.tx2 = m->x + m->w;
 				strut.bx1 = m->x; strut.bx2 = m->x + m->w;
 			}
+			// monitor left side of root window?
 			if (strut.left > 0 && !m->x
 				&& INTERSECT(0, strut.ly1, strut.left, strut.ly2 - strut.ly1, m->x, m->y, m->w, m->h))
 			{
-				m->x += strut.left;
-				m->w -= strut.left;
+				p->x = MAX(p->x, strut.left);
+				p->w = MIN(p->w, m->x + m->w - strut.left);
 			}
+			else
+			// monitor right side of root window?
 			if (strut.right > 0 && m->x + m->w == screen_w
 				&& INTERSECT(screen_w - strut.right, strut.ry1, strut.right, strut.ry3 - strut.ry1, m->x, m->y, m->w, m->h))
 			{
-				m->w -= strut.right;
+				p->w = MIN(p->w, m->x + m->w - strut.right);
 			}
+			// monitor top side of root window?
 			if (strut.top > 0 && !m->y
 				&& INTERSECT(strut.tx1, 0, strut.tx2 - strut.tx1, strut.top, m->x, m->y, m->w, m->h))
 			{
-				m->y += strut.top;
-				m->h -= strut.top;
+				p->y = MAX(p->y, strut.top);
+				p->h = MIN(p->h, m->y + m->h - strut.top);
 			}
+			else
+			// monitor bottom side of root window?
 			if (strut.bottom > 0 && m->y + m->h == screen_h
 				&& INTERSECT(strut.bx1, screen_h - strut.bottom, strut.bx2 - strut.bx1, strut.bottom, m->x, m->y, m->w, m->h))
 			{
-				m->h -= strut.bottom;
+				p->h = MIN(p->h, m->y + m->h - strut.bottom);
 			}
 		}
 	}
+	memmove(monitors, padded, sizeof(monitor) * MONITORS);
 
 	// calculate spot boxes
 	for_monitors(i, m)
@@ -182,18 +193,15 @@ void setup()
 
 	// create title bars
 	STACK_FREE(&windows);
-	for_monitors(i, m)
+	for_monitors(i, m) for_spots(j)
 	{
-		for_spots(j)
-		{
-			m->bars[j] = textbox_create(root, TB_AUTOHEIGHT|TB_LEFT, m->spots[j].x, m->spots[j].y, m->spots[j].w, 0,
-				TITLE, TITLE_BLUR, BORDER_BLUR, NULL, NULL);
-			XSelectInput(display, m->bars[j]->window, ExposureMask);
+		m->bars[j] = textbox_create(root, TB_AUTOHEIGHT|TB_LEFT, m->spots[j].x, m->spots[j].y, m->spots[j].w, 0,
+			TITLE, TITLE_BLUR, BORDER_BLUR, NULL, NULL);
+		XSelectInput(display, m->bars[j]->window, ExposureMask);
 
-			m->spots[j].y += m->bars[j]->h;
-			m->spots[j].h -= m->bars[j]->h;
-			spot_update_bar(j, i);
-		}
+		m->spots[j].y += m->bars[j]->h;
+		m->spots[j].h -= m->bars[j]->h;
+		spot_update_bar(j, i);
 	}
 
 	// setup existing managable windows

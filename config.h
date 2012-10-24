@@ -8,10 +8,10 @@
 #define GAP 2
 
 // Title bar xft font
-#define TITLE "sans:bold:size=10"
+#define TITLE "sans:size=8"
 #define TITLE_BLUR "Black"
 #define TITLE_FOCUS "White"
-#define TITLE_ELLIPSIS 30
+#define TITLE_ELLIPSIS 32
 
 // There are three static tiles called SPOT1, SPOT2, and SPOT3.
 // Want more tiles? Different layouts? Floating? Go away ;)
@@ -143,4 +143,6 @@ binding keys[] = {
 	{ .mod = AnyModifier, .key = XK_F2, .act = action_find_or_start, .data = "uzbl-tabbed" },
 	{ .mod = AnyModifier, .key = XK_F3, .act = action_find_or_start, .data = "pcmanfm"  },
 	{ .mod = AnyModifier, .key = XK_F4, .act = action_find_or_start, .data = "kate" },
+
+	{ .mod = AnyModifier, .key = XK_Menu, .act = action_command, .data = "xowl" },
 };

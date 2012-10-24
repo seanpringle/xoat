@@ -84,6 +84,21 @@ Window spot_focus_top_window(int spot, int mon, Window except)
 	return None;
 }
 
+Window spot_try_focus_top_window(int spot, int mon, Window except)
+{
+	Window w = spot_focus_top_window(spot, mon, except);
+	if (w == None)
+	{
+		current      = None;
+		current_mon  = mon;
+		current_spot = spot;
+		update_bars();
+
+		XSetInputFocus(display, PointerRoot, RevertToPointerRoot, CurrentTime);
+	}
+	return w;
+}
+
 int spot_choose_by_direction(int spot, int mon, int dir)
 {
 	monitor *m = &monitors[mon];
