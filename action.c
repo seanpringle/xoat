@@ -40,12 +40,12 @@ void action_move_direction(void *data, int num, client *cli)
 
 void action_focus(void *data, int num, client *cli)
 {
-	spot_focus_top_window(num, current_mon, None);
+	spot_try_focus_top_window(num, current_mon, None);
 }
 
 void action_focus_direction(void *data, int num, client *cli)
 {
-	spot_focus_top_window(spot_choose_by_direction(current_spot, current_mon, num), current_mon, None);
+	spot_try_focus_top_window(spot_choose_by_direction(current_spot, current_mon, num), current_mon, None);
 }
 
 void action_close(void *data, int num, client *cli)
@@ -123,8 +123,7 @@ void action_above(void *data, int num, client *cli)
 
 void action_snapshot(void *data, int num, client *cli)
 {
-	int i; client *c;
-	STACK_FREE(&snapshot);
+	int i; client *c; STACK_FREE(&snapshot);
 	for_windows(i, c) if (c->manage && c->class)
 		snapshot.clients[snapshot.depth++] = window_build_client(c->window);
 }
@@ -146,6 +145,7 @@ void action_rollback(void *data, int num, client *cli)
 			}
 		}
 		client_free(c);
+		c = NULL;
 	}
 	if (a)
 	{

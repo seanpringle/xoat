@@ -135,22 +135,21 @@ void key_press(XEvent *ev)
 		client *cli = window_build_client(current);
 		bind->act(bind->data, bind->num, cli);
 		client_free(cli);
+		update_bars();
 	}
 }
 
 void button_press(XEvent *ev)
 {
+	int i, j; monitor *m;
 	XButtonEvent *e = &ev->xbutton; latest = e->time;
 	client *c = window_build_client(e->subwindow);
 	if (c && c->manage)
 		client_activate(c);
 	else
-	{
-		int i, j; monitor *m;
 		for_monitors(i, m) for_spots(j)
 			if (m->bars[j]->window == e->subwindow)
 				spot_focus_top_window(j, i, None);
-	}
 	client_free(c);
 	XAllowEvents(display, ReplayPointer, CurrentTime);
 }
@@ -183,17 +182,15 @@ void property_notify(XEvent *ev)
 
 	client *c = window_build_client(e->window);
 	if (c && c->visible && c->manage)
+	{
 		client_update_border(c);
+		if (e->atom == atoms[WM_NAME] || e->atom == atoms[_NET_WM_NAME])
+			spot_update_bar(c->spot, c->monitor);
+	}
 	client_free(c);
 
-	if (e->atom == atoms[WM_NAME] || e->atom == atoms[_NET_WM_NAME])
-		update_bars();
-
-	// clients that rapidly update stuff (eg, title) can spam events.
-	// consume as many as possible of the same window, type, and atom...
-	Atom atom = e->atom;
-	while (XCheckTypedWindowEvent(display, ev->xproperty.window, PropertyNotify, ev))
-		if (ev->xproperty.atom != atom) { XPutBackEvent(display, ev); break; }
+	// prevent spam
+	while (XCheckTypedWindowEvent(display, ev->xproperty.window, PropertyNotify, ev));
 }
 
 void expose(XEvent *e)

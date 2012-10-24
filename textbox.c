@@ -34,8 +34,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 typedef struct {
 	unsigned long flags;
 	Window window, parent;
-	short x, y, w, h;
-	short cursor;
+	short x, y, w, h, cursor;
 	XftFont *font;
 	XftColor color_fg, color_bg;
 	char *text, *prompt;
@@ -180,7 +179,6 @@ void textbox_draw(textbox *tb)
 	int text_len    = strlen(text);
 	int length      = text_len;
 	int line_height = tb->font->ascent + tb->font->descent;
-	int line_width  = 0;
 
 	int cursor_x      = 0;
 	int cursor_offset = 0;
@@ -208,7 +206,7 @@ void textbox_draw(textbox *tb)
 
 	// calc full input text width
 	XftTextExtents8(display, tb->font, (unsigned char*)line, length, &extents);
-	line_width = extents.width;
+	int line_width = extents.width;
 
 	int x = 0, y = tb->font->ascent;
 	if (tb->flags & TB_RIGHT)  x = tb->w - line_width;
@@ -315,60 +313,29 @@ void textbox_cursor_bkspc(textbox *tb)
 // -1 = handled and return pressed (finished)
 int textbox_keypress(textbox *tb, XEvent *ev)
 {
-	KeySym key; Status stat;
-	char pad[32]; int len;
-
 	if (!(tb->flags & TB_EDITABLE)) return 0;
 
-	len = XmbLookupString(tb->xic, &ev->xkey, pad, sizeof(pad), &key, &stat);
+	KeySym key; Status stat; char pad[32];
+
+	int len = XmbLookupString(tb->xic, &ev->xkey, pad, sizeof(pad), &key, &stat);
 	pad[len] = 0;
 
-	if (key == XK_Left)
+	switch (key)
 	{
-		textbox_cursor_dec(tb);
-		return 1;
-	}
-	else
-	if (key == XK_Right)
-	{
-		textbox_cursor_inc(tb);
-		return 1;
-	}
-	else
-	if (key == XK_Home)
-	{
-		textbox_cursor_home(tb);
-		return 1;
-	}
-	else
-	if (key == XK_End)
-	{
-		textbox_cursor_end(tb);
-		return 1;
-	}
-	else
-	if (key == XK_Delete)
-	{
-		textbox_cursor_del(tb);
-		return 1;
-	}
-	else
-	if (key == XK_BackSpace)
-	{
-		textbox_cursor_bkspc(tb);
-		return 1;
-	}
-	else
-	if (key == XK_Return)
-	{
-		return -1;
-	}
-	else
-	if (!iscntrl(*pad))
-	{
-		textbox_insert(tb, tb->cursor, pad);
-		textbox_cursor_inc(tb);
-		return 1;
+		case XK_Left      : textbox_cursor_dec(tb);   return 1;
+		case XK_Right     : textbox_cursor_inc(tb);   return 1;
+		case XK_Home      : textbox_cursor_home(tb);  return 1;
+		case XK_End       : textbox_cursor_end(tb);   return 1;
+		case XK_Delete    : textbox_cursor_del(tb);   return 1;
+		case XK_BackSpace : textbox_cursor_bkspc(tb); return 1;
+		case XK_Return    : return -1;
+		default:
+			if (!iscntrl(*pad))
+			{
+				textbox_insert(tb, tb->cursor, pad);
+				textbox_cursor_inc(tb);
+				return 1;
+			}
 	}
 	return 0;
 }

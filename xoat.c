@@ -77,7 +77,7 @@ typedef struct {
 	XWindowAttributes attr;
 	Window transient, leader;
 	Atom type, states[ATOMLIST+1];
-	short monitor, visible, manage, input, urgent, full, above;
+	short monitor, visible, manage, input, urgent, full, above, ours;
 	unsigned long spot;
 	char *class;
 } client;
@@ -191,10 +191,10 @@ void (*handlers[LASTEvent])(XEvent*) = {
 int oops(Display *d, XErrorEvent *ee)
 {
 	if (ee->error_code == BadWindow
-		|| (ee->request_code == X_SetInputFocus && ee->error_code == BadMatch)
+		|| (ee->request_code == X_SetInputFocus   && ee->error_code == BadMatch)
 		|| (ee->request_code == X_ConfigureWindow && ee->error_code == BadMatch)
-		|| (ee->request_code == X_GrabButton && ee->error_code == BadAccess)
-		|| (ee->request_code == X_GrabKey && ee->error_code == BadAccess)
+		|| (ee->request_code == X_GrabButton      && ee->error_code == BadAccess)
+		|| (ee->request_code == X_GrabKey         && ee->error_code == BadAccess)
 		) return 0;
 	fprintf(stderr, "error: request code=%d, error code=%d\n", ee->request_code, ee->error_code);
 	return xerror(display, ee);

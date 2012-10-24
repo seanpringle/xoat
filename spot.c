@@ -24,39 +24,34 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 */
 
+#define SPOT_BUFF 1024
+
 void spot_update_bar(int spot, int mon)
 {
-	int i, n = 0; client *o, *c = NULL;
+	int i, n = 0, len = 0; client *o, *c = NULL;
+	char *title = alloca(SPOT_BUFF); *title = 0;
 	monitor *m = &monitors[mon];
-
-	char *title = calloc(1024, sizeof(char));
-	int len = 0, lim = 1024;
 
 	for_windows(i, o) if (o->manage && o->spot == spot && o->monitor == mon)
 	{
 		if (!c) c = o;
-		char *name = NULL;
+		char *name = NULL, *tmp = NULL;
 		if (!(name = window_get_text_prop(o->window, atoms[_NET_WM_NAME])))
-		{
-			char *tmp;
 			if (XFetchName(display, o->window, &tmp))
-			{
 				name = strdup(tmp);
-				XFree(tmp);
-			}
-		}
 		if (name)
 		{
-			if (TITLE_ELLIPSIS && strlen(name) > TITLE_ELLIPSIS)
+			if (TITLE_ELLIPSIS > 0 && strlen(name) > TITLE_ELLIPSIS)
 			{
 				name = realloc(name, strlen(name)+4);
 				strcpy(name+TITLE_ELLIPSIS, "...");
 			}
-			len += snprintf(title+len, MAX(0, lim-len), " [%d] %s  ", n++, name);
+			len += snprintf(title+len, MAX(0, SPOT_BUFF-len), " [%d] %s  ", n++, name);
 			free(name);
 		}
+		if (tmp) XFree(tmp);
 	}
-	if (c && !c->full && title && m->bars[spot])
+	if (c && !c->full && *title && m->bars[spot])
 	{
 		int focus = c->window == current || (spot == current_spot && mon == current_mon);
 		char *color  = focus && c->window == current ? TITLE_FOCUS : TITLE_BLUR;
@@ -69,29 +64,39 @@ void spot_update_bar(int spot, int mon)
 	else
 	if (m->bars[spot])
 		textbox_hide(m->bars[spot]);
-	free(title);
 }
 
 void update_bars()
 {
 	int i, j; monitor *m;
-	for_monitors(i, m) for_spots(j)
-		spot_update_bar(j, i);
+	for_monitors(i, m) for_spots(j) spot_update_bar(j, i);
 }
 
 Window spot_focus_top_window(int spot, int mon, Window except)
 {
 	int i; client *c;
-	for_windows(i, c)
+	for_windows(i, c) if (c->window != except && c->manage && c->spot == spot && c->monitor == mon)
 	{
-		if (c->window != except && c->manage && c->spot == spot && c->monitor == mon)
-		{
-			client_raise_family(c);
-			client_set_focus(c);
-			return c->window;
-		}
+		client_raise_family(c);
+		client_set_focus(c);
+		return c->window;
 	}
 	return None;
+}
+
+Window spot_try_focus_top_window(int spot, int mon, Window except)
+{
+	Window w = spot_focus_top_window(spot, mon, except);
+	if (w == None)
+	{
+		current      = None;
+		current_mon  = mon;
+		current_spot = spot;
+		update_bars();
+
+		XSetInputFocus(display, PointerRoot, RevertToPointerRoot, CurrentTime);
+	}
+	return w;
 }
 
 int spot_choose_by_direction(int spot, int mon, int dir)
