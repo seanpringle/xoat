@@ -95,7 +95,7 @@ void textbox_font(textbox *tb, char *font, char *fg, char *bg)
 void textbox_extents(textbox *tb)
 {
 	int length = strlen(tb->text) + strlen(tb->prompt);
-	char *line = alloca(length + 1);
+	char line[length + 1];
 	sprintf(line, "%s%s", tb->prompt, tb->text);
 	XftTextExtents8(display, tb->font, (unsigned char*)line, length, &tb->extents);
 }
@@ -190,7 +190,7 @@ void textbox_draw(textbox *tb)
 		length = text_len + prompt_len;
 		cursor_offset = MIN(tb->cursor + prompt_len, length);
 
-		line = alloca(length + 10);
+		char eline[length + 10]; line = eline;
 		sprintf(line, "%s%s", prompt, text);
 
 		// replace spaces so XftTextExtents8 includes their width

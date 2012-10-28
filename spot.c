@@ -29,7 +29,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 void spot_update_bar(int spot, int mon)
 {
 	int i, n = 0, len = 0; client *o, *c = NULL;
-	char *title = alloca(SPOT_BUFF); *title = 0;
+	char title[SPOT_BUFF]; *title = 0;
 	monitor *m = &monitors[mon];
 
 	for_windows(i, o) if (o->manage && o->spot == spot && o->monitor == mon)
