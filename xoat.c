@@ -59,7 +59,6 @@ Display *display;
 #define ATOMLIST 10
 enum { MONITOR_CURRENT=-1 };
 enum { SPOT1=1, SPOT2, SPOT3, SPOT_CURRENT, SPOT_SMART, SPOT1_LEFT, SPOT1_RIGHT };
-enum { FOCUS_IGNORE=1, FOCUS_STEAL, };
 enum { LEFT=1, RIGHT, UP, DOWN };
 
 typedef struct {

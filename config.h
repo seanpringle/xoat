@@ -57,12 +57,6 @@
 // If on multi-head, place windows on monitor holding current window.
 #define MONITOR_START MONITOR_CURRENT
 
-// Should new windows be automatically focused, or ignored until focused manually?
-// IGNORE means new windows only steal focus if they obscure the current window.
-// STEAL means new windows always steal focus.
-//#define FOCUS_START FOCUS_IGNORE
-#define FOCUS_START FOCUS_STEAL
-
 // Available actions...
 // action_move             .num = SPOT1/2/3
 // action_focus            .num = SPOT1/2/3
