@@ -133,10 +133,6 @@ binding keys[] = {
 	// Launcher
 	{ .mod = Mod4Mask, .key = XK_x, .act = action_command, .data = "dmenu_run" },
 
-	// Snapshot state
-	{ .mod = Mod4Mask, .key = XK_s, .act = action_snapshot },
-	{ .mod = Mod4Mask, .key = XK_r, .act = action_rollback },
-
 	// Find or start apps by WM_CLASS (lower case match).
 	// Only works for apps that use some form of their binary name as their class...
 	{ .mod = AnyModifier, .key = XK_F1, .act = action_find_or_start, .data = "xterm" },
