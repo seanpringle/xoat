@@ -112,11 +112,3 @@ void action_fullscreen(void *data, int num, client *cli)
 	client_update_border(cli);
 	client_raise_family(cli);
 }
-
-void action_above(void *data, int num, client *cli)
-{
-	if (!cli) return;
-	client_toggle_state(cli, atoms[_NET_WM_STATE_ABOVE]);
-	client_update_border(cli);
-	client_raise_family(cli);
-}

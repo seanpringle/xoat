@@ -46,7 +46,6 @@ int client_toggle_state(client *c, Atom state)
 	}
 	SETPROP_ATOM(c->window, atoms[_NET_WM_STATE], c->states, j);
 	if (state == atoms[_NET_WM_STATE_FULLSCREEN])        c->full   = rc;
-	if (state == atoms[_NET_WM_STATE_ABOVE])             c->above  = rc;
 	if (state == atoms[_NET_WM_STATE_DEMANDS_ATTENTION]) c->urgent = rc;
 	return rc;
 }
@@ -95,7 +94,6 @@ client* window_build_client(Window win)
 					memset(c->states, 0, sizeof(Atom) * ATOMLIST);
 				c->urgent = client_has_state(c, atoms[_NET_WM_STATE_DEMANDS_ATTENTION]);
 				c->full   = client_has_state(c, atoms[_NET_WM_STATE_FULLSCREEN]);
-				c->above  = client_has_state(c, atoms[_NET_WM_STATE_ABOVE]);
 
 				if ((hints = XGetWMHints(display, c->window)))
 				{
@@ -126,7 +124,7 @@ void client_free(client *c)
 void client_update_border(client *c)
 {
 	XColor color; Colormap map = DefaultColormap(display, DefaultScreen(display));
-	char *colorname = c->window == current ? BORDER_FOCUS: (c->urgent ? BORDER_URGENT: (c->above ? BORDER_ABOVE: BORDER_BLUR));
+	char *colorname = c->window == current ? BORDER_FOCUS: (c->urgent ? BORDER_URGENT: BORDER_BLUR);
 	XSetWindowBorder(display, c->window, XAllocNamedColor(display, map, colorname, &color, &color) ? color.pixel: None);
 	XSetWindowBorderWidth(display, c->window, c->full ? 0: BORDER);
 }
@@ -238,10 +236,6 @@ void client_raise_family(client *c)
 	int i; client *o; STACK_INIT(raise); STACK_INIT(family);
 
 	for_windows(i, o) if (o->type == atoms[_NET_WM_WINDOW_TYPE_DOCK])
-		client_stack_family(o, &raise);
-
-	// above only counts for fullscreen windows
-	if (c->full) for_windows(i, o) if (o->above)
 		client_stack_family(o, &raise);
 
 	while (c->transient && (o = window_build_client(c->transient)))

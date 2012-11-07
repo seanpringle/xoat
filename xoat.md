@@ -53,9 +53,6 @@ Mod4-Escape
 Mod4-f
 :	Toggle state fullscreen. While in fullscreen mode, an window is considered to be in tile 1.
 
-Mod4-a
-:	Toggle state above (only placed above fullscreen windows).
-
 Mod4-Next  (Page Down)
 :	Focus next monitor.
 
@@ -73,12 +70,6 @@ Shift-Mod4-x
 
 F1
 :	Launch urxvt
-
-Mod4-s
-:	Snapshot current window positions and stacking order.
-
-Mod4-r
-:	Rollback to snapshot. Windows closed since the snapshot will not be reopened. Newer windows not in the snapshot will be lowered.
 
 # OPTIONS
 

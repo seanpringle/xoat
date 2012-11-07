@@ -4,7 +4,6 @@
 #define BORDER_BLUR "Dark Gray"
 #define BORDER_FOCUS "Royal Blue"
 #define BORDER_URGENT "Red"
-#define BORDER_ABOVE "Dark Green"
 #define GAP 2
 
 // Title bar xft font
@@ -77,9 +76,6 @@
 // action_move_monitor
 // action_focus_monitor
 // action_fullscreen
-// action_above
-// action_snapshot
-// action_rollback
 
 // If you use "AnyModifier" place those keys at the end of the array.
 binding keys[] = {
@@ -118,9 +114,6 @@ binding keys[] = {
 
 	// Toggle current window full screen.
 	{ .mod = Mod4Mask, .key = XK_f, .act = action_fullscreen },
-
-	// Toggle current window above.
-	{ .mod = Mod4Mask, .key = XK_a, .act = action_above },
 
 	// Switch focus between monitors.
 	{ .mod = Mod4Mask, .key = XK_Next,  .act = action_focus_monitor, .num = +1 },

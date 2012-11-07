@@ -77,7 +77,7 @@ typedef struct {
 	XWindowAttributes attr;
 	Window transient, leader;
 	Atom type, states[ATOMLIST+1];
-	short monitor, visible, manage, input, urgent, full, above, ours;
+	short monitor, visible, manage, input, urgent, full, ours;
 	unsigned long spot;
 	char *class;
 } client;
