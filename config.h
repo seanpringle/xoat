@@ -50,13 +50,6 @@
 // If spot is not current, window won't steal focus.
 //#define SPOT_START SPOT1
 
-// If on multi-head, place windows on monitor N.
-// (0-based index, same order as xrandr list)
-//#define MONITOR_START 0
-
-// If on multi-head, place windows on monitor holding current window.
-#define MONITOR_START MONITOR_CURRENT
-
 // Available actions...
 // action_move             .num = SPOT1/2/3
 // action_focus            .num = SPOT1/2/3

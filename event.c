@@ -73,8 +73,7 @@ void map_request(XEvent *e)
 	client *c = window_build_client(e->xmaprequest.window);
 	if (c && c->manage)
 	{
-		c->monitor = MONITOR_START == MONITOR_CURRENT ? current_mon: MONITOR_START;
-		c->monitor = MIN(nmonitors-1, MAX(0, c->monitor));
+		c->monitor = current_mon;
 		monitor *m = &monitors[c->monitor];
 
 		int i, spot = SPOT_START == SPOT_CURRENT ? current_spot: SPOT_START;
