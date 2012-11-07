@@ -57,9 +57,7 @@ Display *display;
 #define STACK 64
 #define MONITORS 3
 #define ATOMLIST 10
-enum { MONITOR_CURRENT=-1 };
 enum { SPOT1=1, SPOT2, SPOT3, SPOT_CURRENT, SPOT_SMART, SPOT1_LEFT, SPOT1_RIGHT };
-enum { FOCUS_IGNORE=1, FOCUS_STEAL, };
 enum { LEFT=1, RIGHT, UP, DOWN };
 
 typedef struct {
@@ -77,7 +75,7 @@ typedef struct {
 	XWindowAttributes attr;
 	Window transient, leader;
 	Atom type, states[ATOMLIST+1];
-	short monitor, visible, manage, input, urgent, full, above, ours;
+	short monitor, visible, manage, input, urgent, full, ours;
 	unsigned long spot;
 	char *class;
 } client;
@@ -111,8 +109,6 @@ void action_move_monitor(void*, int, client*);
 void action_focus_monitor(void*, int, client*);
 void action_fullscreen(void*, int, client*);
 void action_above(void*, int, client*);
-void action_snapshot(void*, int, client*);
-void action_rollback(void*, int, client*);
 
 #include "config.h"
 
@@ -147,7 +143,7 @@ monitor monitors[MONITORS];
 int nmonitors = 1;
 short current_spot, current_mon;
 Window root, ewmh, current = None;
-stack windows, snapshot;
+stack windows;
 static int (*xerror)(Display *, XErrorEvent *);
 
 void catch_exit(int sig)

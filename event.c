@@ -73,8 +73,7 @@ void map_request(XEvent *e)
 	client *c = window_build_client(e->xmaprequest.window);
 	if (c && c->manage)
 	{
-		c->monitor = MONITOR_START == MONITOR_CURRENT ? current_mon: MONITOR_START;
-		c->monitor = MIN(nmonitors-1, MAX(0, c->monitor));
+		c->monitor = current_mon;
 		monitor *m = &monitors[c->monitor];
 
 		int i, spot = SPOT_START == SPOT_CURRENT ? current_spot: SPOT_START;
@@ -99,9 +98,7 @@ void map_notify(XEvent *e)
 	{
 		client_raise_family(c);
 		client_update_border(c);
-		// if no current window, or new window has opened in the current spot, focus it
-		if (FOCUS_START == FOCUS_STEAL || !(a = window_build_client(current)) || (a && a->spot == c->spot))
-			client_set_focus(c);
+		client_set_focus(c);
 		client_free(a);
 		ewmh_client_list();
 		update_bars();
