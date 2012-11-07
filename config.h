@@ -70,7 +70,6 @@
 // action_focus_direction  .num = UP/DOWN/LEFT/RIGHT
 // action_close
 // action_cycle
-// action_other
 // action_command
 // action_find_or_start
 // action_move_monitor

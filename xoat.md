@@ -65,11 +65,11 @@ Shift-Mod4-Next
 Shift-Mod4-Prior
 :	Move window to previous monitor.
 
-Shift-Mod4-x
+Mod4-x
 :	Launch dmenu_run
 
 F1
-:	Launch urxvt
+:	Launch xterm
 
 # OPTIONS
 
