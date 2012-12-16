@@ -8,7 +8,7 @@
 #define GAP 2
 
 // Title bar xft font
-#define TITLE "sans:bold:size=10"
+#define TITLE "sans:size=10"
 #define TITLE_BLUR "Black"
 #define TITLE_FOCUS "White"
 #define TITLE_ELLIPSIS 30
@@ -140,4 +140,5 @@ binding keys[] = {
 	// Find or start apps by WM_CLASS (lower case match).
 	// Only works for apps that use some form of their binary name as their class...
 	{ .mod = AnyModifier, .key = XK_F1, .act = action_find_or_start, .data = "xterm" },
+	{ .mod = AnyModifier, .key = XK_F2, .act = action_find_or_start, .data = "chromium" },
 };
