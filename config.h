@@ -110,7 +110,10 @@ binding keys[] = {
 	{ .mod = ShiftMask|Mod4Mask, .key = XK_Prior, .act = action_move_monitor, .num = -1 },
 
 	// Launcher
-	{ .mod = Mod4Mask, .key = XK_x, .act = action_command, .data = "dmenu_run" },
+	{ .mod = Mod4Mask, .key = XK_x,  .act = action_command, .data = "dmenu_run" },
+	{ .mod = Mod4Mask, .key = XK_F1, .act = action_command, .data = "konsole"   },
+	{ .mod = Mod4Mask, .key = XK_F2, .act = action_command, .data = "chromium"  },
+	{ .mod = Mod4Mask, .key = XK_F3, .act = action_command, .data = "pcmanfm"   },
 
 	// Find or start apps by WM_CLASS (lower case match).
 	// Only works for apps that use some form of their binary name as their class...
