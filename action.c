@@ -113,44 +113,16 @@ void action_fullscreen(void *data, int num, client *cli)
 	client_raise_family(cli);
 }
 
-void action_above(void *data, int num, client *cli)
+void action_maximize_vert(void *data, int num, client *cli)
 {
 	if (!cli) return;
-	client_toggle_state(cli, atoms[_NET_WM_STATE_ABOVE]);
-	client_update_border(cli);
-	client_raise_family(cli);
+	cli->maxv = client_toggle_state(cli, atoms[_NET_WM_STATE_MAXIMIZE_VERT]);
+	client_place_spot(cli, cli->spot, cli->monitor, 1);
 }
 
-void action_snapshot(void *data, int num, client *cli)
+void action_maximize_horz(void *data, int num, client *cli)
 {
-	int i; client *c; STACK_FREE(&snapshot);
-	for_windows(i, c) if (c->manage && c->class)
-		snapshot.clients[snapshot.depth++] = window_build_client(c->window);
+	if (!cli) return;
+	cli->maxh = client_toggle_state(cli, atoms[_NET_WM_STATE_MAXIMIZE_HORZ]);
+	client_place_spot(cli, cli->spot, cli->monitor, 1);
 }
-
-void action_rollback(void *data, int num, client *cli)
-{
-	int i; client *c = NULL, *s, *a = NULL;
-	for (i = snapshot.depth-1; i > -1; i--)
-	{
-		if ((s = snapshot.clients[i]) && (c = window_build_client(s->window))
-			&& c->class && !strcmp(s->class, c->class) && c->visible && c->manage)
-		{
-			client_place_spot(c, s->spot, s->monitor, 1);
-			client_raise_family(c);
-			if (s->spot == current_spot && s->monitor == current_mon)
-			{
-				client_free(a);
-				a = c; c = NULL;
-			}
-		}
-		client_free(c);
-		c = NULL;
-	}
-	if (a)
-	{
-		client_set_focus(a);
-		client_free(a);
-	}
-}
-

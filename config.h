@@ -4,11 +4,10 @@
 #define BORDER_BLUR "Dark Gray"
 #define BORDER_FOCUS "Royal Blue"
 #define BORDER_URGENT "Red"
-#define BORDER_ABOVE "Dark Green"
 #define GAP 2
 
 // Title bar xft font
-#define TITLE "sans:size=10"
+#define TITLE "sans:size=8"
 #define TITLE_BLUR "Black"
 #define TITLE_FOCUS "White"
 #define TITLE_ELLIPSIS 30
@@ -51,19 +50,6 @@
 // If spot is not current, window won't steal focus.
 //#define SPOT_START SPOT1
 
-// If on multi-head, place windows on monitor N.
-// (0-based index, same order as xrandr list)
-//#define MONITOR_START 0
-
-// If on multi-head, place windows on monitor holding current window.
-#define MONITOR_START MONITOR_CURRENT
-
-// Should new windows be automatically focused, or ignored until focused manually?
-// IGNORE means new windows only steal focus if they obscure the current window.
-// STEAL means new windows always steal focus.
-//#define FOCUS_START FOCUS_IGNORE
-#define FOCUS_START FOCUS_STEAL
-
 // Available actions...
 // action_move             .num = SPOT1/2/3
 // action_focus            .num = SPOT1/2/3
@@ -71,15 +57,13 @@
 // action_focus_direction  .num = UP/DOWN/LEFT/RIGHT
 // action_close
 // action_cycle
-// action_other
 // action_command
 // action_find_or_start
 // action_move_monitor
 // action_focus_monitor
 // action_fullscreen
-// action_above
-// action_snapshot
-// action_rollback
+// action_maximize_vert
+// action_maximize_horz
 
 // If you use "AnyModifier" place those keys at the end of the array.
 binding keys[] = {
@@ -118,9 +102,8 @@ binding keys[] = {
 
 	// Toggle current window full screen.
 	{ .mod = Mod4Mask, .key = XK_f, .act = action_fullscreen },
-
-	// Toggle current window above.
-	{ .mod = Mod4Mask, .key = XK_a, .act = action_above },
+	{ .mod = Mod4Mask, .key = XK_v, .act = action_maximize_vert },
+	{ .mod = Mod4Mask, .key = XK_h, .act = action_maximize_horz },
 
 	// Switch focus between monitors.
 	{ .mod = Mod4Mask, .key = XK_Next,  .act = action_focus_monitor, .num = +1 },
@@ -132,10 +115,6 @@ binding keys[] = {
 
 	// Launcher
 	{ .mod = Mod4Mask, .key = XK_x, .act = action_command, .data = "dmenu_run" },
-
-	// Snapshot state
-	{ .mod = Mod4Mask, .key = XK_s, .act = action_snapshot },
-	{ .mod = Mod4Mask, .key = XK_r, .act = action_rollback },
 
 	// Find or start apps by WM_CLASS (lower case match).
 	// Only works for apps that use some form of their binary name as their class...
