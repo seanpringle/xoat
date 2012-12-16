@@ -62,6 +62,8 @@
 // action_move_monitor
 // action_focus_monitor
 // action_fullscreen
+// action_maximize_vert
+// action_maximize_horz
 
 // If you use "AnyModifier" place those keys at the end of the array.
 binding keys[] = {
@@ -100,6 +102,8 @@ binding keys[] = {
 
 	// Toggle current window full screen.
 	{ .mod = Mod4Mask, .key = XK_f, .act = action_fullscreen },
+	{ .mod = Mod4Mask, .key = XK_v, .act = action_maximize_vert },
+	{ .mod = Mod4Mask, .key = XK_h, .act = action_maximize_horz },
 
 	// Switch focus between monitors.
 	{ .mod = Mod4Mask, .key = XK_Next,  .act = action_focus_monitor, .num = +1 },

@@ -75,7 +75,7 @@ typedef struct {
 	XWindowAttributes attr;
 	Window transient, leader;
 	Atom type, states[ATOMLIST+1];
-	short monitor, visible, manage, input, urgent, full, ours;
+	short monitor, visible, manage, input, urgent, full, ours, maxv, maxh;
 	unsigned long spot;
 	char *class;
 } client;
@@ -108,7 +108,8 @@ void action_find_or_start(void*, int, client*);
 void action_move_monitor(void*, int, client*);
 void action_focus_monitor(void*, int, client*);
 void action_fullscreen(void*, int, client*);
-void action_above(void*, int, client*);
+void action_maximize_vert(void*, int, client*);
+void action_maximize_horz(void*, int, client*);
 
 #include "config.h"
 

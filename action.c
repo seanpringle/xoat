@@ -112,3 +112,17 @@ void action_fullscreen(void *data, int num, client *cli)
 	client_update_border(cli);
 	client_raise_family(cli);
 }
+
+void action_maximize_vert(void *data, int num, client *cli)
+{
+	if (!cli) return;
+	cli->maxv = client_toggle_state(cli, atoms[_NET_WM_STATE_MAXIMIZE_VERT]);
+	client_place_spot(cli, cli->spot, cli->monitor, 1);
+}
+
+void action_maximize_horz(void *data, int num, client *cli)
+{
+	if (!cli) return;
+	cli->maxh = client_toggle_state(cli, atoms[_NET_WM_STATE_MAXIMIZE_HORZ]);
+	client_place_spot(cli, cli->spot, cli->monitor, 1);
+}
