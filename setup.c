@@ -57,6 +57,7 @@ void setup()
 	// detect and adjust for panel struts
 	monitor padded[MONITORS];
 	memmove(padded, monitors, sizeof(monitor) * MONITORS);
+	wm_strut all_struts; memset(&all_struts, 0, sizeof(wm_strut));
 
 	for_windows(i, c)
 	{
@@ -65,45 +66,37 @@ void setup()
 		int v1 = v2 ? 0: GETPROP_LONG(c->window, atoms[_NET_WM_STRUT], (unsigned long*)&strut, 4);
 		if (!c->visible || (!v1 && !v2)) continue;
 
-		for_monitors(j, m)
+		all_struts.left   = MAX(all_struts.left,   strut.left);
+		all_struts.right  = MAX(all_struts.right,  strut.right);
+		all_struts.top    = MAX(all_struts.top,    strut.top);
+		all_struts.bottom = MAX(all_struts.bottom, strut.bottom);
+	}
+
+	for_monitors(j, m)
+	{
+		monitor *p = &padded[j];
+
+		// monitor left side of root window?
+		if (all_struts.left > 0 && !m->x)
 		{
-			monitor *p = &padded[j];
-			// convert _NET_WM_STRUT to _PARTIAL
-			if (v1)
-			{
-				strut.ly1 = m->y; strut.ly2 = m->y + m->h;
-				strut.ry1 = m->y; strut.ry3 = m->y + m->h;
-				strut.tx1 = m->x; strut.tx2 = m->x + m->w;
-				strut.bx1 = m->x; strut.bx2 = m->x + m->w;
-			}
-			// monitor left side of root window?
-			if (strut.left > 0 && !m->x
-				&& INTERSECT(0, strut.ly1, strut.left, strut.ly2 - strut.ly1, m->x, m->y, m->w, m->h))
-			{
-				p->x = MAX(p->x, strut.left);
-				p->w = MIN(p->w, m->x + m->w - strut.left);
-			}
-			else
-			// monitor right side of root window?
-			if (strut.right > 0 && m->x + m->w == screen_w
-				&& INTERSECT(screen_w - strut.right, strut.ry1, strut.right, strut.ry3 - strut.ry1, m->x, m->y, m->w, m->h))
-			{
-				p->w = MIN(p->w, m->x + m->w - strut.right);
-			}
-			// monitor top side of root window?
-			if (strut.top > 0 && !m->y
-				&& INTERSECT(strut.tx1, 0, strut.tx2 - strut.tx1, strut.top, m->x, m->y, m->w, m->h))
-			{
-				p->y = MAX(p->y, strut.top);
-				p->h = MIN(p->h, m->y + m->h - strut.top);
-			}
-			else
-			// monitor bottom side of root window?
-			if (strut.bottom > 0 && m->y + m->h == screen_h
-				&& INTERSECT(strut.bx1, screen_h - strut.bottom, strut.bx2 - strut.bx1, strut.bottom, m->x, m->y, m->w, m->h))
-			{
-				p->h = MIN(p->h, m->y + m->h - strut.bottom);
-			}
+			p->x += all_struts.left;
+			p->w -= all_struts.left;
+		}
+		// monitor right side of root window?
+		if (all_struts.right > 0 && m->x + m->w == screen_w)
+		{
+			p->w -= all_struts.right;
+		}
+		// monitor top side of root window?
+		if (all_struts.top > 0 && !m->y)
+		{
+			p->y += all_struts.top;
+			p->h -= all_struts.top;
+		}
+		// monitor bottom side of root window?
+		if (all_struts.bottom > 0 && m->y + m->h == screen_h)
+		{
+			p->h -= all_struts.bottom;
 		}
 	}
 	memmove(monitors, padded, sizeof(monitor) * MONITORS);
