@@ -70,6 +70,7 @@ client* window_build_client(Window win)
 			&& c->type != atoms[_NET_WM_WINDOW_TYPE_SPLASH]
 			? 1:0;
 
+		// detect our own title bars
 		for_monitors(i, m) for_spots(j)
 			if (m->bars[j] && m->bars[j]->window == c->window)
 				{ c->ours = 1; c->manage = 0; break; }
@@ -92,8 +93,23 @@ client* window_build_client(Window win)
 			{
 				if (!GETPROP_ATOM(c->window, atoms[_NET_WM_STATE], c->states, ATOMLIST))
 					memset(c->states, 0, sizeof(Atom) * ATOMLIST);
+
 				c->urgent = client_has_state(c, atoms[_NET_WM_STATE_DEMANDS_ATTENTION]);
 				c->full   = client_has_state(c, atoms[_NET_WM_STATE_FULLSCREEN]);
+				c->maxv   = client_has_state(c, atoms[_NET_WM_STATE_MAXIMIZE_VERT]);
+				c->maxh   = client_has_state(c, atoms[_NET_WM_STATE_MAXIMIZE_HORZ]);
+
+				// _NET_WM_STATE_MAXIMIZE_VERT may apply to spot2 windows. Detect...
+				if (c->maxv && c->type != atoms[_NET_WM_WINDOW_TYPE_DIALOG]
+					&& INTERSECT(m->spots[SPOT2].x, m->spots[SPOT2].y, m->spots[SPOT2].w, m->spots[SPOT2].h,
+						c->attr.x + c->attr.width/10, c->attr.y + c->attr.height/10, c->attr.width  - c->attr.width/10, c->attr.height - c->attr.height/10))
+							c->spot = SPOT2;
+
+				// _NET_WM_STATE_MAXIMIZE_HORZ may apply to spot3 windows. Detect...
+				if (c->maxh && c->type != atoms[_NET_WM_WINDOW_TYPE_DIALOG]
+					&& INTERSECT(m->spots[SPOT3].x, m->spots[SPOT3].y, m->spots[SPOT3].w, m->spots[SPOT3].h,
+						c->attr.x + c->attr.width/10, c->attr.y + c->attr.height/10, c->attr.width  - c->attr.width/10, c->attr.height - c->attr.height/10))
+							c->spot = SPOT3;
 
 				if ((hints = XGetWMHints(display, c->window)))
 				{
@@ -179,6 +195,19 @@ void client_place_spot(client *c, int spot, int mon, int force)
 		XMoveResizeWindow(display, c->window, m->x, m->y, m->w, m->h);
 		return;
 	}
+	else
+	// _NET_WM_STATE_MAXIMIZE_VERT may apply to a window in spot2
+	if (c->maxv && spot == SPOT2)
+	{
+		h = m->h - y;
+	}
+	else
+	// _NET_WM_STATE_MAXIMIZE_HORZ may apply to a window in spot3
+	if (c->maxh && spot == SPOT3)
+	{
+		w = m->w;
+	}
+
 	w -= BORDER*2; h -= BORDER*2;
 	int sw = w, sh = h; long sr; XSizeHints size;
 
@@ -242,8 +271,19 @@ void client_raise_family(client *c)
 		c = family.clients[family.depth++] = o;
 
 	client_stack_family(c, &raise);
+
+	if (!c->full)
+	{
+		// raise spot's title bar in case some other fullscreen or max v/h window has obscured
+		monitor *m = &monitors[c->monitor];
+		raise.windows[raise.depth] = m->bars[c->spot]->window;
+		raise.clients[raise.depth] = NULL;
+		raise.depth++;
+	}
+
 	XRaiseWindow(display, raise.windows[0]);
 	XRestackWindows(display, raise.windows, raise.depth);
+
 	STACK_FREE(&family);
 }
 
