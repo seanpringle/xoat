@@ -128,7 +128,4 @@ binding keys[] = {
 	{ .mod = AnyModifier, .key = XK_F1, .act = action_find_or_start, .data = "konsole"  },
 	{ .mod = AnyModifier, .key = XK_F2, .act = action_find_or_start, .data = "chromium" },
 	{ .mod = AnyModifier, .key = XK_F3, .act = action_find_or_start, .data = "pcmanfm"  },
-	{ .mod = AnyModifier, .key = XK_F4, .act = action_find_or_start, .data = "kate" },
-
-	{ .mod = AnyModifier, .key = XK_Menu, .act = action_command, .data = "xowl" },
 };
