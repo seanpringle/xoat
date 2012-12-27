@@ -71,9 +71,10 @@ client* window_build_client(Window win)
 			? 1:0;
 
 		// detect our own title bars
-		for_monitors(i, m) for_spots(j)
-			if (m->bars[j] && m->bars[j]->window == c->window)
-				{ c->ours = 1; c->manage = 0; break; }
+		if (TITLE)
+			for_monitors(i, m) for_spots(j)
+				if (m->bars[j] && m->bars[j]->window == c->window)
+					{ c->ours = 1; c->manage = 0; break; }
 
 		if (c->manage)
 		{
@@ -272,7 +273,7 @@ void client_raise_family(client *c)
 
 	client_stack_family(c, &raise);
 
-	if (!c->full)
+	if (!c->full && TITLE)
 	{
 		// raise spot's title bar in case some other fullscreen or max v/h window has obscured
 		monitor *m = &monitors[c->monitor];

@@ -185,16 +185,19 @@ void setup()
 	XGrabButton(display, Button3, AnyModifier, root, True, ButtonPressMask, GrabModeSync, GrabModeSync, None, None);
 
 	// create title bars
-	STACK_FREE(&windows);
-	for_monitors(i, m) for_spots(j)
+	if (TITLE)
 	{
-		m->bars[j] = textbox_create(root, TB_AUTOHEIGHT|TB_LEFT, m->spots[j].x, m->spots[j].y, m->spots[j].w, 0,
-			TITLE, TITLE_BLUR, BORDER_BLUR, NULL, NULL);
-		XSelectInput(display, m->bars[j]->window, ExposureMask);
+		STACK_FREE(&windows);
+		for_monitors(i, m) for_spots(j)
+		{
+			m->bars[j] = textbox_create(root, TB_AUTOHEIGHT|TB_LEFT, m->spots[j].x, m->spots[j].y, m->spots[j].w, 0,
+				TITLE, TITLE_BLUR, BORDER_BLUR, NULL, NULL);
+			XSelectInput(display, m->bars[j]->window, ExposureMask);
 
-		m->spots[j].y += m->bars[j]->h;
-		m->spots[j].h -= m->bars[j]->h;
-		spot_update_bar(j, i);
+			m->spots[j].y += m->bars[j]->h;
+			m->spots[j].h -= m->bars[j]->h;
+			spot_update_bar(j, i);
+		}
 	}
 
 	// setup existing managable windows

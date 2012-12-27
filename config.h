@@ -6,8 +6,12 @@
 #define BORDER_URGENT "Red"
 #define GAP 2
 
-// Title bar xft font
+// Title bar xft font.
+// Setting this to NULL will disable title bars
+//#define TITLE NULL
 #define TITLE "sans:size=8"
+
+// Title bar style
 #define TITLE_BLUR "Black"
 #define TITLE_FOCUS "White"
 #define TITLE_ELLIPSIS 32
