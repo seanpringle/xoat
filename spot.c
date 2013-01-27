@@ -51,25 +51,29 @@ void spot_update_bar(int spot, int mon)
 		}
 		if (tmp) XFree(tmp);
 	}
-	if (c && !c->full && *title && m->bars[spot])
+	if (TITLE)
 	{
-		int focus = c->window == current || (spot == current_spot && mon == current_mon);
-		char *color  = focus && c->window == current ? TITLE_FOCUS : TITLE_BLUR;
-		char *border = focus && c->window == current ? BORDER_FOCUS: BORDER_BLUR;
-		textbox_font(m->bars[spot], TITLE, color, border);
-		textbox_text(m->bars[spot], title);
-		textbox_draw(m->bars[spot]);
-		textbox_show(m->bars[spot]);
+		if (c && !c->full && *title && m->bars[spot])
+		{
+			int focus = c->window == current || (spot == current_spot && mon == current_mon);
+			char *color  = focus && c->window == current ? TITLE_FOCUS : TITLE_BLUR;
+			char *border = focus && c->window == current ? BORDER_FOCUS: BORDER_BLUR;
+			textbox_font(m->bars[spot], TITLE, color, border);
+			textbox_text(m->bars[spot], title);
+			textbox_draw(m->bars[spot]);
+			textbox_show(m->bars[spot]);
+		}
+		else
+		if (m->bars[spot])
+			textbox_hide(m->bars[spot]);
 	}
-	else
-	if (m->bars[spot])
-		textbox_hide(m->bars[spot]);
 }
 
 void update_bars()
 {
 	int i, j; monitor *m;
-	for_monitors(i, m) for_spots(j) spot_update_bar(j, i);
+	if (TITLE) for_monitors(i, m) for_spots(j)
+		spot_update_bar(j, i);
 }
 
 Window spot_focus_top_window(int spot, int mon, Window except)

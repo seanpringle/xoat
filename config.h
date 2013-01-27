@@ -6,11 +6,15 @@
 #define BORDER_URGENT "Red"
 #define GAP 2
 
-// Title bar xft font
+// Title bar xft font.
+// Setting this to NULL will disable title bars
+//#define TITLE NULL
 #define TITLE "sans:size=8"
+
+// Title bar style
 #define TITLE_BLUR "Black"
 #define TITLE_FOCUS "White"
-#define TITLE_ELLIPSIS 30
+#define TITLE_ELLIPSIS 32
 
 // There are three static tiles called SPOT1, SPOT2, and SPOT3.
 // Want more tiles? Different layouts? Floating? Go away ;)
@@ -114,10 +118,14 @@ binding keys[] = {
 	{ .mod = ShiftMask|Mod4Mask, .key = XK_Prior, .act = action_move_monitor, .num = -1 },
 
 	// Launcher
-	{ .mod = Mod4Mask, .key = XK_x, .act = action_command, .data = "dmenu_run" },
+	{ .mod = Mod4Mask, .key = XK_x,  .act = action_command, .data = "dmenu_run" },
+	{ .mod = Mod4Mask, .key = XK_F1, .act = action_command, .data = "konsole"   },
+	{ .mod = Mod4Mask, .key = XK_F2, .act = action_command, .data = "chromium"  },
+	{ .mod = Mod4Mask, .key = XK_F3, .act = action_command, .data = "pcmanfm"   },
 
 	// Find or start apps by WM_CLASS (lower case match).
 	// Only works for apps that use some form of their binary name as their class...
-	{ .mod = AnyModifier, .key = XK_F1, .act = action_find_or_start, .data = "xterm" },
+	{ .mod = AnyModifier, .key = XK_F1, .act = action_find_or_start, .data = "konsole"  },
 	{ .mod = AnyModifier, .key = XK_F2, .act = action_find_or_start, .data = "chromium" },
+	{ .mod = AnyModifier, .key = XK_F3, .act = action_find_or_start, .data = "pcmanfm"  },
 };
