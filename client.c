@@ -100,6 +100,8 @@ client* window_build_client(Window win)
 				c->maxv   = client_has_state(c, atoms[_NET_WM_STATE_MAXIMIZE_VERT]);
 				c->maxh   = client_has_state(c, atoms[_NET_WM_STATE_MAXIMIZE_HORZ]);
 
+				GETPROP_LONG(win, atoms[XOAT_MAXIMIZE], &c->max, 1);
+
 				// _NET_WM_STATE_MAXIMIZE_VERT may apply to spot2 windows. Detect...
 				if (c->maxv && c->type != atoms[_NET_WM_WINDOW_TYPE_DIALOG]
 					&& INTERSECT(m->spots[SPOT2].x, m->spots[SPOT2].y, m->spots[SPOT2].w, m->spots[SPOT2].h,
@@ -206,6 +208,12 @@ void client_place_spot(client *c, int spot, int mon, int force)
 	// _NET_WM_STATE_MAXIMIZE_HORZ may apply to a window in spot3
 	if (c->maxh && spot == SPOT3)
 	{
+		w = m->w;
+	}
+	else
+	if (c->max && spot == SPOT1)
+	{
+		h = m->h - y;
 		w = m->w;
 	}
 

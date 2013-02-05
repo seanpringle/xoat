@@ -76,7 +76,7 @@ typedef struct {
 	Window transient, leader;
 	Atom type, states[ATOMLIST+1];
 	short monitor, visible, manage, input, urgent, full, ours, maxv, maxh;
-	unsigned long spot;
+	unsigned long spot, max;
 	char *class;
 } client;
 
@@ -110,6 +110,7 @@ void action_focus_monitor(void*, int, client*);
 void action_fullscreen(void*, int, client*);
 void action_maximize_vert(void*, int, client*);
 void action_maximize_horz(void*, int, client*);
+void action_maximize(void*, int, client*);
 
 #include "config.h"
 

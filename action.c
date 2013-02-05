@@ -113,6 +113,14 @@ void action_fullscreen(void *data, int num, client *cli)
 	client_raise_family(cli);
 }
 
+void action_maximize(void *data, int num, client *cli)
+{
+	if (!cli) return;
+	cli->max = !cli->max;
+	SETPROP_LONG(cli->window, atoms[XOAT_MAXIMIZE], &cli->max, 1);
+	client_place_spot(cli, cli->spot, cli->monitor, 1);
+}
+
 void action_maximize_vert(void *data, int num, client *cli)
 {
 	if (!cli) return;
