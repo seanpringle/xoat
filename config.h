@@ -108,6 +108,7 @@ binding keys[] = {
 	{ .mod = Mod4Mask, .key = XK_f, .act = action_fullscreen },
 	{ .mod = Mod4Mask, .key = XK_v, .act = action_maximize_vert },
 	{ .mod = Mod4Mask, .key = XK_h, .act = action_maximize_horz },
+	{ .mod = Mod4Mask, .key = XK_m, .act = action_maximize },
 
 	// Switch focus between monitors.
 	{ .mod = Mod4Mask, .key = XK_Next,  .act = action_focus_monitor, .num = +1 },
