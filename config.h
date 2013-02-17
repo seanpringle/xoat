@@ -108,14 +108,15 @@ binding keys[] = {
 	{ .mod = Mod4Mask, .key = XK_f, .act = action_fullscreen },
 	{ .mod = Mod4Mask, .key = XK_v, .act = action_maximize_vert },
 	{ .mod = Mod4Mask, .key = XK_h, .act = action_maximize_horz },
+	{ .mod = Mod4Mask, .key = XK_m, .act = action_maximize },
 
 	// Switch focus between monitors.
-	{ .mod = Mod4Mask, .key = XK_Next,  .act = action_focus_monitor, .num = +1 },
-	{ .mod = Mod4Mask, .key = XK_Prior, .act = action_focus_monitor, .num = -1 },
+	{ .mod = Mod4Mask, .key = XK_Next,  .act = action_focus_monitor, .num = -1 },
+	{ .mod = Mod4Mask, .key = XK_Prior, .act = action_focus_monitor, .num = +1 },
 
 	// Move windows between monitors.
-	{ .mod = ShiftMask|Mod4Mask, .key = XK_Next,  .act = action_move_monitor, .num = +1 },
-	{ .mod = ShiftMask|Mod4Mask, .key = XK_Prior, .act = action_move_monitor, .num = -1 },
+	{ .mod = ShiftMask|Mod4Mask, .key = XK_Next,  .act = action_move_monitor, .num = -1 },
+	{ .mod = ShiftMask|Mod4Mask, .key = XK_Prior, .act = action_move_monitor, .num = +1 },
 
 	// Launcher
 	{ .mod = Mod4Mask, .key = XK_x,  .act = action_command, .data = "dmenu_run" },
@@ -128,4 +129,6 @@ binding keys[] = {
 	{ .mod = AnyModifier, .key = XK_F1, .act = action_find_or_start, .data = "konsole"  },
 	{ .mod = AnyModifier, .key = XK_F2, .act = action_find_or_start, .data = "chromium" },
 	{ .mod = AnyModifier, .key = XK_F3, .act = action_find_or_start, .data = "pcmanfm"  },
+
+	{ .mod = AnyModifier, .key = XK_Menu, .act = action_command, .data = "xowl"  },
 };
