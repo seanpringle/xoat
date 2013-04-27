@@ -179,6 +179,12 @@ void property_notify(XEvent *ev)
 	XPropertyEvent *e = &ev->xproperty;
 
 	client *c = window_build_client(e->window);
+	if (e->window == root && e->atom == atoms[WM_NAME])
+	{
+		// root name appears in SPOT1 bar, for status etc
+		update_bars();
+	}
+	else
 	if (c && c->visible && c->manage)
 	{
 		client_update_border(c);

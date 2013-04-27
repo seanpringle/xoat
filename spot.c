@@ -32,6 +32,15 @@ void spot_update_bar(int spot, int mon)
 	char title[SPOT_BUFF]; *title = 0;
 	monitor *m = &monitors[mon];
 
+	if (spot == SPOT1)
+	{
+		// Show X root window name in spot1 bar
+		// Use xsetroot -name for a custom status
+		char *tmp = NULL;
+		if (XFetchName(display, root, &tmp))
+			len += snprintf(title+len, MAX(0, SPOT_BUFF-len), " %s  ", tmp);
+		if (tmp) XFree(tmp);
+	}
 	for_windows(i, o) if (o->manage && o->spot == spot && o->monitor == mon)
 	{
 		if (!c) c = o;

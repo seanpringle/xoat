@@ -150,7 +150,7 @@ void setup()
 	}
 
 	// become the window manager
-	XSelectInput(display, root, StructureNotifyMask | SubstructureRedirectMask | SubstructureNotifyMask);
+	XSelectInput(display, root, PropertyChangeMask | StructureNotifyMask | SubstructureRedirectMask | SubstructureNotifyMask);
 
 	// ewmh support
 	unsigned long pid = getpid();
