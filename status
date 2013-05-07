@@ -1,0 +1,10 @@
+#!/bin/bash
+# xoat displays root window name in spot1 bar
+
+datetime=$(date '+%a %b %d %R')
+temp=$(cat /sys/class/thermal/thermal_zone0/temp | cut -b1-2)
+cpu=$(top -b -d 0.1 -n2 | grep '%Cpu' | tail -n1 | awk '{ printf "%02d", 100-$8}')
+battery=$(acpi | awk -F"[ %]" '{print $4}')
+volume=$(amixer get Master | tail -n 1 | awk -F"[][%]" '{print $2}')
+
+xsetroot -name "${datetime}   Bat ${battery}%   CPU ${cpu}%   Temp ${temp}C   Vol ${volume}%"
