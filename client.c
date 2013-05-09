@@ -104,16 +104,21 @@ client* window_build_client(Window win)
 
 				// _NET_WM_STATE_MAXIMIZE_VERT may apply to spot2 windows. Detect...
 				if (c->maxv && c->type != atoms[_NET_WM_WINDOW_TYPE_DIALOG]
-					&& INTERSECT(m->spots[SPOT2].x, m->spots[SPOT2].y, m->spots[SPOT2].w, m->spots[SPOT2].h,
-						c->attr.x + c->attr.width/10, c->attr.y + c->attr.height/10, c->attr.width  - c->attr.width/10, c->attr.height - c->attr.height/10))
-							c->spot = SPOT2;
-
-				// _NET_WM_STATE_MAXIMIZE_HORZ may apply to spot3 windows. Detect...
+					&& INTERSECT(c->attr.x, c->attr.y, c->attr.width, c->attr.height,
+						m->spots[SPOT2].x + m->spots[SPOT2].w/2, m->spots[SPOT2].y + m->spots[SPOT2].h/2, 1, 1))
+				{
+					c->spot = SPOT3;
+				}
+				else
+				// _NET_WM_STATE_MAXIMIZE_HORZ may apply to spot3 windows with c->max. Detect...
 				if (c->maxh && c->type != atoms[_NET_WM_WINDOW_TYPE_DIALOG]
-					&& INTERSECT(m->spots[SPOT3].x, m->spots[SPOT3].y, m->spots[SPOT3].w, m->spots[SPOT3].h,
-						c->attr.x + c->attr.width/10, c->attr.y + c->attr.height/10, c->attr.width  - c->attr.width/10, c->attr.height - c->attr.height/10))
-							c->spot = SPOT3;
-
+					&& INTERSECT(c->attr.x, c->attr.y, c->attr.width, c->attr.height,
+						m->spots[SPOT3].x + m->spots[SPOT3].w/2, m->spots[SPOT3].y + m->spots[SPOT3].h/2, 1, 1)
+					&& !INTERSECT(c->attr.x, c->attr.y, c->attr.width, c->attr.height,
+						m->spots[SPOT2].x + m->spots[SPOT2].w/2, m->spots[SPOT2].y + m->spots[SPOT2].h/2, 1, 1))
+				{
+					c->spot = SPOT3;
+				}
 				if ((hints = XGetWMHints(display, c->window)))
 				{
 					c->input  = hints->flags & InputHint && hints->input ? 1:0;
