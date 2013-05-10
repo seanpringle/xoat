@@ -107,7 +107,7 @@ client* window_build_client(Window win)
 					&& INTERSECT(c->attr.x, c->attr.y, c->attr.width, c->attr.height,
 						m->spots[SPOT2].x + m->spots[SPOT2].w/2, m->spots[SPOT2].y + m->spots[SPOT2].h/2, 1, 1))
 				{
-					c->spot = SPOT3;
+					c->spot = SPOT2;
 				}
 				else
 				// _NET_WM_STATE_MAXIMIZE_HORZ may apply to spot3 windows with c->max. Detect...
