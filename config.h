@@ -27,32 +27,28 @@
 // |                   |         |
 // |                   |    3    |
 // -------------------------------
-
 // Actually, there are a few layout choices, but only at build time.
 
-// The layout can be flipped so SPOT1 is on the right.
-// If you do this, review the directional move/focus key bindings too.
-#define SPOT1_ALIGN SPOT1_LEFT
-//#define SPOT1_ALIGN SPOT1_RIGHT
+// .spot_start = SMART|CURRENT|SPOT1|SPOT2|SPOT3
+//   SMART: Make new windows go to the spot of best fit.
+//     Works best when apps remember or specify their size.
+//   CURRENT: New windows open in the focused spot.
 
-// Width of SPOT1 as percentage of screen width.
-#define SPOT1_WIDTH_PCT 67
+// .spot1_align = LEFT|RIGHT
+//   The layout can be flipped so SPOT1 is on the right.
+//   If you do this, review the directional move/focus key bindings too.
 
-// Height of SPOT2 as percentage of screen height.
-#define SPOT2_HEIGHT_PCT 67
+// .spot1_width_pct = N
+//   Width of SPOT1 as percentage of screen width.
 
-// Make new windows go to the same spot as the current window.
-// This implies auto-raise and focus stealing.
-//#define SPOT_START SPOT_CURRENT
+// .spot1_height_pct = N
+//   Height of SPOT2 as percentage of screen height.
 
-// Make new windows go to the spot of best fit.
-// Works best when apps remember or specify their size.
-// If spot is not current, window won't steal focus.
-#define SPOT_START SPOT_SMART
-
-// Make all new windows go to a specific spot.
-// If spot is not current, window won't steal focus.
-//#define SPOT_START SPOT1
+layout layouts[] = {
+	// Look at xrandr output to determine your monitor order.
+	{ .spot_start = SMART, .spot1_align = LEFT,  .spot1_width_pct = 66, .spot2_height_pct = 66 }, // primary monitor
+	{ .spot_start = SMART, .spot1_align = RIGHT, .spot1_width_pct = 60, .spot2_height_pct = 66 }, // secondary monitor, etc...
+};
 
 // Available actions...
 // action_move             .num = SPOT1/2/3
@@ -128,7 +124,8 @@ binding keys[] = {
 	// Only works for apps that use some form of their binary name as their class...
 	{ .mod = AnyModifier, .key = XK_F1, .act = action_find_or_start, .data = "konsole"  },
 	{ .mod = AnyModifier, .key = XK_F2, .act = action_find_or_start, .data = "chromium" },
-	{ .mod = AnyModifier, .key = XK_F3, .act = action_find_or_start, .data = "thunar"   },
+	{ .mod = AnyModifier, .key = XK_F3, .act = action_find_or_start, .data = "pcmanfm"  },
+	{ .mod = AnyModifier, .key = XK_F4, .act = action_find_or_start, .data = "sublime-text" },
 
-	{ .mod = AnyModifier, .key = XK_Menu, .act = action_command, .data = "xowl"  },
+	{ .mod = AnyModifier, .key = XK_Print, .act = action_command, .data = "xowl"  },
 };

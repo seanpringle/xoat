@@ -115,18 +115,20 @@ Window spot_try_focus_top_window(int spot, int mon, Window except)
 int spot_choose_by_direction(int spot, int mon, int dir)
 {
 	monitor *m = &monitors[mon];
+	int spot1_align = have_layout(mon) ? layouts[mon].spot1_align : LEFT ;
+
 	if (m->w < m->h) // rotated?
 	{
 		if (dir == LEFT)  return SPOT3;
 		if (dir == RIGHT) return SPOT2;
-		if (dir == UP)    return SPOT1_ALIGN == SPOT1_LEFT ? SPOT1: SPOT2;
-		if (dir == DOWN)  return SPOT1_ALIGN == SPOT1_LEFT ? SPOT2: SPOT1;
+		if (dir == UP)    return spot1_align == LEFT ? SPOT1: SPOT2;
+		if (dir == DOWN)  return spot1_align == LEFT ? SPOT2: SPOT1;
 		return spot;
 	}
 	if (dir == UP)    return SPOT2;
 	if (dir == DOWN)  return SPOT3;
-	if (dir == LEFT)  return SPOT1_ALIGN == SPOT1_LEFT ? SPOT1: SPOT2;
-	if (dir == RIGHT) return SPOT1_ALIGN == SPOT1_LEFT ? SPOT2: SPOT1;
+	if (dir == LEFT)  return spot1_align == LEFT ? SPOT1: SPOT2;
+	if (dir == RIGHT) return spot1_align == LEFT ? SPOT2: SPOT1;
 	return spot;
 }
 

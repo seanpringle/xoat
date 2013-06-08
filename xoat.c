@@ -57,7 +57,7 @@ Display *display;
 #define STACK 64
 #define MONITORS 3
 #define ATOMLIST 10
-enum { SPOT1=1, SPOT2, SPOT3, SPOT_CURRENT, SPOT_SMART, SPOT1_LEFT, SPOT1_RIGHT };
+enum { SPOT1=1, SPOT2, SPOT3, CURRENT, SMART };
 enum { LEFT=1, RIGHT, UP, DOWN };
 
 typedef struct {
@@ -93,6 +93,12 @@ typedef struct {
 	void *data;
 	int num;
 } binding;
+
+typedef struct {
+	short spot_start, spot1_align, spot1_width_pct, spot2_height_pct;
+} layout;
+
+#define have_layout(i) (sizeof(layouts) / sizeof(layout) > (i))
 
 client* window_build_client(Window);
 void client_free(client*);

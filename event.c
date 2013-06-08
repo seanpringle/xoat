@@ -75,12 +75,15 @@ void map_request(XEvent *e)
 	{
 		c->monitor = current_mon;
 		monitor *m = &monitors[c->monitor];
+		int spot = have_layout(c->monitor) ? layouts[c->monitor].spot_start: SMART;
 
-		int i, spot = SPOT_START == SPOT_CURRENT ? current_spot: SPOT_START;
-
-		if (SPOT_START == SPOT_SMART) // find spot of best fit
+		if (spot == CURRENT)
 		{
-			spot = SPOT1; for_spots_rev(i)
+			spot = current_spot;
+		}
+		if (spot == SMART) // find spot of best fit
+		{
+			int i; spot = SPOT1; for_spots_rev(i)
 				if (c->attr.width <= m->spots[i].w && c->attr.height <= m->spots[i].h)
 					{ spot = i; break; }
 		}

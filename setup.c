@@ -105,20 +105,26 @@ void setup()
 	for_monitors(i, m)
 	{
 		int x = m->x, y = m->y, w = m->w, h = m->h;
+
+		// determine spot layout for this monitor
+		int spot1_align      = have_layout(i) ? layouts[i].spot1_align      : LEFT ;
+		int spot1_width_pct  = have_layout(i) ? layouts[i].spot1_width_pct  : 66;
+		int spot2_height_pct = have_layout(i) ? layouts[i].spot2_height_pct : 66;
+
 		// monitor rotated?
 		if (m->w < m->h)
 		{
-			int height_spot1 = (double)h / 100 * MIN(90, MAX(10, SPOT1_WIDTH_PCT));
-			int width_spot2  = (double)w / 100 * MIN(90, MAX(10, SPOT2_HEIGHT_PCT));
+			int height_spot1 = (double)h / 100 * MIN(90, MAX(10, spot1_width_pct));
+			int width_spot2  = (double)w / 100 * MIN(90, MAX(10, spot2_height_pct));
 			for_spots(j)
 			{
 				m->spots[j].x = x;
-				m->spots[j].y = SPOT1_ALIGN == SPOT1_LEFT ? y: y + h - height_spot1;
+				m->spots[j].y = spot1_align == LEFT ? y: y + h - height_spot1;
 				m->spots[j].w = w;
 				m->spots[j].h = height_spot1;
 				if (j == SPOT1) continue;
 
-				m->spots[j].y = SPOT1_ALIGN == SPOT1_LEFT ? y + height_spot1 + GAP: y;
+				m->spots[j].y = spot1_align == LEFT ? y + height_spot1 + GAP: y;
 				m->spots[j].h = h - height_spot1 - GAP;
 				m->spots[j].w = w - width_spot2 - GAP;
 				if (j == SPOT3) continue;
@@ -129,17 +135,17 @@ void setup()
 			continue;
 		}
 		// normal wide screen
-		int width_spot1  = (double)w / 100 * MIN(90, MAX(10, SPOT1_WIDTH_PCT));
-		int height_spot2 = (double)h / 100 * MIN(90, MAX(10, SPOT2_HEIGHT_PCT));
+		int width_spot1  = (double)w / 100 * MIN(90, MAX(10, spot1_width_pct));
+		int height_spot2 = (double)h / 100 * MIN(90, MAX(10, spot2_height_pct));
 		for_spots(j)
 		{
-			m->spots[j].x = SPOT1_ALIGN == SPOT1_LEFT ? x: x + w - width_spot1;
+			m->spots[j].x = spot1_align == LEFT ? x: x + w - width_spot1;
 			m->spots[j].y = y;
 			m->spots[j].w = width_spot1;
 			m->spots[j].h = h;
 			if (j == SPOT1) continue;
 
-			m->spots[j].x = SPOT1_ALIGN == SPOT1_LEFT ? x + width_spot1 + GAP: x;
+			m->spots[j].x = spot1_align == LEFT ? x + width_spot1 + GAP: x;
 			m->spots[j].w = w - width_spot1 - GAP;
 			m->spots[j].h = height_spot2;
 			if (j == SPOT2) continue;
