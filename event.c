@@ -113,7 +113,10 @@ void unmap_notify(XEvent *e)
 {
 	// if this window was focused, find something else
 	if (e->xunmap.window == current && !spot_focus_top_window(current_spot, current_mon, current))
-		{ int i; for_spots(i) if (spot_focus_top_window(i, current_mon, current)) break; }
+	{
+		int i; for_spots(i)
+			if (spot_focus_top_window(i, current_mon, current)) break;
+	}
 	ewmh_client_list();
 	update_bars();
 }

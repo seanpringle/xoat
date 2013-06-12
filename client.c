@@ -86,9 +86,18 @@ client* window_build_client(Window win)
 				if (INTERSECT(m->x, m->y, m->w, m->h, c->attr.x + c->attr.width/2, c->attr.y+c->attr.height/2, 1, 1))
 					{ c->monitor = i; break; }
 
-			for_spots_rev(i)
-				if (INTERSECT(m->spots[i].x, m->spots[i].y, m->spots[i].w, m->spots[i].h, c->attr.x + c->attr.width/2, c->attr.y+c->attr.height/2, 1, 1))
-					{ c->spot = i; break; }
+			int intersect_1 = INTERSECT(c->attr.x, c->attr.y, c->attr.width, c->attr.height,
+				m->spots[SPOT1].x + m->spots[SPOT1].w/2, m->spots[SPOT1].y + m->spots[SPOT1].h/2, 1, 1);
+
+			int intersect_2 = INTERSECT(c->attr.x, c->attr.y, c->attr.width, c->attr.height,
+				m->spots[SPOT2].x + m->spots[SPOT2].w/2, m->spots[SPOT2].y + m->spots[SPOT2].h/2, 1, 1);
+
+			int intersect_3 = INTERSECT(c->attr.x, c->attr.y, c->attr.width, c->attr.height,
+				m->spots[SPOT3].x + m->spots[SPOT3].w/2, m->spots[SPOT3].y + m->spots[SPOT3].h/2, 1, 1);
+
+			     if (intersect_3) c->spot = SPOT3;
+			else if (intersect_2) c->spot = SPOT2;
+			else if (intersect_1) c->spot = SPOT1;
 
 			if (c->visible)
 			{
@@ -102,20 +111,23 @@ client* window_build_client(Window win)
 
 				GETPROP_LONG(win, atoms[XOAT_MAXIMIZE], &c->max, 1);
 
+				// proper spot detection based on toggled atoms.
+				// XOAT_MAXIMIZE may apply to spot1 windows. Detect...
+				if (c->max && intersect_1)
+				{
+					c->spot = SPOT1;
+				}
+				else
 				// _NET_WM_STATE_MAXIMIZE_VERT may apply to spot2 windows. Detect...
 				if (c->maxv && c->type != atoms[_NET_WM_WINDOW_TYPE_DIALOG]
-					&& INTERSECT(c->attr.x, c->attr.y, c->attr.width, c->attr.height,
-						m->spots[SPOT2].x + m->spots[SPOT2].w/2, m->spots[SPOT2].y + m->spots[SPOT2].h/2, 1, 1))
+					&& !intersect_1 && intersect_2)
 				{
 					c->spot = SPOT2;
 				}
 				else
 				// _NET_WM_STATE_MAXIMIZE_HORZ may apply to spot3 windows with c->max. Detect...
 				if (c->maxh && c->type != atoms[_NET_WM_WINDOW_TYPE_DIALOG]
-					&& INTERSECT(c->attr.x, c->attr.y, c->attr.width, c->attr.height,
-						m->spots[SPOT3].x + m->spots[SPOT3].w/2, m->spots[SPOT3].y + m->spots[SPOT3].h/2, 1, 1)
-					&& !INTERSECT(c->attr.x, c->attr.y, c->attr.width, c->attr.height,
-						m->spots[SPOT2].x + m->spots[SPOT2].w/2, m->spots[SPOT2].y + m->spots[SPOT2].h/2, 1, 1))
+					&& !intersect_1 && !intersect_2 && intersect_3)
 				{
 					c->spot = SPOT3;
 				}
