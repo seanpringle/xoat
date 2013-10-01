@@ -197,6 +197,7 @@ int oops(Display *d, XErrorEvent *ee)
 	if (ee->error_code == BadWindow
 		|| (ee->request_code == X_SetInputFocus   && ee->error_code == BadMatch)
 		|| (ee->request_code == X_ConfigureWindow && ee->error_code == BadMatch)
+		|| (ee->request_code == X_ConfigureWindow && ee->error_code == BadValue)
 		|| (ee->request_code == X_GrabButton      && ee->error_code == BadAccess)
 		|| (ee->request_code == X_GrabKey         && ee->error_code == BadAccess)
 		) return 0;
