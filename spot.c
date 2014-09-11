@@ -132,3 +132,9 @@ int spot_choose_by_direction(int spot, int mon, int dir)
 	return spot;
 }
 
+int spot_count_windows(int spot, int mon)
+{
+	int i, n = 0; client *c;
+	for_windows(i, c) if (c->manage && c->spot == spot && c->monitor == mon) n++;
+	return n;	
+}

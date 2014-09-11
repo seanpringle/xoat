@@ -58,10 +58,13 @@ void action_cycle(void *data, int num, client *cli)
 {
 	if (!cli) return;
 	STACK_INIT(lower);
-	spot_focus_top_window(cli->spot, cli->monitor, cli->window);
-	client_stack_family(cli, &lower);
-	XLowerWindow(display, lower.windows[0]);
-	XRestackWindows(display, lower.windows, lower.depth);
+	if (spot_count_windows(cli->spot, cli->monitor) > 1)
+	{
+		spot_focus_top_window(cli->spot, cli->monitor, cli->window);
+		client_stack_family(cli, &lower);
+		XLowerWindow(display, lower.windows[0]);
+		XRestackWindows(display, lower.windows, lower.depth);
+	}
 }
 
 void action_raise_nth(void *data, int num, client *cli)
