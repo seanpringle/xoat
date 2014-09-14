@@ -127,6 +127,14 @@ void action_maximize(void*, int, client*);
 #define STACK_INIT(n) stack (n); memset(&(n), 0, sizeof(stack))
 #define STACK_FREE(s) while ((s)->depth) client_free((s)->clients[--(s)->depth])
 
+#define for_stack(s,i,c)\
+	for ((i) = 0; (i) < (s)->depth; (i)++)\
+		if (((c) = (s)->clients[(i)]))
+
+#define for_stack_rev(s,i,c)\
+	for ((i) = (s)->depth-1; (i) > -1; (i)--)\
+		if (((c) = (s)->clients[(i)]))
+
 #define for_windows(i,c)\
 	for (query_windows(), (i) = 0; (i) < windows.depth; (i)++)\
 		if (((c) = windows.clients[(i)]))

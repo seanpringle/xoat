@@ -138,3 +138,11 @@ int spot_count_windows(int spot, int mon)
 	for_windows(i, c) if (c->manage && c->spot == spot && c->monitor == mon) n++;
 	return n;	
 }
+
+int spot_stack_clients(int spot, int mon, stack *stk)
+{
+	int i; client *c;
+	for_windows(i, c) if (c->manage && c->spot == spot && c->monitor == mon)
+		client_stack_family(c, stk);
+	return stk->depth;
+}

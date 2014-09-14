@@ -57,13 +57,15 @@ void action_close(void *data, int num, client *cli)
 void action_cycle(void *data, int num, client *cli)
 {
 	if (!cli) return;
-	STACK_INIT(lower);
-	if (spot_count_windows(cli->spot, cli->monitor) > 1)
+	STACK_INIT(order);
+	if (spot_stack_clients(cli->spot, cli->monitor, &order) > 1)
 	{
-		spot_focus_top_window(cli->spot, cli->monitor, cli->window);
-		client_stack_family(cli, &lower);
-		XLowerWindow(display, lower.windows[0]);
-		XRestackWindows(display, lower.windows, lower.depth);
+		int i; client *c = NULL;
+		for_stack(&order, i, c) if (c->manage && c->transient == None && c->window != cli->window)
+		{
+			client_activate(c);
+			break;
+		}
 	}
 }
 
