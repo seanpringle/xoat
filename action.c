@@ -61,7 +61,7 @@ void action_cycle(void *data, int num, client *cli)
 	if (spot_stack_clients(cli->spot, cli->monitor, &order) > 1)
 	{
 		int i; client *c = NULL;
-		for_stack(&order, i, c) if (c->manage && c->transient == None && c->window != cli->window)
+		for_stack_rev(&order, i, c) if (c->manage && c->transient == None && c->window != cli->window)
 		{
 			client_activate(c);
 			break;
