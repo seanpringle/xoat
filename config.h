@@ -1,10 +1,10 @@
 // xoat config.
 
-#define BORDER 2
+#define BORDER 1
 #define BORDER_BLUR "Dark Gray"
 #define BORDER_FOCUS "Royal Blue"
 #define BORDER_URGENT "Red"
-#define GAP 2
+#define GAP 1
 
 // Title bar xft font.
 // Setting this to NULL will disable title bars
@@ -46,8 +46,8 @@
 
 layout layouts[] = {
 	// Look at xrandr output to determine your monitor order.
-	{ .spot_start = SMART, .spot1_align = LEFT,  .spot1_width_pct = 66, .spot2_height_pct = 66 }, // primary monitor
-	{ .spot_start = SMART, .spot1_align = RIGHT, .spot1_width_pct = 60, .spot2_height_pct = 66 }, // secondary monitor, etc...
+	{ .spot_start = SMART, .spot1_align = LEFT,  .spot1_width_pct = 60, .spot2_height_pct = 60 }, // primary monitor
+	{ .spot_start = SMART, .spot1_align = RIGHT, .spot1_width_pct = 60, .spot2_height_pct = 60 }, // secondary monitor, etc...
 };
 
 // Available actions...
@@ -116,16 +116,11 @@ binding keys[] = {
 
 	// Launcher
 	{ .mod = Mod4Mask, .key = XK_x,  .act = action_command, .data = "dmenu_run" },
-	{ .mod = Mod4Mask, .key = XK_F1, .act = action_command, .data = "konsole"   },
-	{ .mod = Mod4Mask, .key = XK_F2, .act = action_command, .data = "chromium"  },
-	{ .mod = Mod4Mask, .key = XK_F3, .act = action_command, .data = "pcmanfm"   },
 
 	// Find or start apps by WM_CLASS (lower case match).
 	// Only works for apps that use some form of their binary name as their class...
-	{ .mod = AnyModifier, .key = XK_F1, .act = action_find_or_start, .data = "konsole"  },
-	{ .mod = AnyModifier, .key = XK_F2, .act = action_find_or_start, .data = "chromium" },
+	{ .mod = AnyModifier, .key = XK_F1, .act = action_find_or_start, .data = "xterm"    },
+	{ .mod = AnyModifier, .key = XK_F2, .act = action_find_or_start, .data = "firefox"  },
 	{ .mod = AnyModifier, .key = XK_F3, .act = action_find_or_start, .data = "pcmanfm"  },
 	{ .mod = AnyModifier, .key = XK_F4, .act = action_find_or_start, .data = "sublime-text" },
-
-	{ .mod = AnyModifier, .key = XK_Print, .act = action_command, .data = "xowl"  },
 };
