@@ -1,0 +1,100 @@
+# Sample config
+#
+# Copy to $HOME/.xoatrc
+
+# THEME
+
+gap 1
+border 1
+border_focus Royal Blue
+border_blur Dark Gray
+border_urgent Red
+title sans:size=8
+title_blur Black
+title_focus White
+title_ellipsis 32
+
+# LAYOUT
+
+layout 0 spot_start current
+layout 0 spot1_align left
+layout 0 spot1_width_pct 60
+layout 0 spot1_height_pct 60
+
+# KEYS
+
+# action_move             .num = SPOT1/2/3
+# action_focus            .num = SPOT1/2/3
+# action_move_direction   .num = UP/DOWN/LEFT/RIGHT
+# action_focus_direction  .num = UP/DOWN/LEFT/RIGHT
+# action_close
+# action_cycle
+# action_command
+# action_find_or_start
+# action_move_monitor
+# action_focus_monitor
+# action_fullscreen
+# action_maximize_vert
+# action_maximize_horz
+# action_maximize
+#
+# If omitting a modifier place those keys at the end
+
+# Change focus to a spot by direction.
+bind Mod4+Left  action_focus_direction left
+bind Mod4+Up    action_focus_direction up
+bind Mod4+Right action_focus_direction right
+bind Mod4+Down  action_focus_direction down
+
+# Move the current window to another spot by direction.
+bind Mod4+Shift+Left  action_move_direction left
+bind Mod4+Shift+Up    action_move_direction up
+bind Mod4+Shift+Right action_move_direction right
+bind Mod4+Shift+Down  action_move_direction down
+
+# Flip between the top two windows in the current spot.
+bind Mod4+Tab action_raise_nth 1
+
+# Cycle through all windows in the current spot.
+bind Mod4+grave action_cycle
+
+# Raise nth window in the current spot.
+bind Mod4+1 action_raise_nth 1
+bind Mod4+2 action_raise_nth 2
+bind Mod4+3 action_raise_nth 3
+bind Mod4+4 action_raise_nth 4
+bind Mod4+5 action_raise_nth 5
+bind Mod4+6 action_raise_nth 6
+bind Mod4+7 action_raise_nth 7
+bind Mod4+8 action_raise_nth 8
+bind Mod4+9 action_raise_nth 9
+
+# Gracefully close the current window.
+bind Mod4+Escape action_close
+
+# Toggle current window attributes.
+bind Mod4+f action_fullscreen
+bind Mod4+v action_maximize_vert
+bind Mod4+h action_maximize_horz
+bind Mod4+m action_maximize
+
+# Switch focus between monitors.
+bind Mod4+Next  action_focus_monitor -1
+bind Mod4+Prior action_focus_monitor +1
+
+# Move windows between monitors.
+bind Mod4+Shift+Next  action_move_monitor -1
+bind Mod4+Shift+Prior action_move_monitor +1
+
+# Launchers
+bind Mod4+x  action_command dmenu_run
+bind Mod4+F1 action_command konsole
+bind Mod4+F2 action_command chromium
+bind Mod4+F3 action_command firefox
+bind Mod4+F4 action_command sublime-text
+
+# App hot keys
+bind F1 action_find_or_start konsole
+bind F2 action_find_or_start chromium
+bind F3 action_find_or_start firefox
+bind F4 action_find_or_start sublime-text
