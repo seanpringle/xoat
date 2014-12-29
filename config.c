@@ -323,7 +323,7 @@ configure()
 					continue;
 				}
 
-				KeySym keysym = XStringToKeysym(str);
+				KeySym keysym = strncmp("0x", str, 2) == 0 ? strtoul(str, NULL, 16): XStringToKeysym(str);
 
 				if (keysym == NoSymbol)
 				{
