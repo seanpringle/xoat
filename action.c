@@ -24,43 +24,43 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 */
 
-void action_move(void *data, int num, client *cli)
+void action_move(void *data, int num, Client *cli)
 {
 	if (!cli) return;
 	client_raise_family(cli);
 	client_place_spot(cli, num, cli->monitor, 1);
 }
 
-void action_move_direction(void *data, int num, client *cli)
+void action_move_direction(void *data, int num, Client *cli)
 {
 	if (!cli) return;
 	client_raise_family(cli);
 	client_place_spot(cli, spot_choose_by_direction(cli->spot, cli->monitor, num), cli->monitor, 1);
 }
 
-void action_focus(void *data, int num, client *cli)
+void action_focus(void *data, int num, Client *cli)
 {
 	spot_try_focus_top_window(num, current_mon, None);
 }
 
-void action_focus_direction(void *data, int num, client *cli)
+void action_focus_direction(void *data, int num, Client *cli)
 {
 	spot_try_focus_top_window(spot_choose_by_direction(current_spot, current_mon, num), current_mon, None);
 }
 
-void action_close(void *data, int num, client *cli)
+void action_close(void *data, int num, Client *cli)
 {
 	if (cli && !client_send_wm_protocol(cli, atoms[WM_DELETE_WINDOW]))
 		XKillClient(display, cli->window);
 }
 
-void action_cycle(void *data, int num, client *cli)
+void action_cycle(void *data, int num, Client *cli)
 {
 	if (!cli) return;
 	STACK_INIT(order);
 	if (spot_stack_clients(cli->spot, cli->monitor, &order) > 1)
 	{
-		int i; client *c = NULL;
+		int i; Client *c = NULL;
 		for_stack_rev(&order, i, c) if (c->manage && c->transient == None && c->window != cli->window)
 		{
 			client_activate(c);
@@ -69,29 +69,29 @@ void action_cycle(void *data, int num, client *cli)
 	}
 }
 
-void action_raise_nth(void *data, int num, client *cli)
+void action_raise_nth(void *data, int num, Client *cli)
 {
 	if (!cli) return;
-	int i, n = 0; client *c;
+	int i, n = 0; Client *c;
 	for_windows(i, c) if (c->manage && c->spot == cli->spot && c->monitor == cli->monitor && num == n++)
 		{ client_activate(c); break; }
 }
 
-void action_command(void *data, int num, client *cli)
+void action_command(void *data, int num, Client *cli)
 {
 	exec_cmd(data);
 }
 
-void action_find_or_start(void *data, int num, client *cli)
+void action_find_or_start(void *data, int num, Client *cli)
 {
-	int i; client *c; char *class = data;
+	int i; Client *c; char *class = data;
 	for_windows(i, c)
 		if (c->visible && c->manage && c->class && !strcasecmp(c->class, class))
 			{ client_activate(c); return; }
 	exec_cmd(class);
 }
 
-void action_move_monitor(void *data, int num, client *cli)
+void action_move_monitor(void *data, int num, Client *cli)
 {
 	if (!cli) return;
 	client_raise_family(cli);
@@ -100,14 +100,14 @@ void action_move_monitor(void *data, int num, client *cli)
 	current_mon = cli->monitor;
 }
 
-void action_focus_monitor(void *data, int num, client *cli)
+void action_focus_monitor(void *data, int num, Client *cli)
 {
 	int i, mon = MAX(0, MIN(current_mon+num, nmonitors-1));
 	if (spot_focus_top_window(current_spot, mon, None)) return;
 	for_spots(i) if (spot_focus_top_window(i, mon, None)) break;
 }
 
-void action_fullscreen(void *data, int num, client *cli)
+void action_fullscreen(void *data, int num, Client *cli)
 {
 	if (!cli) return;
 
@@ -122,7 +122,7 @@ void action_fullscreen(void *data, int num, client *cli)
 	client_raise_family(cli);
 }
 
-void action_maximize(void *data, int num, client *cli)
+void action_maximize(void *data, int num, Client *cli)
 {
 	if (!cli) return;
 	cli->max = !cli->max;
@@ -130,14 +130,14 @@ void action_maximize(void *data, int num, client *cli)
 	client_place_spot(cli, cli->spot, cli->monitor, 1);
 }
 
-void action_maximize_vert(void *data, int num, client *cli)
+void action_maximize_vert(void *data, int num, Client *cli)
 {
 	if (!cli) return;
 	cli->maxv = client_toggle_state(cli, atoms[_NET_WM_STATE_MAXIMIZE_VERT]);
 	client_place_spot(cli, cli->spot, cli->monitor, 1);
 }
 
-void action_maximize_horz(void *data, int num, client *cli)
+void action_maximize_horz(void *data, int num, Client *cli)
 {
 	if (!cli) return;
 	cli->maxh = client_toggle_state(cli, atoms[_NET_WM_STATE_MAXIMIZE_HORZ]);

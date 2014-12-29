@@ -44,7 +44,7 @@
 // .spot1_height_pct = N
 //   Height of SPOT2 as percentage of screen height.
 
-layout layouts[] = {
+Layout layouts[] = {
 	// Look at xrandr output to determine your monitor order.
 	{ .spot_start = SMART, .spot1_align = LEFT,  .spot1_width_pct = 60, .spot2_height_pct = 60 }, // primary monitor
 	{ .spot_start = SMART, .spot1_align = RIGHT, .spot1_width_pct = 60, .spot2_height_pct = 60 }, // secondary monitor, etc...
@@ -66,7 +66,7 @@ layout layouts[] = {
 // action_maximize_horz
 
 // If you use "AnyModifier" place those keys at the end of the array.
-binding keys[] = {
+Binding keys[] = {
 
 	// Change focus to a spot by direction.
 	{ .mod = Mod4Mask, .key = XK_Left,  .act = action_focus_direction, .num = LEFT  },

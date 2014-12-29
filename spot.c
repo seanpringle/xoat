@@ -28,9 +28,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 void spot_update_bar(int spot, int mon)
 {
-	int i, n = 0, len = 0; client *o, *c = NULL;
+	int i, n = 0, len = 0; Client *o, *c = NULL;
 	char title[SPOT_BUFF]; *title = 0;
-	monitor *m = &monitors[mon];
+	Monitor *m = &monitors[mon];
 
 	if (spot == SPOT1)
 	{
@@ -80,14 +80,14 @@ void spot_update_bar(int spot, int mon)
 
 void update_bars()
 {
-	int i, j; monitor *m;
+	int i, j; Monitor *m;
 	if (TITLE) for_monitors(i, m) for_spots(j)
 		spot_update_bar(j, i);
 }
 
 Window spot_focus_top_window(int spot, int mon, Window except)
 {
-	int i; client *c;
+	int i; Client *c;
 	for_windows(i, c) if (c->window != except && c->manage && c->spot == spot && c->monitor == mon)
 	{
 		client_raise_family(c);
@@ -114,7 +114,7 @@ Window spot_try_focus_top_window(int spot, int mon, Window except)
 
 int spot_choose_by_direction(int spot, int mon, int dir)
 {
-	monitor *m = &monitors[mon];
+	Monitor *m = &monitors[mon];
 	int spot1_align = have_layout(mon) ? layouts[mon].spot1_align : LEFT ;
 
 	if (m->w < m->h) // rotated?
@@ -134,14 +134,14 @@ int spot_choose_by_direction(int spot, int mon, int dir)
 
 int spot_count_windows(int spot, int mon)
 {
-	int i, n = 0; client *c;
+	int i, n = 0; Client *c;
 	for_windows(i, c) if (c->manage && c->spot == spot && c->monitor == mon) n++;
-	return n;	
+	return n;
 }
 
-int spot_stack_clients(int spot, int mon, stack *stk)
+int spot_stack_clients(int spot, int mon, Stack *stk)
 {
-	int i; client *c;
+	int i; Client *c;
 	for_windows(i, c) if (c->manage && c->spot == spot && c->monitor == mon)
 		client_stack_family(c, stk);
 	return stk->depth;

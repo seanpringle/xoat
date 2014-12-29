@@ -26,7 +26,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 void create_notify(XEvent *e)
 {
-	client *c = window_build_client(e->xcreatewindow.window);
+	Client *c = window_build_client(e->xcreatewindow.window);
 	if (c && c->manage)
 		window_listen(c->window);
 	client_free(c);
@@ -35,7 +35,7 @@ void create_notify(XEvent *e)
 void configure_request(XEvent *ev)
 {
 	XConfigureRequestEvent *e = &ev->xconfigurerequest;
-	client *c = window_build_client(e->window);
+	Client *c = window_build_client(e->window);
 	if (c && c->manage && c->visible && !c->transient)
 	{
 		client_update_border(c);
@@ -58,7 +58,7 @@ void configure_request(XEvent *ev)
 
 void configure_notify(XEvent *e)
 {
-	client *c = window_build_client(e->xconfigure.window);
+	Client *c = window_build_client(e->xconfigure.window);
 	if (c && c->manage)
 	{
 		while (XCheckTypedEvent(display, ConfigureNotify, e));
@@ -70,11 +70,11 @@ void configure_notify(XEvent *e)
 
 void map_request(XEvent *e)
 {
-	client *c = window_build_client(e->xmaprequest.window);
+	Client *c = window_build_client(e->xmaprequest.window);
 	if (c && c->manage)
 	{
 		c->monitor = current_mon;
-		monitor *m = &monitors[c->monitor];
+		Monitor *m = &monitors[c->monitor];
 		int spot = have_layout(c->monitor) ? layouts[c->monitor].spot_start: SMART;
 
 		if (spot == CURRENT)
@@ -96,7 +96,7 @@ void map_request(XEvent *e)
 
 void map_notify(XEvent *e)
 {
-	client *a = NULL, *c = window_build_client(e->xmap.window);
+	Client *a = NULL, *c = window_build_client(e->xmap.window);
 	if (c && c->manage)
 	{
 		client_raise_family(c);
@@ -128,14 +128,14 @@ void key_press(XEvent *ev)
 	unsigned int state = e->state & ~(LockMask|NumlockMask);
 	while (XCheckTypedEvent(display, KeyPress, ev));
 
-	binding *bind = NULL;
-	for (int i = 0; i < sizeof(keys)/sizeof(binding) && !bind; i++)
+	Binding *bind = NULL;
+	for (int i = 0; i < sizeof(keys)/sizeof(Binding) && !bind; i++)
 		if (keys[i].key == key && (keys[i].mod == AnyModifier || keys[i].mod == state))
 			bind = &keys[i];
 
 	if (bind && bind->act)
 	{
-		client *cli = window_build_client(current);
+		Client *cli = window_build_client(current);
 		bind->act(bind->data, bind->num, cli);
 		client_free(cli);
 		update_bars();
@@ -144,9 +144,9 @@ void key_press(XEvent *ev)
 
 void button_press(XEvent *ev)
 {
-	int i, j; monitor *m;
+	int i, j; Monitor *m;
 	XButtonEvent *e = &ev->xbutton; latest = e->time;
-	client *c = window_build_client(e->subwindow);
+	Client *c = window_build_client(e->subwindow);
 	if (c && c->manage)
 		client_activate(c);
 	else
@@ -171,7 +171,7 @@ void client_message(XEvent *ev)
 		warnx("restart!");
 		EXECSH(self);
 	}
-	client *c = window_build_client(e->window);
+	Client *c = window_build_client(e->window);
 	if (c && c->manage)
 	{
 		if (e->message_type == atoms[_NET_ACTIVE_WINDOW]) client_activate(c);
@@ -184,7 +184,7 @@ void property_notify(XEvent *ev)
 {
 	XPropertyEvent *e = &ev->xproperty;
 
-	client *c = window_build_client(e->window);
+	Client *c = window_build_client(e->window);
 	if (e->window == root && e->atom == atoms[WM_NAME])
 	{
 		// root name appears in SPOT1 bar, for status etc
@@ -211,7 +211,7 @@ void expose(XEvent *e)
 
 void any_event(XEvent *e)
 {
-	client *c = window_build_client(e->xany.window);
+	Client *c = window_build_client(e->xany.window);
 	if (c && c->visible && c->manage)
 		client_update_border(c);
 	client_free(c);

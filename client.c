@@ -24,14 +24,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 */
 
-int client_has_state(client *c, Atom state)
+int client_has_state(Client *c, Atom state)
 {
 	for (int i = 0; i < ATOMLIST && c->states[i]; i++)
 		if (c->states[i] == state) return 1;
 	return 0;
 }
 
-int client_toggle_state(client *c, Atom state)
+int client_toggle_state(Client *c, Atom state)
 {
 	int i, j, rc = 0;
 	for (i = 0, j = 0; i < ATOMLIST && c->states[i]; i++, j++)
@@ -50,12 +50,12 @@ int client_toggle_state(client *c, Atom state)
 	return rc;
 }
 
-client* window_build_client(Window win)
+Client* window_build_client(Window win)
 {
-	int i, j; XClassHint chint; XWMHints *hints; monitor *m;
+	int i, j; XClassHint chint; XWMHints *hints; Monitor *m;
 	if (win == None) return NULL;
 
-	client *c = calloc(1, sizeof(client));
+	Client *c = calloc(1, sizeof(Client));
 	c->window = win;
 
 	if (XGetWindowAttributes(display, c->window, &c->attr))
@@ -150,14 +150,14 @@ client* window_build_client(Window win)
 	return NULL;
 }
 
-void client_free(client *c)
+void client_free(Client *c)
 {
 	if (!c) return;
 	free(c->class);
 	free(c);
 }
 
-void client_update_border(client *c)
+void client_update_border(Client *c)
 {
 	XColor color; Colormap map = DefaultColormap(display, DefaultScreen(display));
 	char *colorname = c->window == current ? BORDER_FOCUS: (c->urgent ? BORDER_URGENT: BORDER_BLUR);
@@ -165,7 +165,7 @@ void client_update_border(client *c)
 	XSetWindowBorderWidth(display, c->window, c->full ? 0: BORDER);
 }
 
-int client_send_wm_protocol(client *c, Atom protocol)
+int client_send_wm_protocol(Client *c, Atom protocol)
 {
 	Atom protocols[ATOMLIST]; int i, n;
 	if ((n = GETPROP_ATOM(c->window, atoms[WM_PROTOCOLS], protocols, ATOMLIST)))
@@ -174,10 +174,10 @@ int client_send_wm_protocol(client *c, Atom protocol)
 	return 0;
 }
 
-void client_place_spot(client *c, int spot, int mon, int force)
+void client_place_spot(Client *c, int spot, int mon, int force)
 {
 	if (!c) return;
-	int i; client *t;
+	int i; Client *t;
 
 	// try to center over our transient parent
 	if (!force && c->transient && (t = window_build_client(c->transient)))
@@ -199,7 +199,7 @@ void client_place_spot(client *c, int spot, int mon, int force)
 	}
 	c->spot = spot; c->monitor = mon;
 
-	monitor *m = &monitors[c->monitor];
+	Monitor *m = &monitors[c->monitor];
 	int x = m->spots[spot].x, y = m->spots[spot].y, w = m->spots[spot].w, h = m->spots[spot].h;
 
 	if (c->type == atoms[_NET_WM_WINDOW_TYPE_DIALOG])
@@ -267,9 +267,9 @@ void client_place_spot(client *c, int spot, int mon, int force)
 	XMoveResizeWindow(display, c->window, x, y, w, h);
 }
 
-void client_stack_family(client *c, stack *raise)
+void client_stack_family(Client *c, Stack *raise)
 {
-	int i; client *o, *self = NULL;
+	int i; Client *o, *self = NULL;
 	for_windows(i, o)
 	{
 		if (o->manage && o->visible && o->transient == c->window)
@@ -285,10 +285,10 @@ void client_stack_family(client *c, stack *raise)
 	}
 }
 
-void client_raise_family(client *c)
+void client_raise_family(Client *c)
 {
 	if (!c) return;
-	int i; client *o; STACK_INIT(raise); STACK_INIT(family);
+	int i; Client *o; STACK_INIT(raise); STACK_INIT(family);
 
 	for_windows(i, o) if (o->type == atoms[_NET_WM_WINDOW_TYPE_DOCK])
 		client_stack_family(o, &raise);
@@ -301,7 +301,7 @@ void client_raise_family(client *c)
 	if (!c->full && TITLE)
 	{
 		// raise spot's title bar in case some other fullscreen or max v/h window has obscured
-		monitor *m = &monitors[c->monitor];
+		Monitor *m = &monitors[c->monitor];
 		raise.windows[raise.depth] = m->bars[c->spot]->window;
 		raise.clients[raise.depth] = NULL;
 		raise.depth++;
@@ -313,10 +313,10 @@ void client_raise_family(client *c)
 	STACK_FREE(&family);
 }
 
-void client_set_focus(client *c)
+void client_set_focus(Client *c)
 {
 	if (!c || !c->visible || c->window == current) return;
-	client *o; Window old = current;
+	Client *o; Window old = current;
 
 	current      = c->window;
 	current_spot = c->spot;
@@ -333,7 +333,7 @@ void client_set_focus(client *c)
 	client_update_border(c);
 }
 
-void client_activate(client *c)
+void client_activate(Client *c)
 {
 	client_raise_family(c);
 	client_set_focus(c);

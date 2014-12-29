@@ -31,7 +31,7 @@ typedef struct {
 
 void setup()
 {
-	int i, j; client *c; monitor *m;
+	int i, j; Client *c; Monitor *m;
 	int screen_w = WidthOfScreen(DefaultScreenOfDisplay(display));
 	int screen_h = HeightOfScreen(DefaultScreenOfDisplay(display));
 
@@ -55,8 +55,8 @@ void setup()
 	}
 
 	// detect and adjust for panel struts
-	monitor padded[MONITORS];
-	memmove(padded, monitors, sizeof(monitor) * MONITORS);
+	Monitor padded[MONITORS];
+	memmove(padded, monitors, sizeof(Monitor) * MONITORS);
 	wm_strut all_struts; memset(&all_struts, 0, sizeof(wm_strut));
 
 	for_windows(i, c)
@@ -74,7 +74,7 @@ void setup()
 
 	for_monitors(j, m)
 	{
-		monitor *p = &padded[j];
+		Monitor *p = &padded[j];
 
 		// monitor left side of root window?
 		if (all_struts.left > 0 && !m->x)
@@ -99,7 +99,7 @@ void setup()
 			p->h -= all_struts.bottom;
 		}
 	}
-	memmove(monitors, padded, sizeof(monitor) * MONITORS);
+	memmove(monitors, padded, sizeof(Monitor) * MONITORS);
 
 	// calculate spot boxes
 	for_monitors(i, m)
@@ -176,7 +176,7 @@ void setup()
 	XFreeModifiermap(modmap);
 
 	// process config.h key bindings
-	for (i = 0; i < sizeof(keys)/sizeof(binding); i++)
+	for (i = 0; i < sizeof(keys)/sizeof(Binding); i++)
 	{
 		XGrabKey(display, XKeysymToKeycode(display, keys[i].key), keys[i].mod, root, True, GrabModeAsync, GrabModeAsync);
 		if (keys[i].mod == AnyModifier) continue;

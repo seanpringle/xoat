@@ -26,7 +26,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 void ewmh_client_list()
 {
-	int i; client *c; STACK_INIT(wins);
+	int i; Client *c; STACK_INIT(wins);
 	for_windows_rev(i, c) if (c->manage)
 		wins.windows[wins.depth++] = c->window;
 	SETPROP_WIND(root, atoms[_NET_CLIENT_LIST_STACKING], wins.windows, wins.depth);

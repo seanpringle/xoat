@@ -60,17 +60,17 @@ Display *display;
 enum { SPOT1=1, SPOT2, SPOT3, CURRENT, SMART };
 enum { LEFT=1, RIGHT, UP, DOWN };
 
-typedef struct {
+typedef struct _Box {
 	short x, y, w, h;
-} box;
+} Box;
 
-typedef struct {
+typedef struct _Monitor {
 	short x, y, w, h;
-	box spots[SPOT3+1];
+	Box spots[SPOT3+1];
 	textbox *bars[SPOT3+1];
-} monitor;
+} Monitor;
 
-typedef struct {
+typedef struct _Client {
 	Window window;
 	XWindowAttributes attr;
 	Window transient, leader;
@@ -78,45 +78,45 @@ typedef struct {
 	short monitor, visible, manage, input, urgent, full, ours, maxv, maxh;
 	unsigned long spot, max;
 	char *class;
-} client;
+} Client;
 
-typedef struct {
+typedef struct _Stack {
 	short depth;
-	client *clients[STACK];
+	Client *clients[STACK];
 	Window windows[STACK];
-} stack;
+} Stack;
 
-typedef struct {
+typedef struct _Binding {
 	unsigned int mod;
 	KeySym key;
-	void (*act)(void*, int, client*);
+	void (*act)(void*, int, Client*);
 	void *data;
 	int num;
-} binding;
+} Binding;
 
-typedef struct {
+typedef struct _Layout {
 	short spot_start, spot1_align, spot1_width_pct, spot2_height_pct;
-} layout;
+} Layout;
 
-#define have_layout(i) (sizeof(layouts) / sizeof(layout) > (i))
+#define have_layout(i) (sizeof(layouts) / sizeof(Layout) > (i))
 
-client* window_build_client(Window);
-void client_free(client*);
-void action_move(void*, int, client*);
-void action_focus(void*, int, client*);
-void action_move_direction(void*, int, client*);
-void action_focus_direction(void*, int, client*);
-void action_close(void*, int, client*);
-void action_cycle(void*, int, client*);
-void action_raise_nth(void*, int, client*);
-void action_command(void*, int, client*);
-void action_find_or_start(void*, int, client*);
-void action_move_monitor(void*, int, client*);
-void action_focus_monitor(void*, int, client*);
-void action_fullscreen(void*, int, client*);
-void action_maximize_vert(void*, int, client*);
-void action_maximize_horz(void*, int, client*);
-void action_maximize(void*, int, client*);
+Client* window_build_client(Window);
+void client_free(Client*);
+void action_move(void*, int, Client*);
+void action_focus(void*, int, Client*);
+void action_move_direction(void*, int, Client*);
+void action_focus_direction(void*, int, Client*);
+void action_close(void*, int, Client*);
+void action_cycle(void*, int, Client*);
+void action_raise_nth(void*, int, Client*);
+void action_command(void*, int, Client*);
+void action_find_or_start(void*, int, Client*);
+void action_move_monitor(void*, int, Client*);
+void action_focus_monitor(void*, int, Client*);
+void action_fullscreen(void*, int, Client*);
+void action_maximize_vert(void*, int, Client*);
+void action_maximize_horz(void*, int, Client*);
+void action_maximize(void*, int, Client*);
 
 #include "config.h"
 
@@ -124,7 +124,7 @@ void action_maximize(void*, int, client*);
 #define OVERLAP(a,b,c,d) (((a)==(c) && (b)==(d)) || MIN((a)+(b), (c)+(d)) - MAX((a), (c)) > 0)
 #define INTERSECT(x,y,w,h,x1,y1,w1,h1) (OVERLAP((x),(w),(x1),(w1)) && OVERLAP((y),(h),(y1),(h1)))
 
-#define STACK_INIT(n) stack (n); memset(&(n), 0, sizeof(stack))
+#define STACK_INIT(n) Stack (n); memset(&(n), 0, sizeof(Stack))
 #define STACK_FREE(s) while ((s)->depth) client_free((s)->clients[--(s)->depth])
 
 #define for_stack(s,i,c)\
@@ -155,11 +155,11 @@ void action_maximize(void*, int, client*);
 Time latest;
 char *self;
 unsigned int NumlockMask;
-monitor monitors[MONITORS];
+Monitor monitors[MONITORS];
 int nmonitors = 1;
 short current_spot, current_mon;
 Window root, ewmh, current = None;
-stack windows;
+Stack windows;
 static int (*xerror)(Display *, XErrorEvent *);
 
 void catch_exit(int sig)

@@ -98,7 +98,7 @@ void window_listen(Window win)
 // build windows cache
 void query_windows()
 {
-	unsigned int nwins; int i; Window w1, w2, *wins; client *c;
+	unsigned int nwins; int i; Window w1, w2, *wins; Client *c;
 	if (windows.depth || !(XQueryTree(display, root, &w1, &w2, &wins, &nwins) && wins))
 		return;
 	for (i = nwins-1; i > -1 && windows.depth < STACK; i--)
