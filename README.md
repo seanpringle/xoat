@@ -4,19 +4,18 @@ xoat
 *X Obstinate Asymmetric Tiler*
 
 * Designed for wide screens, including multi-head support.
-* Static tiling; you choose three fixed tiles at build-time.
+* Static tiling; just configure sizes of the three fixed tiles.
 * Windows never move between tiles or monitors automatically.
 * Bare minimum EWMH to support panels and [simpleswitcher](https://github.com/seanpringle/simpleswitcher).
 * A few keyboard controls for moving, focusing, cycling, closing, and finding windows.
 * Transient windows and dialogs are centered on parent, not tiled.
 * Splash screens and notification popups are displayed as requested, not tiled.
-* config.h for customization of borders and keys.
+* .xoatrc or config.h for customization of borders and keys.
 
 ### The Layout
 
-* Layout is chosen at build time.
 * Tile proportions can be adjusted.
-* Can be flipped horizontally.
+* Layout can be flipped horizontally.
 * Xrandr rotated monitor also rotates layout (always 90 degrees, right).
 
 ...
@@ -70,7 +69,7 @@ xoat
 
 ### config.h
 
-All customization happens in config.h. See in-line comments there. It's tracked, so use a local git branch or a merge tool to protect any customization.
+All customization happens in config.h or .xoatrc. See in-line comments. It's tracked, so use a local git branch or a merge tool to protect any customization.
 
 
 
