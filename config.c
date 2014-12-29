@@ -410,7 +410,7 @@ configure()
 					if (settings.bindings[i].mod == modifier && settings.bindings[i].key == keysym)
 					{
 						settings.bindings[i].act  = action;
-						settings.bindings[i].data = data;
+						settings.bindings[i].data = data ? strdup(data): NULL;
 						settings.bindings[i].num  = num;
 						break;
 					}
@@ -422,7 +422,7 @@ configure()
 					settings.bindings[i].mod  = modifier;
 					settings.bindings[i].key  = keysym;
 					settings.bindings[i].act  = action;
-					settings.bindings[i].data = data;
+					settings.bindings[i].data = data ? strdup(data): NULL;
 					settings.bindings[i].num  = num;
 				}
 			}
