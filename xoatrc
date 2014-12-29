@@ -16,7 +16,7 @@ title_ellipsis 32
 
 # LAYOUT
 
-layout 0 spot_start current
+layout 0 spot_start smart
 layout 0 spot1_align left
 layout 0 spot1_width_pct 60
 layout 0 spot1_height_pct 60
