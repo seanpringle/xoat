@@ -45,6 +45,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <signal.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <regex.h>
 
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
@@ -53,6 +54,7 @@ Display *display;
 
 #include "atom.c"
 #include "textbox.c"
+#include "regex.c"
 
 #define STACK 64
 #define MONITORS 3
@@ -98,7 +100,25 @@ typedef struct _Layout {
 	short spot_start, spot1_align, spot1_width_pct, spot2_height_pct;
 } Layout;
 
-#define have_layout(i) (sizeof(layouts) / sizeof(Layout) > (i))
+typedef struct _Settings {
+	unsigned int border;
+	char *border_blur;
+	char *border_focus;
+	char *border_urgent;
+	unsigned int gap;
+	char *title;
+	char *title_blur;
+	char *title_focus;
+	unsigned int title_ellipsis;
+
+	unsigned int layout_count;
+	Layout *layouts;
+
+	unsigned int binding_count;
+	Binding *bindings;
+} Settings;
+
+#define have_layout(i) (settings.layout_count > (i))
 
 Client* window_build_client(Window);
 void client_free(Client*);
@@ -161,6 +181,7 @@ short current_spot, current_mon;
 Window root, ewmh, current = None;
 Stack windows;
 static int (*xerror)(Display *, XErrorEvent *);
+Settings settings;
 
 void catch_exit(int sig)
 {
@@ -182,6 +203,7 @@ void exec_cmd(char *cmd)
 #include "spot.c"
 #include "event.c"
 #include "action.c"
+#include "config.c"
 #include "setup.c"
 
 void (*handlers[LASTEvent])(XEvent*) = {
@@ -236,6 +258,7 @@ int main(int argc, char *argv[])
 		exit(EXIT_SUCCESS);
 	}
 
+	configure();
 	setup();
 
 	// main event loop

@@ -64,8 +64,9 @@ Layout layouts[] = {
 // action_fullscreen
 // action_maximize_vert
 // action_maximize_horz
+// action_maximize
 
-// If you use "AnyModifier" place those keys at the end of the array.
+// If using "AnyModifier" place those keys at the end of the array.
 Binding keys[] = {
 
 	// Change focus to a spot by direction.
@@ -86,17 +87,6 @@ Binding keys[] = {
 	// Cycle through all windows in the current spot.
 	{ .mod = Mod4Mask, .key = XK_grave,  .act = action_cycle },
 
-	// Raise nth window in the current spot.
-	{ .mod = Mod4Mask, .key = XK_1, .act = action_raise_nth, .num = 1 },
-	{ .mod = Mod4Mask, .key = XK_2, .act = action_raise_nth, .num = 2 },
-	{ .mod = Mod4Mask, .key = XK_3, .act = action_raise_nth, .num = 3 },
-	{ .mod = Mod4Mask, .key = XK_4, .act = action_raise_nth, .num = 4 },
-	{ .mod = Mod4Mask, .key = XK_5, .act = action_raise_nth, .num = 5 },
-	{ .mod = Mod4Mask, .key = XK_6, .act = action_raise_nth, .num = 6 },
-	{ .mod = Mod4Mask, .key = XK_7, .act = action_raise_nth, .num = 7 },
-	{ .mod = Mod4Mask, .key = XK_8, .act = action_raise_nth, .num = 8 },
-	{ .mod = Mod4Mask, .key = XK_9, .act = action_raise_nth, .num = 9 },
-
 	// Gracefully close the current window.
 	{ .mod = Mod4Mask, .key = XK_Escape, .act = action_close },
 
@@ -106,21 +96,9 @@ Binding keys[] = {
 	{ .mod = Mod4Mask, .key = XK_h, .act = action_maximize_horz },
 	{ .mod = Mod4Mask, .key = XK_m, .act = action_maximize },
 
-	// Switch focus between monitors.
-	{ .mod = Mod4Mask, .key = XK_Next,  .act = action_focus_monitor, .num = -1 },
-	{ .mod = Mod4Mask, .key = XK_Prior, .act = action_focus_monitor, .num = +1 },
-
-	// Move windows between monitors.
-	{ .mod = ShiftMask|Mod4Mask, .key = XK_Next,  .act = action_move_monitor, .num = -1 },
-	{ .mod = ShiftMask|Mod4Mask, .key = XK_Prior, .act = action_move_monitor, .num = +1 },
-
 	// Launcher
 	{ .mod = Mod4Mask, .key = XK_x,  .act = action_command, .data = "dmenu_run" },
 
-	// Find or start apps by WM_CLASS (lower case match).
-	// Only works for apps that use some form of their binary name as their class...
-	{ .mod = AnyModifier, .key = XK_F1, .act = action_find_or_start, .data = "xterm"    },
-	{ .mod = AnyModifier, .key = XK_F2, .act = action_find_or_start, .data = "firefox"  },
-	{ .mod = AnyModifier, .key = XK_F3, .act = action_find_or_start, .data = "pcmanfm"  },
-	{ .mod = AnyModifier, .key = XK_F4, .act = action_find_or_start, .data = "sublime-text" },
+	// Example
+	// { .mod = AnyModifier, .key = XK_F1, .act = action_find_or_start, .data = "xterm" },
 };

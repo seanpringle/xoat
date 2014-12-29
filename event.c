@@ -50,7 +50,7 @@ void configure_request(XEvent *ev)
 		if (e->value_mask & CWWidth)  wc.width  = e->width;
 		if (e->value_mask & CWHeight) wc.height = e->height;
 		if (e->value_mask & CWStackMode)   wc.stack_mode   = e->detail;
-		if (e->value_mask & CWBorderWidth) wc.border_width = BORDER;
+		if (e->value_mask & CWBorderWidth) wc.border_width = settings.border;
 		XConfigureWindow(display, c->window, e->value_mask, &wc);
 	}
 	client_free(c);
@@ -75,7 +75,7 @@ void map_request(XEvent *e)
 	{
 		c->monitor = current_mon;
 		Monitor *m = &monitors[c->monitor];
-		int spot = have_layout(c->monitor) ? layouts[c->monitor].spot_start: SMART;
+		int spot = have_layout(c->monitor) ? settings.layouts[c->monitor].spot_start: SMART;
 
 		if (spot == CURRENT)
 		{
@@ -129,9 +129,9 @@ void key_press(XEvent *ev)
 	while (XCheckTypedEvent(display, KeyPress, ev));
 
 	Binding *bind = NULL;
-	for (int i = 0; i < sizeof(keys)/sizeof(Binding) && !bind; i++)
-		if (keys[i].key == key && (keys[i].mod == AnyModifier || keys[i].mod == state))
-			bind = &keys[i];
+	for (int i = 0; i < settings.binding_count && !bind; i++)
+		if (settings.bindings[i].key == key && (settings.bindings[i].mod == AnyModifier || settings.bindings[i].mod == state))
+			bind = &settings.bindings[i];
 
 	if (bind && bind->act)
 	{

@@ -71,7 +71,7 @@ Client* window_build_client(Window win)
 			? 1:0;
 
 		// detect our own title bars
-		if (TITLE)
+		if (settings.title)
 			for_monitors(i, m) for_spots(j)
 				if (m->bars[j] && m->bars[j]->window == c->window)
 					{ c->ours = 1; c->manage = 0; break; }
@@ -160,9 +160,9 @@ void client_free(Client *c)
 void client_update_border(Client *c)
 {
 	XColor color; Colormap map = DefaultColormap(display, DefaultScreen(display));
-	char *colorname = c->window == current ? BORDER_FOCUS: (c->urgent ? BORDER_URGENT: BORDER_BLUR);
+	char *colorname = c->window == current ? settings.border_focus: (c->urgent ? settings.border_urgent: settings.border_blur);
 	XSetWindowBorder(display, c->window, XAllocNamedColor(display, map, colorname, &color, &color) ? color.pixel: None);
-	XSetWindowBorderWidth(display, c->window, c->full ? 0: BORDER);
+	XSetWindowBorderWidth(display, c->window, c->full ? 0: settings.border);
 }
 
 int client_send_wm_protocol(Client *c, Atom protocol)
@@ -206,8 +206,8 @@ void client_place_spot(Client *c, int spot, int mon, int force)
 	{
 		x += (w - c->attr.width)/2;
 		y += (h - c->attr.height)/2;
-		w = c->attr.width + BORDER*2;
-		h = c->attr.height + BORDER*2;
+		w = c->attr.width + settings.border * 2;
+		h = c->attr.height + settings.border * 2;
 	}
 	else
 	if (c->full)
@@ -234,7 +234,7 @@ void client_place_spot(Client *c, int spot, int mon, int force)
 		w = m->w;
 	}
 
-	w -= BORDER*2; h -= BORDER*2;
+	w -= settings.border * 2; h -= settings.border * 2;
 	int sw = w, sh = h; long sr; XSizeHints size;
 
 	if (XGetWMNormalHints(display, c->window, &size, &sr))
@@ -261,8 +261,8 @@ void client_place_spot(Client *c, int spot, int mon, int force)
 	if (h < sh) y += (sh-h)/2;
 
 	// bump onto screen
-	x = MAX(m->x, MIN(x, m->x + m->w - w - BORDER*2));
-	y = MAX(m->y, MIN(y, m->y + m->h - h - BORDER*2));
+	x = MAX(m->x, MIN(x, m->x + m->w - w - settings.border * 2));
+	y = MAX(m->y, MIN(y, m->y + m->h - h - settings.border * 2));
 
 	XMoveResizeWindow(display, c->window, x, y, w, h);
 }
@@ -298,7 +298,7 @@ void client_raise_family(Client *c)
 
 	client_stack_family(c, &raise);
 
-	if (!c->full && TITLE)
+	if (!c->full && settings.title)
 	{
 		// raise spot's title bar in case some other fullscreen or max v/h window has obscured
 		Monitor *m = &monitors[c->monitor];

@@ -50,24 +50,24 @@ void spot_update_bar(int spot, int mon)
 				name = strdup(tmp);
 		if (name)
 		{
-			if (TITLE_ELLIPSIS > 0 && strlen(name) > TITLE_ELLIPSIS)
+			if (settings.title_ellipsis > 0 && strlen(name) > settings.title_ellipsis)
 			{
 				name = realloc(name, strlen(name)+4);
-				strcpy(name+TITLE_ELLIPSIS, "...");
+				strcpy(name+settings.title_ellipsis, "...");
 			}
 			len += snprintf(title+len, MAX(0, SPOT_BUFF-len), " [%d] %s  ", n++, name);
 			free(name);
 		}
 		if (tmp) XFree(tmp);
 	}
-	if (TITLE)
+	if (settings.title)
 	{
 		if (c && !c->full && *title && m->bars[spot])
 		{
 			int focus = c->window == current || (spot == current_spot && mon == current_mon);
-			char *color  = focus && c->window == current ? TITLE_FOCUS : TITLE_BLUR;
-			char *border = focus && c->window == current ? BORDER_FOCUS: BORDER_BLUR;
-			textbox_font(m->bars[spot], TITLE, color, border);
+			char *color  = focus && c->window == current ? settings.title_focus : settings.title_blur;
+			char *border = focus && c->window == current ? settings.border_focus: settings.border_blur;
+			textbox_font(m->bars[spot], settings.title, color, border);
 			textbox_text(m->bars[spot], title);
 			textbox_draw(m->bars[spot]);
 			textbox_show(m->bars[spot]);
@@ -81,7 +81,7 @@ void spot_update_bar(int spot, int mon)
 void update_bars()
 {
 	int i, j; Monitor *m;
-	if (TITLE) for_monitors(i, m) for_spots(j)
+	if (settings.title) for_monitors(i, m) for_spots(j)
 		spot_update_bar(j, i);
 }
 
@@ -115,7 +115,7 @@ Window spot_try_focus_top_window(int spot, int mon, Window except)
 int spot_choose_by_direction(int spot, int mon, int dir)
 {
 	Monitor *m = &monitors[mon];
-	int spot1_align = have_layout(mon) ? layouts[mon].spot1_align : LEFT ;
+	int spot1_align = have_layout(mon) ? settings.layouts[mon].spot1_align : LEFT ;
 
 	if (m->w < m->h) // rotated?
 	{

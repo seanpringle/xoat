@@ -32,6 +32,7 @@ typedef struct {
 void setup()
 {
 	int i, j; Client *c; Monitor *m;
+
 	int screen_w = WidthOfScreen(DefaultScreenOfDisplay(display));
 	int screen_h = HeightOfScreen(DefaultScreenOfDisplay(display));
 
@@ -107,9 +108,9 @@ void setup()
 		int x = m->x, y = m->y, w = m->w, h = m->h;
 
 		// determine spot layout for this monitor
-		int spot1_align      = have_layout(i) ? layouts[i].spot1_align      : LEFT ;
-		int spot1_width_pct  = have_layout(i) ? layouts[i].spot1_width_pct  : 66;
-		int spot2_height_pct = have_layout(i) ? layouts[i].spot2_height_pct : 66;
+		int spot1_align      = have_layout(i) ? settings.layouts[i].spot1_align      : LEFT ;
+		int spot1_width_pct  = have_layout(i) ? settings.layouts[i].spot1_width_pct  : 66;
+		int spot2_height_pct = have_layout(i) ? settings.layouts[i].spot2_height_pct : 66;
 
 		// monitor rotated?
 		if (m->w < m->h)
@@ -176,14 +177,14 @@ void setup()
 	XFreeModifiermap(modmap);
 
 	// process config.h key bindings
-	for (i = 0; i < sizeof(keys)/sizeof(Binding); i++)
+	for (i = 0; i < settings.binding_count; i++)
 	{
-		XGrabKey(display, XKeysymToKeycode(display, keys[i].key), keys[i].mod, root, True, GrabModeAsync, GrabModeAsync);
-		if (keys[i].mod == AnyModifier) continue;
+		XGrabKey(display, XKeysymToKeycode(display, settings.bindings[i].key), settings.bindings[i].mod, root, True, GrabModeAsync, GrabModeAsync);
+		if (settings.bindings[i].mod == AnyModifier) continue;
 
-		XGrabKey(display, XKeysymToKeycode(display, keys[i].key), keys[i].mod|LockMask, root, True, GrabModeAsync, GrabModeAsync);
-		XGrabKey(display, XKeysymToKeycode(display, keys[i].key), keys[i].mod|NumlockMask, root, True, GrabModeAsync, GrabModeAsync);
-		XGrabKey(display, XKeysymToKeycode(display, keys[i].key), keys[i].mod|LockMask|NumlockMask, root, True, GrabModeAsync, GrabModeAsync);
+		XGrabKey(display, XKeysymToKeycode(display, settings.bindings[i].key), settings.bindings[i].mod|LockMask, root, True, GrabModeAsync, GrabModeAsync);
+		XGrabKey(display, XKeysymToKeycode(display, settings.bindings[i].key), settings.bindings[i].mod|NumlockMask, root, True, GrabModeAsync, GrabModeAsync);
+		XGrabKey(display, XKeysymToKeycode(display, settings.bindings[i].key), settings.bindings[i].mod|LockMask|NumlockMask, root, True, GrabModeAsync, GrabModeAsync);
 	}
 
 	// we grab buttons to do click-to-focus. all clicks get passed through to apps.
@@ -191,13 +192,13 @@ void setup()
 	XGrabButton(display, Button3, AnyModifier, root, True, ButtonPressMask, GrabModeSync, GrabModeSync, None, None);
 
 	// create title bars
-	if (TITLE)
+	if (settings.title)
 	{
 		STACK_FREE(&windows);
 		for_monitors(i, m) for_spots(j)
 		{
 			m->bars[j] = textbox_create(root, TB_AUTOHEIGHT|TB_LEFT, m->spots[j].x, m->spots[j].y, m->spots[j].w, 0,
-				TITLE, TITLE_BLUR, BORDER_BLUR, NULL, NULL);
+				settings.title, settings.title_blur, settings.border_blur, NULL, NULL);
 			XSelectInput(display, m->bars[j]->window, ExposureMask);
 
 			m->spots[j].y += m->bars[j]->h;
