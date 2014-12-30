@@ -6,15 +6,45 @@
 
 gap 1
 border 1
+
 border_focus Royal Blue
 border_blur Dark Gray
 border_urgent Red
+
+# Title bar xft font.
 title sans:size=8
 title_blur Black
 title_focus White
 title_ellipsis 32
 
 # LAYOUT
+#
+# There are three static tiles called spot1, spot2, and spot3.
+# Want more tiles? Different layouts? Floating? Go away ;)
+# -------------------------------
+# |                   |         |
+# |                   |         |
+# |                   |    2    |
+# |         1         |         |
+# |                   |---------|
+# |                   |         |
+# |                   |    3    |
+# -------------------------------
+#
+# spot_start smart|current|spot1|spot2|spot3
+#   smart: Make new windows go to the spot of best fit.
+#     Works best when apps remember or specify their size.
+#   current: New windows open in the focused spot.
+#
+# spot1_align left|right
+#   The layout can be flipped so spot1 is on the right.
+#   If you do this, review the directional move/focus key bindings too.
+#
+# spot1_width_pct N
+#   Width of spot1 as percentage of screen width.
+#
+# spot1_height_pct N
+#   Height of spot2 as percentage of screen height.
 
 layout 0 spot_start smart
 layout 0 spot1_align left
