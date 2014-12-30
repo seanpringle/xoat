@@ -174,8 +174,16 @@ void client_message(XEvent *ev)
 	Client *c = window_build_client(e->window);
 	if (c && c->manage)
 	{
-		if (e->message_type == atoms[_NET_ACTIVE_WINDOW]) client_activate(c);
-		if (e->message_type == atoms[_NET_CLOSE_WINDOW])  action_close(NULL, 0, c);
+		if (e->message_type == atoms[_NET_ACTIVE_WINDOW])
+		{
+			client_activate(c);
+			spot_warp_pointer(c->spot, c->monitor);
+		}
+		else
+		if (e->message_type == atoms[_NET_CLOSE_WINDOW])
+		{
+			action_close(NULL, 0, c);
+		}
 	}
 	client_free(c);
 }
