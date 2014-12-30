@@ -29,6 +29,7 @@ void action_move(void *data, int num, Client *cli)
 	if (!cli) return;
 	client_raise_family(cli);
 	client_place_spot(cli, num, cli->monitor, 1);
+	spot_warp_pointer(cli->spot, cli->monitor);
 }
 
 void action_move_direction(void *data, int num, Client *cli)
@@ -36,16 +37,19 @@ void action_move_direction(void *data, int num, Client *cli)
 	if (!cli) return;
 	client_raise_family(cli);
 	client_place_spot(cli, spot_choose_by_direction(cli->spot, cli->monitor, num), cli->monitor, 1);
+	spot_warp_pointer(cli->spot, cli->monitor);
 }
 
 void action_focus(void *data, int num, Client *cli)
 {
 	spot_try_focus_top_window(num, current_mon, None);
+	spot_warp_pointer(current_spot, current_mon);
 }
 
 void action_focus_direction(void *data, int num, Client *cli)
 {
 	spot_try_focus_top_window(spot_choose_by_direction(current_spot, current_mon, num), current_mon, None);
+	spot_warp_pointer(current_spot, current_mon);
 }
 
 void action_close(void *data, int num, Client *cli)
@@ -87,7 +91,7 @@ void action_find_or_start(void *data, int num, Client *cli)
 	int i; Client *c; char *class = data;
 	for_windows(i, c)
 		if (c->visible && c->manage && c->class && !strcasecmp(c->class, class))
-			{ client_activate(c); return; }
+			{ client_activate(c); spot_warp_pointer(cli->spot, cli->monitor); return; }
 	exec_cmd(class);
 }
 
@@ -98,13 +102,15 @@ void action_move_monitor(void *data, int num, Client *cli)
 	cli->monitor = MAX(0, MIN(current_mon+num, nmonitors-1));
 	client_place_spot(cli, cli->spot, cli->monitor, 1);
 	current_mon = cli->monitor;
+	spot_warp_pointer(cli->spot, cli->monitor);
 }
 
 void action_focus_monitor(void *data, int num, Client *cli)
 {
 	int i, mon = MAX(0, MIN(current_mon+num, nmonitors-1));
-	if (spot_focus_top_window(current_spot, mon, None)) return;
-	for_spots(i) if (spot_focus_top_window(i, mon, None)) break;
+	if (!spot_focus_top_window(current_spot, mon, None))
+		for_spots(i) if (spot_focus_top_window(i, mon, None)) break;
+	spot_warp_pointer(current_spot, current_mon);
 }
 
 void action_fullscreen(void *data, int num, Client *cli)

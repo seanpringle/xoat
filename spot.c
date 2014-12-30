@@ -85,6 +85,21 @@ void update_bars()
 		spot_update_bar(j, i);
 }
 
+void spot_warp_pointer(int spot, int mon)
+{
+	Window wroot, child;
+	int root_x, root_y, win_x, win_y;
+	unsigned int mask;
+
+	if (XQueryPointer(display, root, &wroot, &child, &root_x, &root_y, &win_x, &win_y, &mask)
+		&& !INTERSECT(monitors[mon].spots[spot].x, monitors[mon].spots[spot].y, monitors[mon].spots[spot].w, monitors[mon].spots[spot].h, root_x, root_y, 1, 1))
+	{
+		XWarpPointer(display, None, root, 0, 0, 0, 0,
+			monitors[mon].spots[spot].x + monitors[mon].spots[spot].w - 10,
+			monitors[mon].spots[spot].y + 10);
+	}
+}
+
 Window spot_focus_top_window(int spot, int mon, Window except)
 {
 	int i; Client *c;
