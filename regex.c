@@ -35,6 +35,7 @@ typedef struct {
 } RegexCache;
 
 RegexCache regex_cache[REGEX_CACHE];
+char *regex_matches[REGEX_GROUPS];
 
 regex_t*
 regex(const char *pattern)
@@ -115,7 +116,13 @@ regex(const char *pattern)
 }
 
 void
-flush_regex_cache()
+regex_cache_init()
+{
+	memset(regex_cache, 0, sizeof(regex_cache));
+}
+
+void
+regex_cache_empty()
 {
 	for (int i = 0; i < REGEX_CACHE; i++)
 	{
@@ -131,8 +138,6 @@ flush_regex_cache()
 	}
 }
 
-char *regex_matches[REGEX_GROUPS];
-
 int
 regex_match(const char *pattern, const char *subject)
 {
@@ -147,27 +152,6 @@ regex_match(const char *pattern, const char *subject)
 			regex_matches[i] = malloc(len + 1);
 			strncpy(regex_matches[i], subject + pmatch[i].rm_so, len);
 			regex_matches[i][len] = 0;
-		}
-	}
-	return r;
-}
-
-int
-regex_split(char *pattern, char **subject)
-{
-	int r = 0; regmatch_t pmatch;
-	regex_t *re = regex(pattern);
-	if (re && *subject)
-	{
-		r = regexec(re, *subject, 1, &pmatch, 0) == 0 ?-1:0;
-		if (r)
-		{
-			memset(*subject + pmatch.rm_so, 0, pmatch.rm_eo - pmatch.rm_so);
-			*subject += pmatch.rm_eo;
-		}
-		else
-		{
-			*subject += strlen(*subject);
 		}
 	}
 	return r;

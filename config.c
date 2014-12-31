@@ -68,6 +68,8 @@ configure()
 	char tmp[1024];
 	const char *home = getenv("HOME");
 
+	regex_cache_init();
+
 	settings.border         = BORDER;
 	settings.border_blur    = strdup(BORDER_BLUR);
 	settings.border_focus   = strdup(BORDER_FOCUS);
@@ -428,5 +430,7 @@ configure()
 			}
 		}
 		fclose(file);
+
+		regex_cache_empty();
 	}
 }
