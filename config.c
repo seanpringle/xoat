@@ -432,5 +432,11 @@ configure()
 		fclose(file);
 
 		regex_cache_empty();
+
+		if (settings.title && strcmp(settings.title, "null") == 0)
+		{
+			free(settings.title);
+			settings.title = NULL;
+		}
 	}
 }

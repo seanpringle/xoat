@@ -11,7 +11,8 @@ border_focus Royal Blue
 border_blur Dark Gray
 border_urgent Red
 
-# Title bar xft font.
+# Title bar xft font. "null" means disable.
+# title null
 title sans:size=8
 title_blur Black
 title_focus White
