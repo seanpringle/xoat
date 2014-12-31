@@ -41,16 +41,16 @@ typedef struct {
 	XIM xim;
 	XIC xic;
 	XGlyphInfo extents;
-} textbox;
+} Textbox;
 
-void textbox_font(textbox *tb, char *font, char *fg, char *bg);
-void textbox_text(textbox *tb, char *text);
-void textbox_moveresize(textbox *tb, int x, int y, int w, int h);
+void textbox_font(Textbox *tb, char *font, char *fg, char *bg);
+void textbox_text(Textbox *tb, char *text);
+void textbox_moveresize(Textbox *tb, int x, int y, int w, int h);
 
 // Xft text box, optionally editable
-textbox* textbox_create(Window parent, unsigned long flags, short x, short y, short w, short h, char *font, char *fg, char *bg, char *text, char *prompt)
+Textbox* textbox_create(Window parent, unsigned long flags, short x, short y, short w, short h, char *font, char *fg, char *bg, char *text, char *prompt)
 {
-	textbox *tb = calloc(1, sizeof(textbox));
+	Textbox *tb = calloc(1, sizeof(Textbox));
 
 	tb->flags = flags;
 	tb->parent = parent;
@@ -82,7 +82,7 @@ textbox* textbox_create(Window parent, unsigned long flags, short x, short y, sh
 }
 
 // set an Xft font by name
-void textbox_font(textbox *tb, char *font, char *fg, char *bg)
+void textbox_font(Textbox *tb, char *font, char *fg, char *bg)
 {
 	if (tb->font) XftFontClose(display, tb->font);
 	tb->font = XftFontOpenName(display, DefaultScreen(display), font);
@@ -92,7 +92,7 @@ void textbox_font(textbox *tb, char *font, char *fg, char *bg)
 }
 
 // outer code may need line height, width, etc
-void textbox_extents(textbox *tb)
+void textbox_extents(Textbox *tb)
 {
 	int length = strlen(tb->text) + strlen(tb->prompt);
 	char line[length + 1];
@@ -101,7 +101,7 @@ void textbox_extents(textbox *tb)
 }
 
 // set the default text to display
-void textbox_text(textbox *tb, char *text)
+void textbox_text(Textbox *tb, char *text)
 {
 	if (tb->text) free(tb->text);
 	tb->text = strdup(text ? text: "");
@@ -110,7 +110,7 @@ void textbox_text(textbox *tb, char *text)
 }
 
 // set an input prompt for edit mode
-void textbox_prompt(textbox *tb, char *text)
+void textbox_prompt(Textbox *tb, char *text)
 {
 	if (tb->prompt) free(tb->prompt);
 	tb->prompt = strdup(text);
@@ -118,7 +118,7 @@ void textbox_prompt(textbox *tb, char *text)
 }
 
 // within the parent. handled auto width/height modes
-void textbox_moveresize(textbox *tb, int x, int y, int w, int h)
+void textbox_moveresize(Textbox *tb, int x, int y, int w, int h)
 {
 	if (tb->flags & TB_AUTOHEIGHT)
 		h = tb->font->ascent + tb->font->descent;
@@ -133,18 +133,18 @@ void textbox_moveresize(textbox *tb, int x, int y, int w, int h)
 	}
 }
 
-void textbox_show(textbox *tb)
+void textbox_show(Textbox *tb)
 {
 	XMapWindow(display, tb->window);
 }
 
-void textbox_hide(textbox *tb)
+void textbox_hide(Textbox *tb)
 {
 	XUnmapWindow(display, tb->window);
 }
 
 // will also unmap the window if still displayed
-void textbox_free(textbox *tb)
+void textbox_free(Textbox *tb)
 {
 	if (tb->flags & TB_EDITABLE)
 	{
@@ -160,7 +160,7 @@ void textbox_free(textbox *tb)
 	free(tb);
 }
 
-void textbox_draw(textbox *tb)
+void textbox_draw(Textbox *tb)
 {
 	int i;
 	XGlyphInfo extents;
@@ -228,37 +228,37 @@ void textbox_draw(textbox *tb)
 }
 
 // cursor handling for edit mode
-void textbox_cursor(textbox *tb, int pos)
+void textbox_cursor(Textbox *tb, int pos)
 {
 	tb->cursor = MAX(0, MIN(strlen(tb->text), pos));
 }
 
 // move right
-void textbox_cursor_inc(textbox *tb)
+void textbox_cursor_inc(Textbox *tb)
 {
 	textbox_cursor(tb, tb->cursor+1);
 }
 
 // move left
-void textbox_cursor_dec(textbox *tb)
+void textbox_cursor_dec(Textbox *tb)
 {
 	textbox_cursor(tb, tb->cursor-1);
 }
 
 // beginning of line
-void textbox_cursor_home(textbox *tb)
+void textbox_cursor_home(Textbox *tb)
 {
 	tb->cursor = 0;
 }
 
 // end of line
-void textbox_cursor_end(textbox *tb)
+void textbox_cursor_end(Textbox *tb)
 {
 	tb->cursor = strlen(tb->text);
 }
 
 // insert text
-void textbox_insert(textbox *tb, int pos, char *str)
+void textbox_insert(Textbox *tb, int pos, char *str)
 {
 	int len = strlen(tb->text), slen = strlen(str);
 	pos = MAX(0, MIN(len, pos));
@@ -273,7 +273,7 @@ void textbox_insert(textbox *tb, int pos, char *str)
 }
 
 // remove text
-void textbox_delete(textbox *tb, int pos, int dlen)
+void textbox_delete(Textbox *tb, int pos, int dlen)
 {
 	int len = strlen(tb->text);
 	pos = MAX(0, MIN(len, pos));
@@ -284,7 +284,7 @@ void textbox_delete(textbox *tb, int pos, int dlen)
 }
 
 // insert one character
-void textbox_cursor_ins(textbox *tb, char c)
+void textbox_cursor_ins(Textbox *tb, char c)
 {
 	char tmp[2] = { c, 0 };
 	textbox_insert(tb, tb->cursor, tmp);
@@ -292,13 +292,13 @@ void textbox_cursor_ins(textbox *tb, char c)
 }
 
 // delete on character
-void textbox_cursor_del(textbox *tb)
+void textbox_cursor_del(Textbox *tb)
 {
 	textbox_delete(tb, tb->cursor, 1);
 }
 
 // back up and delete one character
-void textbox_cursor_bkspc(textbox *tb)
+void textbox_cursor_bkspc(Textbox *tb)
 {
 	if (tb->cursor > 0)
 	{
@@ -311,7 +311,7 @@ void textbox_cursor_bkspc(textbox *tb)
 // 0 = unhandled
 // 1 = handled
 // -1 = handled and return pressed (finished)
-int textbox_keypress(textbox *tb, XEvent *ev)
+int textbox_keypress(Textbox *tb, XEvent *ev)
 {
 	if (!(tb->flags & TB_EDITABLE)) return 0;
 

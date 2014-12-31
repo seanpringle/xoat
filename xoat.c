@@ -69,7 +69,7 @@ typedef struct _Box {
 typedef struct _Monitor {
 	short x, y, w, h;
 	Box spots[SPOT3+1];
-	textbox *bars[SPOT3+1];
+	Textbox *bars[SPOT3+1];
 } Monitor;
 
 typedef struct _Client {
