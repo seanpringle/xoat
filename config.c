@@ -307,6 +307,13 @@ configure()
 						str += 5;
 					}
 					else
+					if ((strncmp(str, "Control", 7)) == 0)
+					{
+						modifier |= ControlMask;
+						fprintf(stderr, " [Control]");
+						str += 7;
+					}
+					else
 					{
 						break;
 					}
