@@ -182,8 +182,11 @@ void client_place_spot(Client *c, int spot, int mon, int force)
 	// try to center over our transient parent
 	if (!force && c->transient && (t = window_build_client(c->transient)))
 	{
-		spot = t->spot;
-		mon = t->monitor;
+		if (t->manage)
+		{
+			spot = t->spot;
+			mon = t->monitor;
+		}
 		client_free(t);
 	}
 	else
@@ -293,7 +296,7 @@ void client_raise_family(Client *c)
 	for_windows(i, o) if (o->type == atoms[_NET_WM_WINDOW_TYPE_DOCK])
 		client_stack_family(o, &raise);
 
-	while (c->transient && (o = window_build_client(c->transient)))
+	while (c->transient && (o = window_build_client(c->transient)) && o->manage)
 		c = family.clients[family.depth++] = o;
 
 	client_stack_family(c, &raise);
