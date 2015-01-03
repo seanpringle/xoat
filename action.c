@@ -91,7 +91,7 @@ void action_find_or_start(void *data, int num, Client *cli)
 	int i; Client *c; char *class = data;
 	for_windows(i, c)
 		if (c->visible && c->manage && c->class && !strcasecmp(c->class, class))
-			{ client_activate(c); spot_warp_pointer(cli->spot, cli->monitor); return; }
+			{ client_activate(c); spot_warp_pointer(c->spot, c->monitor); return; }
 	exec_cmd(class);
 }
 
