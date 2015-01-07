@@ -133,3 +133,7 @@ bind F4 action_find_or_start sublime-text
 # Also possible to bind by keysym hex value
 # Eg, XF86XK_MonBrightnessUp = 0x1008FF02
 # bind 0x1008FF02 action_command <custom_brightness_command>
+
+# Launch apps (or any command) at startup
+# launch xterm
+# launch xsetroot -cursor_name left_ptr 

@@ -216,4 +216,11 @@ void setup()
 		client_place_spot(c, c->spot, c->monitor, 0);
 		if (!current) client_activate(c);
 	}
+
+	// auto launch
+	if (settings.launchcmd_count)
+	{
+		for (i = 0; i < settings.launchcmd_count; i++)
+			exec_cmd(settings.launchcmds[i]);
+	}
 }

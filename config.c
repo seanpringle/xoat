@@ -89,6 +89,9 @@ configure()
 	settings.binding_count = sizeof(keys) / sizeof(Binding);
 	settings.bindings = calloc(settings.binding_count, sizeof(Binding));
 
+	settings.launchcmd_count = 0;
+	settings.launchcmds = calloc(1, sizeof(char*));
+
 	for (i = 0; i < settings.binding_count; i++)
 		memmove(&settings.bindings[i], &keys[i], sizeof(Binding));
 
@@ -434,6 +437,16 @@ configure()
 					settings.bindings[i].data = data ? strdup(data): NULL;
 					settings.bindings[i].num  = num;
 				}
+			}
+			else
+			if (regex_match("^launch[[:space:]]+(.+)$", tmp))
+			{
+				rtrim(regex_matches[1]);
+				
+				settings.launchcmd_count++;
+				settings.launchcmds = realloc(settings.launchcmds, sizeof(char*) * settings.launchcmd_count);
+				settings.launchcmds[settings.launchcmd_count-1] = strdup(regex_matches[1]);
+				fprintf(stderr, "launching [%s]\n", regex_matches[1]);
 			}
 		}
 		fclose(file);

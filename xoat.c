@@ -116,6 +116,9 @@ typedef struct _Settings {
 
 	unsigned int binding_count;
 	Binding *bindings;
+
+	unsigned int launchcmd_count;
+	char **launchcmds;
 } Settings;
 
 #define have_layout(i) (settings.layout_count > (i))
