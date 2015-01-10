@@ -32,6 +32,7 @@ typedef struct {
 void setup()
 {
 	int i, j; Client *c; Monitor *m;
+	memset(&monitors, 0, sizeof(monitors));
 
 	int screen_w = WidthOfScreen(DefaultScreenOfDisplay(display));
 	int screen_h = HeightOfScreen(DefaultScreenOfDisplay(display));

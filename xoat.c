@@ -54,6 +54,7 @@ Display *display;
 
 #include "atom.c"
 #include "textbox.c"
+#include "menubox.c"
 #include "regex.c"
 
 #define STACK 64
@@ -72,12 +73,23 @@ typedef struct _Monitor {
 	Textbox *bars[SPOT3+1];
 } Monitor;
 
+typedef struct _MenuMap {
+	Window window;
+	char *name;
+} MenuMap;
+
+typedef struct _Menu {
+	short spot, monitor;
+	MenuMap items[100];
+	Menubox *mb;
+} Menu;
+
 typedef struct _Client {
 	Window window;
 	XWindowAttributes attr;
 	Window transient, leader;
 	Atom type, states[ATOMLIST+1];
-	short monitor, visible, manage, input, urgent, full, ours, maxv, maxh;
+	short monitor, visible, manage, input, urgent, full, ours, maxv, maxh, bar, menu;
 	unsigned long spot, max;
 	char *class;
 } Client;
@@ -185,6 +197,7 @@ Window root, ewmh, current = None;
 Stack windows;
 static int (*xerror)(Display *, XErrorEvent *);
 Settings settings;
+Menu *menu, spot_menu;
 
 void catch_exit(int sig)
 {
@@ -203,6 +216,7 @@ void exec_cmd(char *cmd)
 #include "window.c"
 #include "ewmh.c"
 #include "client.c"
+#include "menu.c"
 #include "spot.c"
 #include "event.c"
 #include "action.c"
@@ -247,6 +261,7 @@ int main(int argc, char *argv[])
 	self   = argv[0];
 	root   = DefaultRootWindow(display);
 	xerror = XSetErrorHandler(oops);
+	menu   = &spot_menu;
 
 	for (i = 0; i < ATOMS; i++) atoms[i] = XInternAtom(display, atom_names[i], False);
 

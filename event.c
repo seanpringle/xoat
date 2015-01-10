@@ -64,6 +64,7 @@ void configure_notify(XEvent *e)
 		while (XCheckTypedEvent(display, ConfigureNotify, e));
 		ewmh_client_list();
 		update_bars();
+		menu_update();
 	}
 	client_free(c);
 }
@@ -105,6 +106,7 @@ void map_notify(XEvent *e)
 		client_free(a);
 		ewmh_client_list();
 		update_bars();
+		menu_update();
 	}
 	client_free(c);
 }
@@ -119,6 +121,7 @@ void unmap_notify(XEvent *e)
 	}
 	ewmh_client_list();
 	update_bars();
+	menu_update();
 }
 
 void key_press(XEvent *ev)
@@ -127,6 +130,21 @@ void key_press(XEvent *ev)
 	KeySym key = XkbKeycodeToKeysym(display, e->keycode, 0, 0);
 	unsigned int state = e->state & ~(LockMask|NumlockMask);
 	while (XCheckTypedEvent(display, KeyPress, ev));
+
+	int i, j; Monitor *m;
+	for_monitors(i, m) for_spots(j) if (menu && menu->mb && menu->mb->window == e->window)
+	{
+		int rc = menubox_keypress(menu->mb, ev);
+		menubox_draw(menu->mb);
+
+		if (rc == -2)
+			menu_close();
+
+		if (rc == -1)
+			menu_select();
+		
+		return;
+	}
 
 	Binding *bind = NULL;
 	for (int i = 0; i < settings.binding_count && !bind; i++)
@@ -139,6 +157,7 @@ void key_press(XEvent *ev)
 		bind->act(bind->data, bind->num, cli);
 		client_free(cli);
 		update_bars();
+		menu_update();
 	}
 }
 
@@ -197,6 +216,7 @@ void property_notify(XEvent *ev)
 	{
 		// root name appears in SPOT1 bar, for status etc
 		update_bars();
+		menu_update();
 	}
 	else
 	if (c && c->visible && c->manage)
@@ -215,6 +235,7 @@ void expose(XEvent *e)
 {
 	while (XCheckTypedEvent(display, Expose, e));
 	update_bars();
+	menu_update();
 }
 
 void any_event(XEvent *e)

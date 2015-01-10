@@ -74,7 +74,11 @@ Client* window_build_client(Window win)
 		if (settings.title)
 			for_monitors(i, m) for_spots(j)
 				if (m->bars[j] && m->bars[j]->window == c->window)
-					{ c->ours = 1; c->manage = 0; break; }
+					{ c->ours = 1; c->bar = 1; c->manage = 0; break; }
+
+		// detect our own menus
+		if (menu && menu->mb && menu->mb->window == c->window)
+			{ c->ours = 1; c->menu = 1; c->manage = 0; }
 
 		if (c->manage)
 		{

@@ -149,3 +149,8 @@ void action_maximize_horz(void *data, int num, Client *cli)
 	cli->maxh = client_toggle_state(cli, atoms[_NET_WM_STATE_MAXIMIZE_HORZ]);
 	client_place_spot(cli, cli->spot, cli->monitor, 1);
 }
+
+void action_menu(void *data, int num, Client *cli)
+{
+	menu_create(current_spot, current_mon);
+}

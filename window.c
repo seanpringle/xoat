@@ -65,6 +65,16 @@ char* window_get_text_prop(Window w, Atom atom)
 	return res;
 }
 
+char* window_get_name(Window w)
+{
+	char *name = NULL, *tmp = NULL;
+	if (!(name = window_get_text_prop(w, atoms[_NET_WM_NAME])))
+		if (XFetchName(display, w, &tmp))
+			name = strdup(tmp);
+	if (tmp) XFree(tmp);
+	return name;
+}
+
 Atom wgp_type; int wgp_items;
 
 #define GETPROP_ATOM(w, a, l, c) (window_get_prop((w), (a), &wgp_type, &wgp_items, (l), (c)*sizeof(Atom))          && wgp_type == XA_ATOM     ? wgp_items:0)

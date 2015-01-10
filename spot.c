@@ -29,7 +29,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 void spot_update_bar(int spot, int mon)
 {
 	int i, n = 0, len = 0; Client *o, *c = NULL;
-	char title[SPOT_BUFF]; *title = 0;
+	char *name = NULL, title[SPOT_BUFF]; *title = 0;
 	Monitor *m = &monitors[mon];
 
 	if (spot == SPOT1)
@@ -44,11 +44,7 @@ void spot_update_bar(int spot, int mon)
 	for_windows(i, o) if (o->manage && o->spot == spot && o->monitor == mon)
 	{
 		if (!c) c = o;
-		char *name = NULL, *tmp = NULL;
-		if (!(name = window_get_text_prop(o->window, atoms[_NET_WM_NAME])))
-			if (XFetchName(display, o->window, &tmp))
-				name = strdup(tmp);
-		if (name)
+		if ((name = window_get_name(o->window)) && name)
 		{
 			if (settings.title_ellipsis > 0 && strlen(name) > settings.title_ellipsis)
 			{
@@ -58,7 +54,6 @@ void spot_update_bar(int spot, int mon)
 			len += snprintf(title+len, MAX(0, SPOT_BUFF-len), " [%d] %s  ", n++, name);
 			free(name);
 		}
-		if (tmp) XFree(tmp);
 	}
 	if (settings.title)
 	{
