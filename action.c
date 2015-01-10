@@ -29,6 +29,7 @@ void action_move(void *data, int num, Client *cli)
 	if (!cli) return;
 	client_raise_family(cli);
 	client_place_spot(cli, num, cli->monitor, 1);
+	current_spot = cli->spot; current_mon = cli->monitor;
 	spot_warp_pointer(cli->spot, cli->monitor);
 }
 
@@ -37,6 +38,7 @@ void action_move_direction(void *data, int num, Client *cli)
 	if (!cli) return;
 	client_raise_family(cli);
 	client_place_spot(cli, spot_choose_by_direction(cli->spot, cli->monitor, num), cli->monitor, 1);
+	current_spot = cli->spot; current_mon = cli->monitor;
 	spot_warp_pointer(cli->spot, cli->monitor);
 }
 
