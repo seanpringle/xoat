@@ -26,7 +26,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #define MB_AUTOHEIGHT 1<<0
 #define MB_AUTOWIDTH 1<<1
-#define MB_SELECTABLE 1<<2
 #define MB_MINWIDTH 1<<3
 
 typedef struct {
@@ -37,8 +36,8 @@ typedef struct {
 	unsigned int box_count, box_active;
 	Textbox **boxes;
 	int *ids;
-	XIM xim;
-	XIC xic;
+	int *show;
+	Textbox *input;
 } Menubox;
 
 void menubox_moveresize(Menubox*, short, short, short, short);
@@ -49,6 +48,7 @@ Menubox* menubox_create(Window parent, unsigned long flags, short x, short y, sh
 	Menubox *mb = calloc(1, sizeof(Menubox));
 	mb->boxes = (Textbox**) calloc(1, sizeof(Textbox));
 	mb->ids = (int*) calloc(1, sizeof(int));
+	mb->show = (int*) calloc(1, sizeof(int));
 
 	mb->flags = flags;
 	mb->parent = parent;
@@ -68,17 +68,11 @@ Menubox* menubox_create(Window parent, unsigned long flags, short x, short y, sh
 	mb->window = XCreateSimpleWindow(display, mb->parent, mb->x, mb->y, mb->w, mb->h, 0, None, cp);
 
 	// calc line height
-	Textbox *lb = textbox_create(mb->window, TB_AUTOHEIGHT, 0, 0, 0, 0, mb->font, mb->fg_blur, mb->bg_blur, "a", NULL);
-	mb->line_height = lb->h; textbox_free(lb);
+	mb->input = textbox_create(mb->window, TB_AUTOHEIGHT|TB_EDITABLE, mb->padding, mb->padding, mb->w, 0, mb->font, mb->fg_blur, mb->bg_blur, "", "> ");
+	mb->line_height = mb->input->h;
 
 	// auto height/width modes get handled here
 	menubox_moveresize(mb, mb->x, mb->y, mb->w, mb->h);
-
-	if (MB_SELECTABLE)
-	{
-		mb->xim = XOpenIM(display, NULL, NULL, NULL);
-		mb->xic = XCreateIC(mb->xim, XNInputStyle, XIMPreeditNothing | XIMStatusNothing, XNClientWindow, mb->window, XNFocusWindow, mb->window, NULL);
-	}
 
 	return mb;
 }
@@ -88,7 +82,7 @@ void menubox_moveresize(Menubox *mb, short x, short y, short w, short h)
 	int ow = w;
 
 	if (mb->flags & MB_AUTOHEIGHT)
-		h = mb->box_count * mb->line_height + (mb->padding*2);
+		h = (mb->box_count+1) * mb->line_height + (mb->padding*2);
 
 	if (mb->flags & MB_AUTOWIDTH)
 	{
@@ -115,9 +109,14 @@ void menubox_add(Menubox *mb, int id, char *text)
 
 	mb->boxes = (Textbox**) realloc(mb->boxes, sizeof(Textbox) * mb->box_count);
 	mb->ids   = (int*)      realloc(mb->ids,   sizeof(int)     * mb->box_count);
+	mb->show  = (int*)      realloc(mb->show,  sizeof(int)     * mb->box_count);
 	
-	mb->boxes[slot] = textbox_create(mb->window, TB_AUTOHEIGHT|TB_AUTOWIDTH, mb->padding, mb->line_height*slot+mb->padding, mb->w-(mb->padding*2), 0, mb->font, mb->fg_blur, mb->bg_blur, text, NULL);
+	mb->boxes[slot] = textbox_create(mb->window, TB_AUTOHEIGHT|TB_AUTOWIDTH,
+		mb->padding, mb->line_height*(slot+1)+mb->padding, mb->w-(mb->padding*2), 0,
+		mb->font, mb->fg_blur, mb->bg_blur, text, NULL);
+
 	mb->ids[slot]   = id;
+	mb->show[slot]  = 1;
 	
 	if (mb->flags & (MB_AUTOWIDTH|MB_AUTOHEIGHT))
 		menubox_moveresize(mb, mb->x, mb->y, mb->w, mb->h);
@@ -125,7 +124,7 @@ void menubox_add(Menubox *mb, int id, char *text)
 
 int menubox_get_id(Menubox *mb)
 {
-	return mb->ids[mb->box_active];
+	return mb->show[mb->box_active] ? mb->ids[mb->box_active]: -1;
 }
 
 void menubox_grab(Menubox *mb)
@@ -140,17 +139,29 @@ void menubox_grab(Menubox *mb)
 
 void menubox_draw(Menubox *mb)
 {
-	for (uint i = 0; i < mb->box_count; i++)
+	textbox_draw(mb->input);
+	int filter = strlen(mb->input->text) > 0;
+
+	for (uint i = 0, n = 0; i < mb->box_count; i++)
 	{
-		textbox_font(mb->boxes[i], mb->font, mb->box_active == i ? mb->fg_focus: mb->fg_blur, mb->box_active == i ? mb->bg_focus: mb->bg_blur);
-		textbox_draw(mb->boxes[i]);
+		if (!filter || mb->show[i])
+		{
+			textbox_font(mb->boxes[i], mb->font, mb->box_active == i ? mb->fg_focus: mb->fg_blur, mb->box_active == i ? mb->bg_focus: mb->bg_blur);
+			textbox_moveresize(mb->boxes[i], mb->padding, mb->line_height*(n+1)+mb->padding, mb->w-(mb->padding*2), 0);
+			textbox_show(mb->boxes[i]);	
+			textbox_draw(mb->boxes[i]);
+			n++;
+		}
+		else
+		{
+			textbox_hide(mb->boxes[i]);
+		}
 	}
 }
 
 void menubox_show(Menubox *mb)
 {
-	for (uint i = 0; i < mb->box_count; i++)
-		textbox_show(mb->boxes[i]);	
+	textbox_show(mb->input);
 	XMapWindow(display, mb->window);
 }
 
@@ -165,15 +176,34 @@ void menubox_free(Menubox *mb)
 		textbox_free(mb->boxes[i]);
 	free(mb->boxes);
 	free(mb->ids);
-
-	if (mb->flags & MB_SELECTABLE)
-	{
-		XDestroyIC(mb->xic);
-		XCloseIM(mb->xim);
-	}
-
+	free(mb->show);
+	textbox_free(mb->input);
 	XDestroyWindow(display, mb->window);
 	free(mb);
+}
+
+void menubox_filter(Menubox *mb)
+{
+	int filter = strlen(mb->input->text) > 0;
+	char *pattern = strdup(mb->input->text);
+	for (char *p = pattern; *p; *p = tolower(*p), p++);
+
+	for (int i = 0; i < mb->box_count; i++)
+	{
+		char *subject = strdup(mb->boxes[i]->text);
+		for (char *p = subject; *p; *p = tolower(*p), p++);
+		mb->show[i] = (!filter || regex_match(pattern, subject));
+		free(subject);
+	}
+	free(pattern);
+
+	// active entry maybe filtered. step backward
+	while (!mb->show[mb->box_active] && mb->box_active > 0)
+		mb->box_active--;
+
+	// active entry maybe filtered. step forward
+	while (!mb->show[mb->box_active] && mb->box_active < mb->box_count-1)
+		mb->box_active++;
 }
 
 void menubox_key_up(Menubox *mb)
@@ -186,16 +216,6 @@ void menubox_key_down(Menubox *mb)
 	if (mb->box_active < mb->box_count-1) mb->box_active++;
 }
 
-void menubox_key_home(Menubox *mb)
-{
-	mb->box_active = 0;
-}
-
-void menubox_key_end(Menubox *mb)
-{
-	mb->box_active = mb->box_count-1;
-}
-
 // handle a keypress in edit mode
 // 0 = unhandled
 // 1 = handled
@@ -205,17 +225,20 @@ int menubox_keypress(Menubox *mb, XEvent *ev)
 {
 	KeySym key; Status stat; char pad[32];
 
-	int len = XmbLookupString(mb->xic, &ev->xkey, pad, sizeof(pad), &key, &stat);
+	int len = XmbLookupString(mb->input->xic, &ev->xkey, pad, sizeof(pad), &key, &stat);
 	pad[len] = 0;
+
+	int rc = 0;
 
 	switch (key)
 	{
-		case XK_Up     : menubox_key_up(mb);   return 1;
-		case XK_Down   : menubox_key_down(mb); return 1;
-		case XK_Home   : menubox_key_home(mb); return 1;
-		case XK_End    : menubox_key_end(mb);  return 1;
-		case XK_Escape : return -2;
-		case XK_Return : return -1;
+		case XK_Up     : { menubox_key_up(mb);   rc = 1; break; }
+		case XK_Down   : { menubox_key_down(mb); rc = 1; break; }
+		case XK_Escape : { rc = -2; break; }
+		case XK_Return : { rc = -1; break; }
+		default: rc = textbox_keypress(mb->input, ev);
 	}
-	return 0;
+
+	menubox_filter(mb);
+	return rc;
 }

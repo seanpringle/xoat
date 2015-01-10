@@ -131,11 +131,10 @@ void key_press(XEvent *ev)
 	unsigned int state = e->state & ~(LockMask|NumlockMask);
 	while (XCheckTypedEvent(display, KeyPress, ev));
 
-	int i, j; Monitor *m;
-	for_monitors(i, m) for_spots(j) if (menu && menu->mb && menu->mb->window == e->window)
+	if (menu && menu->mb && menu->mb->window == e->window)
 	{
 		int rc = menubox_keypress(menu->mb, ev);
-		menubox_draw(menu->mb);
+		menu_update();
 
 		if (rc == -2)
 			menu_close();

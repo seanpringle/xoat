@@ -52,10 +52,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 Display *display;
 
+#include "regex.c"
 #include "atom.c"
 #include "textbox.c"
 #include "menubox.c"
-#include "regex.c"
 
 #define STACK 64
 #define MONITORS 3

@@ -95,9 +95,10 @@ void textbox_font(Textbox *tb, char *font, char *fg, char *bg)
 void textbox_extents(Textbox *tb)
 {
 	int length = strlen(tb->text) + strlen(tb->prompt);
-	char line[length + 1];
+	char *line = calloc(length + 1, sizeof(char));
 	sprintf(line, "%s%s", tb->prompt, tb->text);
 	XftTextExtents8(display, tb->font, (unsigned char*)line, length, &tb->extents);
+	free(line);
 }
 
 // set the default text to display
@@ -162,7 +163,6 @@ void textbox_free(Textbox *tb)
 
 void textbox_draw(Textbox *tb)
 {
-	int i;
 	XGlyphInfo extents;
 
 	GC context    = XCreateGC(display, tb->window, 0, 0);
@@ -172,9 +172,10 @@ void textbox_draw(Textbox *tb)
 	// clear canvas
 	XftDrawRect(draw, &tb->color_bg, 0, 0, tb->w, tb->h);
 
-	char *line   = tb->text,
+	char *line  = tb->text,
 		*text   = tb->text ? tb->text: "",
-		*prompt = tb->prompt ? tb->prompt: "";
+		*prompt = tb->prompt ? tb->prompt: "",
+		*eline  = NULL;
 
 	int text_len    = strlen(text);
 	int length      = text_len;
@@ -190,17 +191,17 @@ void textbox_draw(Textbox *tb)
 		length = text_len + prompt_len;
 		cursor_offset = MIN(tb->cursor + prompt_len, length);
 
-		char eline[length + 10]; line = eline;
+		eline = calloc(length+10, sizeof(char)); line = eline;
 		sprintf(line, "%s%s", prompt, text);
 
-		// replace spaces so XftTextExtents8 includes their width
-		for (i = 0; i < length; i++) if (isspace(line[i])) line[i] = '_';
+		// replace trailing space so XftTextExtents8 includes its width
+		if (length > 0 && isspace(line[length-1])) line[length-1] = '.';
 
 		// calc cursor position
 		XftTextExtents8(display, tb->font, (unsigned char*)line, cursor_offset, &extents);
 		cursor_x = extents.width;
 
-		// restore correct text string with spaces
+		// restore correct text string
 		sprintf(line, "%s%s", prompt, text);
 	}
 
@@ -225,6 +226,8 @@ void textbox_draw(Textbox *tb)
 	XFreeGC(display, context);
 	XftDrawDestroy(draw);
 	XFreePixmap(display, canvas);
+
+	free(eline);
 }
 
 // cursor handling for edit mode

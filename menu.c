@@ -29,7 +29,6 @@ void menu_update()
 	if (menu->mb)
 	{
 		menubox_draw(menu->mb);
-		menubox_show(menu->mb);
 	}
 }
 
@@ -55,11 +54,16 @@ void menu_select()
 	if (menu->mb)
 	{
 		id = menubox_get_id(menu->mb);
-		if ((c = window_build_client(menu->items[id].window)) && c)
+		if (id >= 0 && (c = window_build_client(menu->items[id].window)) && c)
 		{
 			if (c->manage)
 				client_activate(c);
 			client_free(c);
+		}
+		else
+		if (strlen(menu->mb->input->text))
+		{
+			exec_cmd(menu->mb->input->text);
 		}
 		menu_close();
 	}
@@ -116,7 +120,7 @@ void menu_create(int spot, int mon)
 	menubox_moveresize(mb, x, y, w, h);
 
 	menubox_key_down(mb);
-	menubox_draw(mb);
 	menubox_show(mb);
+	menubox_draw(mb);
 	menubox_grab(mb);
 }
