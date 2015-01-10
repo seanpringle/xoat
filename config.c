@@ -34,9 +34,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CONFIG_TITLE_FOCUS "title_focus"
 #define CONFIG_TITLE_ELLIPSIS "title_ellipsis"
 #define CONFIG_LAYOUTS "layouts"
+#define CONFIG_MENU "menu"
 
 #define CONFIG_UINT_NAMES CONFIG_BORDER "|" CONFIG_GAP "|" CONFIG_TITLE_ELLIPSIS
-#define CONFIG_STR_NAMES CONFIG_BORDER_BLUR "|" CONFIG_BORDER_FOCUS "|" CONFIG_BORDER_URGENT "|" CONFIG_TITLE "|" CONFIG_TITLE_BLUR "|" CONFIG_TITLE_FOCUS
+#define CONFIG_STR_NAMES CONFIG_BORDER_BLUR "|" CONFIG_BORDER_FOCUS "|" CONFIG_BORDER_URGENT "|" CONFIG_TITLE "|" CONFIG_TITLE_BLUR "|" CONFIG_TITLE_FOCUS "|" CONFIG_MENU
 
 #define CONFIG_ACTIONS "action_move_direction|action_focus_direction|action_move|action_focus|action_close|action_cycle|action_raise_nth|action_command|action_find_or_start|action_move_monitor|action_focus_monitor|action_fullscreen|action_maximize_vert|action_maximize_horz|action_maximize|action_menu"
 
@@ -79,6 +80,7 @@ configure()
 	settings.title_blur     = strdup(TITLE_BLUR);
 	settings.title_focus    = strdup(TITLE_FOCUS);
 	settings.title_ellipsis = TITLE_ELLIPSIS;
+	settings.menu           = TITLE ? strdup(TITLE): "sans";
 
 	settings.layout_count = sizeof(layouts) / sizeof(Layout);
 	settings.layouts = calloc(settings.layout_count, sizeof(Layout));
@@ -137,6 +139,7 @@ configure()
 					CONFIG_TITLE,
 					CONFIG_TITLE_BLUR,
 					CONFIG_TITLE_FOCUS,
+					CONFIG_MENU,
 				};
 				char **values[] = {
 					&settings.border_blur,
@@ -145,6 +148,7 @@ configure()
 					&settings.title,
 					&settings.title_blur,
 					&settings.title_focus,
+					&settings.menu,
 				};
 				for (i = 0; i < sizeof(names) / sizeof(char*); i++)
 				{

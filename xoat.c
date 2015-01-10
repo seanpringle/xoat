@@ -122,6 +122,7 @@ typedef struct _Settings {
 	char *title_blur;
 	char *title_focus;
 	unsigned int title_ellipsis;
+	char *menu;
 
 	unsigned int layout_count;
 	Layout *layouts;
