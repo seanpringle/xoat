@@ -73,7 +73,11 @@ int menu_sort(const void *a, const void *b)
 {
 	const MenuMap *ma = a;
 	const MenuMap *mb = b;
-	return strcmp(ma->name, mb->name);
+	char as[strlen(ma->name)+1];
+	char bs[strlen(mb->name)+1];
+	for (int i = 0; ma->name[i]; i++) as[i] = tolower(ma->name[i]);
+	for (int i = 0; mb->name[i]; i++) bs[i] = tolower(mb->name[i]);
+	return strcmp(as, bs);
 }
 
 void menu_create(int spot, int mon)
@@ -93,7 +97,7 @@ void menu_create(int spot, int mon)
 	h = 10;
 
 	Menubox *mb = menubox_create(root, MB_AUTOHEIGHT|MB_AUTOWIDTH|MB_MINWIDTH, x, y, w, h, 
-		settings.border, settings.title, settings.title_focus, settings.border_focus, settings.title_blur, settings.border_blur);
+		settings.border, settings.menu, settings.title_focus, settings.border_focus, settings.title_blur, settings.border_blur);
 	
 	menu->mb = mb;
 	menu->spot = spot;
