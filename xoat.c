@@ -153,6 +153,7 @@ void action_fullscreen(void*, int, Client*);
 void action_maximize_vert(void*, int, Client*);
 void action_maximize_horz(void*, int, Client*);
 void action_maximize(void*, int, Client*);
+void action_menu(void*, int, Client*);
 
 #include "config.h"
 

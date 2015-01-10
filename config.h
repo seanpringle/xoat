@@ -68,6 +68,7 @@ Layout layouts[] = {
 // action_maximize_vert
 // action_maximize_horz
 // action_maximize
+// action_menu
 
 // If using "AnyModifier" place those keys at the end of the array.
 Binding keys[] = {
@@ -92,6 +93,9 @@ Binding keys[] = {
 
 	// Gracefully close the current window.
 	{ .mod = Mod4Mask, .key = XK_Escape, .act = action_close },
+
+	// Popup list of windows in current spot.
+	{ .mod = Mod4Mask, .key = XK_Menu, .act = action_menu },
 
 	// Toggle current window full screen.
 	{ .mod = Mod4Mask, .key = XK_f, .act = action_fullscreen },
