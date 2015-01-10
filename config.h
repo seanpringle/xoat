@@ -16,6 +16,9 @@
 #define TITLE_FOCUS "White"
 #define TITLE_ELLIPSIS 32
 
+// Window lists
+# define MENU "sans:size=8"
+
 // There are three static tiles called SPOT1, SPOT2, and SPOT3.
 // Want more tiles? Different layouts? Floating? Go away ;)
 // -------------------------------

@@ -80,7 +80,7 @@ configure()
 	settings.title_blur     = strdup(TITLE_BLUR);
 	settings.title_focus    = strdup(TITLE_FOCUS);
 	settings.title_ellipsis = TITLE_ELLIPSIS;
-	settings.menu           = TITLE ? strdup(TITLE): "sans";
+	settings.menu           = strdup(MENU);
 
 	settings.layout_count = sizeof(layouts) / sizeof(Layout);
 	settings.layouts = calloc(settings.layout_count, sizeof(Layout));
