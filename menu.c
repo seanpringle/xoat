@@ -123,7 +123,6 @@ void menu_create(int spot, int mon)
 
 	menubox_moveresize(mb, x, y, w, h);
 
-	menubox_key_down(mb);
 	menubox_show(mb);
 	menubox_draw(mb);
 	menubox_grab(mb);
