@@ -168,9 +168,9 @@ void button_press(XEvent *ev)
 	if (c && c->manage)
 		client_activate(c);
 	else
-	if (TITLE)
+	if (settings.title)
 		for_monitors(i, m) for_spots(j)
-			if (m->bars[j]->window == e->subwindow)
+			if (m->bars[i] && m->bars[j]->window == e->subwindow)
 				spot_focus_top_window(j, i, None);
 	client_free(c);
 	XAllowEvents(display, ReplayPointer, CurrentTime);
