@@ -189,7 +189,7 @@ void action_menu(void*, int, Client*);
 #define for_monitors(i, m)\
 	for ((i) = 0; (i) < nmonitors && (m = &monitors[(i)]); (i)++)
 
-Time latest;
+Time latest_action;
 char *self;
 unsigned int NumlockMask;
 Monitor monitors[MONITORS];

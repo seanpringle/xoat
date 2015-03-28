@@ -126,7 +126,8 @@ void unmap_notify(XEvent *e)
 
 void key_press(XEvent *ev)
 {
-	XKeyEvent *e = &ev->xkey; latest = e->time;
+	XKeyEvent *e = &ev->xkey;
+	latest_action = e->time;
 	KeySym key = XkbKeycodeToKeysym(display, e->keycode, 0, 0);
 	unsigned int state = e->state & ~(LockMask|NumlockMask);
 	while (XCheckTypedEvent(display, KeyPress, ev));
@@ -141,7 +142,7 @@ void key_press(XEvent *ev)
 
 		if (rc == -1)
 			menu_select();
-		
+
 		return;
 	}
 
@@ -163,7 +164,8 @@ void key_press(XEvent *ev)
 void button_press(XEvent *ev)
 {
 	int i, j; Monitor *m;
-	XButtonEvent *e = &ev->xbutton; latest = e->time;
+	XButtonEvent *e = &ev->xbutton;
+	latest_action = e->time;
 	Client *c = window_build_client(e->subwindow);
 	if (c && c->manage)
 		client_activate(c);
@@ -173,7 +175,7 @@ void button_press(XEvent *ev)
 			if (m->bars[i] && m->bars[j]->window == e->subwindow)
 				spot_focus_top_window(j, i, None);
 	client_free(c);
-	XAllowEvents(display, ReplayPointer, CurrentTime);
+	XAllowEvents(display, ReplayPointer, latest_action);
 }
 
 void client_message(XEvent *ev)
@@ -195,7 +197,6 @@ void client_message(XEvent *ev)
 		if (e->message_type == atoms[_NET_ACTIVE_WINDOW])
 		{
 			client_activate(c);
-			spot_warp_pointer(c->spot, c->monitor);
 		}
 		else
 		if (e->message_type == atoms[_NET_CLOSE_WINDOW])
