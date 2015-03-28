@@ -37,9 +37,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CONFIG_MENU "menu"
 
 #define CONFIG_UINT_NAMES CONFIG_BORDER "|" CONFIG_GAP "|" CONFIG_TITLE_ELLIPSIS
-#define CONFIG_STR_NAMES CONFIG_BORDER_BLUR "|" CONFIG_BORDER_FOCUS "|" CONFIG_BORDER_URGENT "|" CONFIG_TITLE "|" CONFIG_TITLE_BLUR "|" CONFIG_TITLE_FOCUS "|" CONFIG_MENU
+#define CONFIG_STR_NAMES CONFIG_BORDER_BLUR "|" CONFIG_BORDER_FOCUS "|" CONFIG_BORDER_URGENT "|" CONFIG_TITLE "|" \
+	CONFIG_TITLE_BLUR "|" CONFIG_TITLE_FOCUS "|" CONFIG_MENU
 
-#define CONFIG_ACTIONS "action_move_direction|action_focus_direction|action_move|action_focus|action_close|action_cycle|action_raise_nth|action_command|action_find_or_start|action_move_monitor|action_focus_monitor|action_fullscreen|action_maximize_vert|action_maximize_horz|action_maximize|action_menu"
+#define CONFIG_ACTIONS "action_move_direction|action_move_monitor|action_focus_monitor|action_focus_direction" \
+	"|action_move|action_focus|action_close|action_cycle|action_raise_nth|action_command|action_find_or_start" \
+	"|action_fullscreen|action_maximize_vert|action_maximize_horz|action_maximize|action_menu"
 
 void
 rtrim(char *str)
