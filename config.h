@@ -68,6 +68,7 @@ Layout layouts[] = {
 // action_maximize_vert
 // action_maximize_horz
 // action_maximize
+// action_above
 // action_menu
 
 // If using "AnyModifier" place those keys at the end of the array.
@@ -102,6 +103,7 @@ Binding keys[] = {
 	{ .mod = Mod4Mask, .key = XK_v, .act = action_maximize_vert },
 	{ .mod = Mod4Mask, .key = XK_h, .act = action_maximize_horz },
 	{ .mod = Mod4Mask, .key = XK_m, .act = action_maximize },
+	{ .mod = Mod4Mask, .key = XK_a, .act = action_above },
 
 	// Launcher
 	{ .mod = Mod4Mask, .key = XK_x,  .act = action_command, .data = "dmenu_run" },
