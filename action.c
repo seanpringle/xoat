@@ -27,8 +27,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 void action_move(void *data, int num, Client *cli)
 {
 	if (!cli) return;
-	client_raise_family(cli);
 	client_place_spot(cli, num, cli->monitor, 1);
+	client_raise_family(cli);
 	current_spot = cli->spot; current_mon = cli->monitor;
 	spot_warp_pointer(cli->spot, cli->monitor);
 }
@@ -36,8 +36,8 @@ void action_move(void *data, int num, Client *cli)
 void action_move_direction(void *data, int num, Client *cli)
 {
 	if (!cli) return;
-	client_raise_family(cli);
 	client_place_spot(cli, spot_choose_by_direction(cli->spot, cli->monitor, num), cli->monitor, 1);
+	client_raise_family(cli);
 	current_spot = cli->spot; current_mon = cli->monitor;
 	spot_warp_pointer(cli->spot, cli->monitor);
 }
@@ -100,9 +100,9 @@ void action_find_or_start(void *data, int num, Client *cli)
 void action_move_monitor(void *data, int num, Client *cli)
 {
 	if (!cli) return;
-	client_raise_family(cli);
 	cli->monitor = MAX(0, MIN(current_mon+num, nmonitors-1));
 	client_place_spot(cli, cli->spot, cli->monitor, 1);
+	client_raise_family(cli);
 	current_mon = cli->monitor;
 	spot_warp_pointer(cli->spot, cli->monitor);
 }
@@ -149,6 +149,13 @@ void action_maximize_horz(void *data, int num, Client *cli)
 {
 	if (!cli) return;
 	cli->maxh = client_toggle_state(cli, atoms[_NET_WM_STATE_MAXIMIZE_HORZ]);
+	client_place_spot(cli, cli->spot, cli->monitor, 1);
+}
+
+void action_above(void *data, int num, Client *cli)
+{
+	if (!cli) return;
+	cli->above = client_toggle_state(cli, atoms[_NET_WM_STATE_ABOVE]);
 	client_place_spot(cli, cli->spot, cli->monitor, 1);
 }
 

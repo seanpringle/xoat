@@ -89,7 +89,7 @@ typedef struct _Client {
 	XWindowAttributes attr;
 	Window transient, leader;
 	Atom type, states[ATOMLIST+1];
-	short monitor, visible, manage, input, urgent, full, ours, maxv, maxh, bar, menu;
+	short monitor, visible, manage, input, urgent, full, ours, maxv, maxh, bar, menu, above;
 	unsigned long spot, max;
 	char *class;
 } Client;
@@ -153,6 +153,7 @@ void action_fullscreen(void*, int, Client*);
 void action_maximize_vert(void*, int, Client*);
 void action_maximize_horz(void*, int, Client*);
 void action_maximize(void*, int, Client*);
+void action_above(void*, int, Client*);
 void action_menu(void*, int, Client*);
 
 #include "config.h"

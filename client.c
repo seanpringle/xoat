@@ -112,6 +112,7 @@ Client* window_build_client(Window win)
 				c->full   = client_has_state(c, atoms[_NET_WM_STATE_FULLSCREEN]);
 				c->maxv   = client_has_state(c, atoms[_NET_WM_STATE_MAXIMIZE_VERT]);
 				c->maxh   = client_has_state(c, atoms[_NET_WM_STATE_MAXIMIZE_HORZ]);
+				c->above  = client_has_state(c, atoms[_NET_WM_STATE_ABOVE]);
 
 				GETPROP_LONG(win, atoms[XOAT_MAXIMIZE], &c->max, 1);
 
@@ -297,8 +298,13 @@ void client_raise_family(Client *c)
 	if (!c) return;
 	int i; Client *o; STACK_INIT(raise); STACK_INIT(family);
 
-	for_windows(i, o) if (o->type == atoms[_NET_WM_WINDOW_TYPE_DOCK])
-		client_stack_family(o, &raise);
+	for_windows(i, o)
+	{
+		if (o->type == atoms[_NET_WM_WINDOW_TYPE_DOCK])
+			client_stack_family(o, &raise);
+		if (o->above && c->spot != SPOT3 && o->spot == SPOT3)
+			client_stack_family(o, &raise);
+	}
 
 	while (c->transient && (o = window_build_client(c->transient)) && o->manage)
 		c = family.clients[family.depth++] = o;

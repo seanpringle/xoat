@@ -42,7 +42,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #define CONFIG_ACTIONS "action_move_direction|action_move_monitor|action_focus_monitor|action_focus_direction" \
 	"|action_move|action_focus|action_close|action_cycle|action_raise_nth|action_command|action_find_or_start" \
-	"|action_fullscreen|action_maximize_vert|action_maximize_horz|action_maximize|action_menu"
+	"|action_fullscreen|action_maximize_vert|action_maximize_horz|action_maximize|action_above|action_menu"
 
 void
 rtrim(char *str)
@@ -373,6 +373,7 @@ configure()
 					"action_maximize_vert",
 					"action_maximize_horz",
 					"action_maximize",
+					"action_above",
 					"action_menu",
 				};
 				void *actions[] = {
@@ -391,6 +392,7 @@ configure()
 					action_maximize_vert,
 					action_maximize_horz,
 					action_maximize,
+					action_above,
 					action_menu,
 				};
 				for (i = 0; i < sizeof(names) / sizeof(char*); i++)
@@ -451,7 +453,7 @@ configure()
 			if (regex_match("^launch[[:space:]]+(.+)$", tmp))
 			{
 				rtrim(regex_matches[1]);
-				
+
 				settings.launchcmd_count++;
 				settings.launchcmds = realloc(settings.launchcmds, sizeof(char*) * settings.launchcmd_count);
 				settings.launchcmds[settings.launchcmd_count-1] = strdup(regex_matches[1]);
