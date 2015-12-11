@@ -97,7 +97,7 @@ void textbox_extents(Textbox *tb)
 	int length = strlen(tb->text) + strlen(tb->prompt);
 	char *line = calloc(length + 1, sizeof(char));
 	sprintf(line, "%s%s", tb->prompt, tb->text);
-	XftTextExtents8(display, tb->font, (unsigned char*)line, length, &tb->extents);
+	XftTextExtentsUtf8(display, tb->font, (unsigned char*)line, length, &tb->extents);
 	free(line);
 }
 
@@ -198,7 +198,7 @@ void textbox_draw(Textbox *tb)
 		if (length > 0 && isspace(line[length-1])) line[length-1] = '.';
 
 		// calc cursor position
-		XftTextExtents8(display, tb->font, (unsigned char*)line, cursor_offset, &extents);
+		XftTextExtentsUtf8(display, tb->font, (unsigned char*)line, cursor_offset, &extents);
 		cursor_x = extents.width;
 
 		// restore correct text string
@@ -206,7 +206,7 @@ void textbox_draw(Textbox *tb)
 	}
 
 	// calc full input text width
-	XftTextExtents8(display, tb->font, (unsigned char*)line, length, &extents);
+	XftTextExtentsUtf8(display, tb->font, (unsigned char*)line, length, &extents);
 	int line_width = extents.width;
 
 	int x = 0, y = tb->font->ascent;
@@ -214,7 +214,7 @@ void textbox_draw(Textbox *tb)
 	if (tb->flags & TB_CENTER) x = MAX(0, (tb->w - line_width) / 2);
 
 	// draw the text, including any prompt in edit mode
-	XftDrawString8(draw, &tb->color_fg, tb->font, x, y, (unsigned char*)line, length);
+	XftDrawStringUtf8(draw, &tb->color_fg, tb->font, x, y, (unsigned char*)line, length);
 
 	// draw the cursor
 	if (tb->flags & TB_EDITABLE)
