@@ -103,6 +103,10 @@ void setup()
 	}
 	memmove(monitors, padded, sizeof(Monitor) * MONITORS);
 
+	// if spot_start is CURRENT, first window needs somewhere to go
+	current_spot = SPOT1;
+	current_mon  = 0;
+
 	// calculate spot boxes
 	for_monitors(i, m)
 	{
