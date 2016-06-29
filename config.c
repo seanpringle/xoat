@@ -411,7 +411,7 @@ configure()
 					if (strcmp(regex_matches[3], "spot3") == 0) num = SPOT3;
 				}
 				else
-				if (0 == strcmp(regex_matches[2], "action_move_direction") || 0 == strcmp(regex_matches[2], "action_focus_direction"))
+				if (0 == strcmp(regex_matches[2], "action_move_direction") || 0 == strcmp(regex_matches[2], "action_focus_direction") || 0 == strcmp(regex_matches[2], "action_move_monitor") || 0 == strcmp(regex_matches[2], "action_focus_monitor"))
 				{
 					if (strcmp(regex_matches[3], "left" ) == 0) num = LEFT;
 					if (strcmp(regex_matches[3], "right") == 0) num = RIGHT;
@@ -424,7 +424,7 @@ configure()
 					data = regex_matches[3];
 				}
 				else
-				if (0 == strcmp(regex_matches[2], "action_raise_nth") || 0 == strcmp(regex_matches[2], "action_move_monitor") || 0 == strcmp(regex_matches[2], "action_focus_monitor"))
+				if (0 == strcmp(regex_matches[2], "action_raise_nth"))
 				{
 					num = strtol(regex_matches[3], NULL, 10);
 				}

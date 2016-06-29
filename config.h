@@ -49,8 +49,9 @@
 
 Layout layouts[] = {
 	// Look at xrandr output to determine your monitor order.
-	{ .spot_start = SMART, .spot1_align = LEFT,  .spot1_width_pct = 60, .spot2_height_pct = 60 }, // primary monitor
-	{ .spot_start = SMART, .spot1_align = RIGHT, .spot1_width_pct = 60, .spot2_height_pct = 60 }, // secondary monitor, etc...
+	{ .spot_start = SMART, .spot1_align = LEFT, .spot1_width_pct = 60, .spot2_height_pct = 50 }, // primary monitor
+	{ .spot_start = SMART, .spot1_align = LEFT, .spot1_width_pct = 60, .spot2_height_pct = 60 }, // secondary monitor, etc...
+	{ .spot_start = SMART, .spot1_align = LEFT, .spot1_width_pct = 60, .spot2_height_pct = 60 }, // secondary monitor, etc...
 };
 
 // Available actions...
@@ -62,8 +63,8 @@ Layout layouts[] = {
 // action_cycle
 // action_command
 // action_find_or_start
-// action_move_monitor
-// action_focus_monitor
+// action_move_monitor     .num = UP/DOWN/LEFT/RIGHT
+// action_focus_monitor    .num = UP/DOWN/LEFT/RIGHT
 // action_fullscreen
 // action_maximize_vert
 // action_maximize_horz

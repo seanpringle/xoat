@@ -216,6 +216,7 @@ void exec_cmd(char *cmd)
 	exit(EXIT_FAILURE);
 }
 
+#include "monitor.c"
 #include "window.c"
 #include "ewmh.c"
 #include "client.c"

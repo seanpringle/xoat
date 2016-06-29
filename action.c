@@ -100,7 +100,7 @@ void action_find_or_start(void *data, int num, Client *cli)
 void action_move_monitor(void *data, int num, Client *cli)
 {
 	if (!cli) return;
-	cli->monitor = MAX(0, MIN(current_mon+num, nmonitors-1));
+	cli->monitor = monitor_choose_by_direction(current_mon, num);
 	client_place_spot(cli, cli->spot, cli->monitor, 1);
 	client_raise_family(cli);
 	current_mon = cli->monitor;
@@ -109,7 +109,7 @@ void action_move_monitor(void *data, int num, Client *cli)
 
 void action_focus_monitor(void *data, int num, Client *cli)
 {
-	int i, mon = MAX(0, MIN(current_mon+num, nmonitors-1));
+	int i, mon = monitor_choose_by_direction(current_mon, num);
 	if (!spot_focus_top_window(current_spot, mon, None))
 		for_spots(i) if (spot_focus_top_window(i, mon, None)) break;
 	spot_warp_pointer(current_spot, current_mon);
